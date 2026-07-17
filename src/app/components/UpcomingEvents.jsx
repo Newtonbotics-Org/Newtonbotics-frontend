@@ -150,17 +150,17 @@ const UpcomingEvents = () => {
 
   if (loading) {
     return (
-      <section className="py-20 relative z-10 bg-black/20 backdrop-blur-[1px]">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
+      <section className="py-16 md:py-20 relative z-10 bg-black/20 backdrop-blur-[1px]">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10 sm:mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Upcoming Events</h2>
-            <p className="text-lg text-white/60">Stay updated with our latest robotics events and workshops</p>
+            <p className="text-base sm:text-lg text-white/60 px-2">Stay updated with our latest robotics events and workshops</p>
           </div>
           
           {/* Loading skeleton */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {[...Array(3)].map((_, index) => (
-              <div key={index} className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 animate-pulse">
+              <div key={index} className="bg-white/5 backdrop-blur-lg rounded-2xl p-5 sm:p-6 border border-white/10 animate-pulse">
                 <div className="h-4 bg-white/10 rounded mb-3"></div>
                 <div className="h-3 bg-white/10 rounded mb-2"></div>
                 <div className="h-3 bg-white/10 rounded mb-4"></div>
@@ -179,17 +179,17 @@ const UpcomingEvents = () => {
 
   if (error) {
     return (
-      <section className="py-20 relative z-10 bg-black/20 backdrop-blur-[1px]">
-        <div className="container mx-auto px-4">
-          <div className="text-center py-12">
+      <section className="py-16 md:py-20 relative z-10 bg-black/20 backdrop-blur-[1px]">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center py-8 sm:py-12">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Upcoming Events</h2>
-            <p className="text-lg text-white/60">Stay updated with our latest robotics events and workshops</p>
+            <p className="text-base sm:text-lg text-white/60 px-2">Stay updated with our latest robotics events and workshops</p>
           </div>
           
-          <div className="text-center py-12">
-            <div className="text-red-400 text-6xl mb-4">⚠️</div>
+          <div className="text-center py-8 sm:py-12">
+            <div className="text-red-400 text-5xl sm:text-6xl mb-4">⚠️</div>
             <h3 className="text-xl font-semibold text-white mb-2">Unable to Load Events</h3>
-            <p className="text-white/60 mb-6">There was an error loading upcoming events. Please try again later.</p>
+            <p className="text-white/60 mb-6 px-2">There was an error loading upcoming events. Please try again later.</p>
             <button 
               onClick={() => window.location.reload()} 
               className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition-colors"
@@ -203,20 +203,20 @@ const UpcomingEvents = () => {
   }
 
   return (
-    <section className="py-20 relative z-10 bg-black/20 backdrop-blur-[1px]">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
+    <section className="py-16 md:py-20 relative z-10 bg-black/20 backdrop-blur-[1px]">
+      <div className="container mx-auto px-4 sm:px-6">
+        <div className="text-center mb-10 sm:mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-red-400 to-white">
             Upcoming Events
           </h2>
-          <p className="text-lg text-white/60">Stay updated with our latest robotics events and workshops</p>
+          <p className="text-base sm:text-lg text-white/60 px-2">Stay updated with our latest robotics events and workshops</p>
         </div>
 
         {events.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-white/40 text-6xl mb-4">📅</div>
+          <div className="text-center py-8 sm:py-12">
+            <div className="text-white/40 text-5xl sm:text-6xl mb-4">📅</div>
             <h3 className="text-xl font-semibold text-white mb-2">No Upcoming Events</h3>
-            <p className="text-white/60 mb-6">Check back later for exciting new events and workshops!</p>
+            <p className="text-white/60 mb-6 px-2">Check back later for exciting new events and workshops!</p>
             <Link href="/Events">
               <button className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                 View All Events
@@ -225,11 +225,11 @@ const UpcomingEvents = () => {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-10 sm:mb-12">
               {events.map((event, index) => (
                 <div key={event._id} className="group transition-transform duration-150 hover:-translate-y-1">
                   <Link href={`/Events/${event._id}`}>
-                    <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 hover:bg-white/10 cursor-pointer h-full">
+                    <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-5 sm:p-6 border border-white/10 hover:border-white/20 transition-all duration-300 hover:bg-white/10 cursor-pointer h-full">
                       {/* Event Header */}
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex gap-2 flex-wrap">
@@ -248,7 +248,7 @@ const UpcomingEvents = () => {
                       </div>
 
                       {/* Event Title */}
-                      <h3 className="text-xl font-bold text-white mb-3 group-hover:text-red-400 transition-colors">
+                      <h3 className="text-lg sm:text-xl font-bold text-white mb-3 group-hover:text-red-400 transition-colors">
                         {event.title}
                       </h3>
 
@@ -260,22 +260,22 @@ const UpcomingEvents = () => {
                       {/* Event Details */}
                       <div className="space-y-2 mb-4">
                         <div className="flex items-center gap-2 text-white/60 text-sm">
-                          <Calendar className="w-4 h-4" />
+                          <Calendar className="w-4 h-4 shrink-0" />
                           <span>{formatDate(event.startDate)}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-white/60 text-sm">
-                          <Clock className="w-4 h-4" />
-                          <span>{formatTime(event.startDate, event.startTime)} - {formatTime(event.endDate, event.endTime)}</span>
+                        <div className="flex items-start gap-2 text-white/60 text-sm">
+                          <Clock className="w-4 h-4 shrink-0 mt-0.5" />
+                          <span className="break-words">{formatTime(event.startDate, event.startTime)} - {formatTime(event.endDate, event.endTime)}</span>
                         </div>
                         {event.location && (
-                          <div className="flex items-center gap-2 text-white/60 text-sm">
-                            <MapPin className="w-4 h-4" />
-                            <span>{event.location}</span>
+                          <div className="flex items-start gap-2 text-white/60 text-sm">
+                            <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
+                            <span className="break-words">{event.location}</span>
                           </div>
                         )}
                         {getAvailabilityText(event) && (
                           <div className="flex items-center gap-2 text-white/60 text-sm">
-                            <Users className="w-4 h-4" />
+                            <Users className="w-4 h-4 shrink-0" />
                             <span>{getAvailabilityText(event)}</span>
                           </div>
                         )}
@@ -297,7 +297,7 @@ const UpcomingEvents = () => {
             {/* View All Events Button */}
             <div className="text-center">
               <Link href="/Events">
-                <button className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-lg border border-white/20 transition-all flex items-center gap-3 mx-auto group text-lg font-semibold">
+                <button className="bg-white/10 hover:bg-white/20 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg border border-white/20 transition-all flex items-center gap-3 mx-auto group text-base sm:text-lg font-semibold w-full sm:w-auto max-w-xs sm:max-w-none justify-center">
                   View All Events
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>

@@ -17,7 +17,9 @@ import {
   Star,
   Calendar,
   Eye,
-  Tag
+  Tag,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import mediaService from "../../lib/media";
 
@@ -252,6 +254,37 @@ export default function GalleryClient() {
       // Don't show error to user, just log it
     }
   };
+
+  const navigateLightbox = (direction) => {
+    if (!active || mediaItems.length <= 1) return;
+    const currentIndex = mediaItems.findIndex((item) => item._id === active._id);
+    if (currentIndex === -1) return;
+    const nextIndex =
+      direction === "next"
+        ? (currentIndex + 1) % mediaItems.length
+        : (currentIndex - 1 + mediaItems.length) % mediaItems.length;
+    const nextItem = mediaItems[nextIndex];
+    setActive(nextItem);
+    handleMediaView(nextItem);
+  };
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (!active) return;
+    const onKeyDown = (e) => {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        navigateLightbox("prev");
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        navigateLightbox("next");
+      } else if (e.key === "Escape") {
+        setActive(null);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [active, mediaItems]);
 
   const getFileTypeIcon = (fileType) => {
     switch (fileType) {
@@ -564,19 +597,15 @@ export default function GalleryClient() {
                   
                   {/* File Type Badge */}
                   <div className="absolute top-2 left-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium bg-black/50 text-white flex items-center gap-1`}>
+                    <span className="p-1.5 rounded-full bg-black/50 text-white flex items-center" title={item.fileType}>
                       {getFileTypeIcon(item.fileType)}
-                      {item.fileType}
                     </span>
                   </div>
                   
                   {/* Featured Badge */}
                   {item.isFeatured && (
-                    <div className="absolute top-2 right-2">
-                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-500/80 text-white">
-                        <Star className="w-3 h-3 inline mr-1" />
-                        Featured
-                      </span>
+                    <div className="absolute top-2 right-2" title="Featured">
+                      <Star className="w-5 h-5 text-yellow-400 fill-yellow-400 drop-shadow" />
                     </div>
                   )}
                   
@@ -650,17 +679,13 @@ export default function GalleryClient() {
                     <div className="flex items-center gap-2 mb-2">
                       <h3 className="text-lg font-semibold text-white truncate">{item.title}</h3>
                       {item.isFeatured && (
-                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-500/80 text-white">
-                          <Star className="w-3 h-3 inline mr-1" />
-                          Featured
-                        </span>
+                        <Star className="w-5 h-5 text-yellow-400 fill-yellow-400 shrink-0" title="Featured" />
                       )}
                     </div>
                     <p className="text-white/70 text-sm mb-2 line-clamp-2">{item.description}</p>
                     <div className="flex items-center gap-4 text-xs text-white/60">
-                      <span className={`flex items-center gap-1 ${getFileTypeColor(item.fileType)}`}>
+                      <span className={`${getFileTypeColor(item.fileType)}`} title={item.fileType}>
                         {getFileTypeIcon(item.fileType)}
-                        {item.fileType}
                       </span>
                       <span className="flex items-center gap-1">
                         <Eye className="w-3 h-3" />
@@ -716,6 +741,24 @@ export default function GalleryClient() {
               </button>
               
               <div className="relative w-full bg-black rounded-xl overflow-hidden border border-white/10">
+                {mediaItems.length > 1 && (
+                  <>
+                    <button
+                      onClick={() => navigateLightbox("prev")}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2 md:p-3 rounded-full bg-black/60 hover:bg-black/80 border border-white/20 text-white transition-colors"
+                      aria-label="Previous"
+                    >
+                      <ChevronLeft className="w-6 h-6" />
+                    </button>
+                    <button
+                      onClick={() => navigateLightbox("next")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2 md:p-3 rounded-full bg-black/60 hover:bg-black/80 border border-white/20 text-white transition-colors"
+                      aria-label="Next"
+                    >
+                      <ChevronRight className="w-6 h-6" />
+                    </button>
+                  </>
+                )}
                 {active.fileType === "image" ? (
                   <div className="relative w-full flex items-center justify-center">
                     <img
@@ -756,14 +799,10 @@ export default function GalleryClient() {
                   <h3 className="text-xl font-bold text-white">{active.title}</h3>
                   <div className="flex items-center gap-2">
                     {active.isFeatured && (
-                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-500/80 text-white">
-                        <Star className="w-3 h-3 inline mr-1" />
-                        Featured
-                      </span>
+                      <Star className="w-5 h-5 text-yellow-400 fill-yellow-400 shrink-0" title="Featured" />
                     )}
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getFileTypeColor(active.fileType)}`}>
+                    <span className={`p-1.5 rounded-full ${getFileTypeColor(active.fileType)}`} title={active.fileType}>
                       {getFileTypeIcon(active.fileType)}
-                      {active.fileType}
                     </span>
                   </div>
                 </div>

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { X, ExternalLink, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/lib/api";
@@ -28,7 +29,12 @@ const NewsTicker = () => {
   const segmentRef = useRef(null);
   const [announcements, setAnnouncements] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const displayAnnouncements =
     announcements.length > 0 ? announcements : fallbackAnnouncements;
@@ -48,38 +54,55 @@ const NewsTicker = () => {
   }, [displayAnnouncements]);
 
   const handleNewsClick = useCallback((announcement) => {
+    setIsPaused(true);
     setSelectedNews(announcement);
   }, []);
 
+  const pauseTicker = useCallback(() => setIsPaused(true), []);
+  const resumeTicker = useCallback(() => {
+    setIsPaused(false);
+    setHoveredNews(null);
+  }, []);
+
   const renderAnnouncementItems = useCallback(
-    (keyPrefix = 'item') =>
+    (keyPrefix = "item", interactive = true) =>
       tickerItems.map((announcement, index) => (
-        <span key={`${keyPrefix}-${announcement.loopKey}-${index}`} className="inline-flex items-center">
+        <span
+          key={`${keyPrefix}-${announcement.loopKey}-${index}`}
+          className="inline-flex items-center"
+        >
+          {interactive ? (
+            <button
+              type="button"
+              className={`inline-block px-2 py-1 rounded-lg transition-all duration-300 cursor-pointer pointer-events-auto hover:bg-white/10 hover:shadow-md relative border-0 bg-transparent text-inherit font-inherit [clip-path:none] ${
+                hoveredNews === announcement.id ? "bg-white/10 shadow-md" : ""
+              }`}
+              onPointerEnter={(e) => {
+                setHoveredNews(announcement.id);
+                const rect = e.currentTarget.getBoundingClientRect();
+                setTooltipPosition({
+                  x: rect.left + rect.width / 2,
+                  y: rect.top - 10,
+                });
+              }}
+              onPointerLeave={() => setHoveredNews(null)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleNewsClick(announcement);
+              }}
+            >
+              {announcement.text}
+            </button>
+          ) : (
+            <span className="inline-block px-2 py-1 pointer-events-none">
+              {announcement.text}
+            </span>
+          )}
           <span
-            className={`inline-block px-2 py-1 rounded-lg transition-all duration-300 cursor-pointer hover:bg-white/10 hover:shadow-md hover:scale-105 relative ${
-              hoveredNews === announcement.id ? 'bg-white/10 shadow-md scale-105' : ''
-            }`}
-            onMouseEnter={(e) => {
-              setHoveredNews(announcement.id);
-              setIsPaused(true);
-              const rect = e.currentTarget.getBoundingClientRect();
-              setTooltipPosition({
-                x: rect.left + rect.width / 2,
-                y: rect.top - 10,
-              });
-            }}
-            onMouseLeave={() => {
-              setHoveredNews(null);
-              setIsPaused(false);
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleNewsClick(announcement);
-            }}
-          >
-            {announcement.text}
-          </span>
-          <span className="mx-8 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-white/35" aria-hidden="true" />
+            className="mx-8 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-white/35 pointer-events-none"
+            aria-hidden="true"
+          />
         </span>
       )),
     [tickerItems, handleNewsClick, hoveredNews]
@@ -177,53 +200,51 @@ const NewsTicker = () => {
 
   return (
     <>
-      <div className="bg-black border-b border-white/10 shadow-sm relative overflow-hidden hover:shadow-md transition-shadow duration-300">
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute bottom-0 left-0 w-full h-4 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-y-1"></div>
-        </div>
-
+      <div className="relative z-[90] bg-black border-b border-white/10 shadow-sm overflow-hidden pointer-events-auto">
         <div className="container mx-auto px-4 py-2.5 relative">
           <div className="flex items-center justify-between min-h-[32px]">
-            <div className="flex items-center gap-2 mr-4 md:mr-6 flex-shrink-0">
+            <div className="flex items-center gap-2 mr-4 md:mr-6 flex-shrink-0 pointer-events-none">
               <div
-                className={`w-2 h-2 rounded-full ${isPaused ? 'bg-white' : 'bg-white animate-pulse'}`}
-              ></div>
+                className={`w-2 h-2 rounded-full ${isPaused ? "bg-white" : "bg-white animate-pulse"}`}
+              />
               <span className="text-xs font-bold text-white uppercase tracking-wide hidden sm:inline">
-                {isLoading ? 'Loading...' : 'Latest News'}
+                {isLoading ? "Loading..." : "Latest News"}
               </span>
               <span className="text-xs font-bold text-white uppercase tracking-wide sm:hidden">
-                {isLoading ? 'Loading' : 'News'}
+                {isLoading ? "Loading" : "News"}
               </span>
             </div>
 
             <div
-              className="flex-1 overflow-hidden relative min-h-[20px] flex items-center cursor-pointer hover:bg-white/5 rounded-lg transition-colors duration-200"
+              className="flex-1 overflow-hidden relative min-h-[28px] flex items-center cursor-pointer hover:bg-white/5 rounded-lg transition-colors duration-200"
+              onPointerEnter={pauseTicker}
+              onPointerLeave={resumeTicker}
               onClick={handleTickerClick}
-              onMouseEnter={() => setIsPaused(true)}
-              onMouseLeave={() => setIsPaused(false)}
             >
               <div
-                className="news-ticker-track flex w-max items-center whitespace-nowrap text-sm font-medium text-white/80"
+                className="news-ticker-track flex w-max items-center whitespace-nowrap text-sm font-medium text-white/80 pointer-events-none"
                 style={{
                   animationDuration: `${duration}s`,
-                  animationPlayState: isPaused ? 'paused' : 'running',
-                  ['--ticker-shift']: tickerShift,
+                  animationPlayState: isPaused ? "paused" : "running",
+                  ["--ticker-shift"]: tickerShift,
                 }}
               >
                 <div ref={segmentRef} className="inline-flex items-center shrink-0">
-                  {renderAnnouncementItems('track-a')}
+                  {renderAnnouncementItems("track-a", true)}
                 </div>
                 <div className="inline-flex items-center shrink-0" aria-hidden="true">
-                  {renderAnnouncementItems('track-b')}
+                  {renderAnnouncementItems("track-b", false)}
                 </div>
               </div>
             </div>
 
             <div className="flex gap-1.5 ml-4 md:ml-6 flex-shrink-0">
-              <div
+              <button
+                type="button"
+                aria-label={isPaused ? "Resume news ticker" : "Pause news ticker"}
                 onClick={handleTickerClick}
-                className={`w-3 h-3 rounded-full transition-all duration-300 cursor-pointer hover:scale-125 ${
-                  isPaused ? 'bg-white scale-125 shadow-sm' : 'bg-white/60 animate-pulse'
+                className={`w-3 h-3 rounded-full transition-all duration-300 cursor-pointer hover:scale-125 border-0 p-0 [clip-path:none] ${
+                  isPaused ? "bg-white scale-125 shadow-sm" : "bg-white/60 animate-pulse"
                 }`}
               />
             </div>
@@ -248,75 +269,87 @@ const NewsTicker = () => {
         </div>
       )}
 
-      {selectedNews && (
-        <div
-          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-          onClick={closeModal}
-        >
+      {mounted &&
+        selectedNews &&
+        createPortal(
           <div
-            className="bg-black border border-white/10 rounded-2xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4"
+            onClick={closeModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="news-ticker-modal-title"
           >
-            <div className="bg-white/5 border-b border-white/10 p-6 text-white relative">
-              <button
-                onClick={closeModal}
-                className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs font-medium bg-white/10 px-2 py-1 rounded-full text-white">
-                  {selectedNews.category}
-                </span>
-                {selectedNews.date && (
-                  <span className="text-xs text-white/60">
-                    {new Date(selectedNews.date).toLocaleDateString()}
-                  </span>
-                )}
-              </div>
-              <h3 className="text-lg font-bold text-white">{selectedNews.text}</h3>
-            </div>
-
-            <div className="p-6">
-              <p className="text-white/80 leading-relaxed mb-6">{selectedNews.details}</p>
-
-              <div className="flex gap-3">
+            <div
+              className="bg-black border border-white/10 rounded-2xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="bg-white/5 border-b border-white/10 p-6 text-white relative">
                 <button
+                  type="button"
                   onClick={closeModal}
-                  className="flex-1 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"
+                  aria-label="Close"
+                  className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
                 >
-                  Close
+                  <X className="w-4 h-4 pointer-events-none" />
                 </button>
-                <button
-                  onClick={() => {
-                    if (
-                      selectedNews?.id &&
-                      selectedNews?.type &&
-                      !selectedNews?.isFallback &&
-                      isValidObjectId(String(selectedNews.id))
-                    ) {
-                      const routePath =
-                        selectedNews.type === 'event'
-                          ? `/Events/${selectedNews.id}`
-                          : `/News/${selectedNews.id}`;
-                      router.push(routePath);
-                      setSelectedNews(null);
+                <div className="flex items-center gap-2 mb-2 pr-10">
+                  <span className="text-xs font-medium bg-white/10 px-2 py-1 rounded-full text-white">
+                    {selectedNews.category}
+                  </span>
+                  {selectedNews.date && (
+                    <span className="text-xs text-white/60">
+                      {new Date(selectedNews.date).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+                <h3 id="news-ticker-modal-title" className="text-lg font-bold text-white">
+                  {selectedNews.text}
+                </h3>
+              </div>
+
+              <div className="p-6">
+                <p className="text-white/80 leading-relaxed mb-6">{selectedNews.details}</p>
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="flex-1 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (
+                        selectedNews?.id &&
+                        selectedNews?.type &&
+                        !selectedNews?.isFallback &&
+                        isValidObjectId(String(selectedNews.id))
+                      ) {
+                        const routePath =
+                          selectedNews.type === "event"
+                            ? `/Events/${selectedNews.id}`
+                            : `/News/${selectedNews.id}`;
+                        setSelectedNews(null);
+                        router.push(routePath);
+                      }
+                    }}
+                    disabled={
+                      selectedNews?.isFallback ||
+                      !isValidObjectId(String(selectedNews?.id || ""))
                     }
-                  }}
-                  disabled={
-                    selectedNews?.isFallback ||
-                    !isValidObjectId(String(selectedNews?.id || ''))
-                  }
-                  className="flex-1 px-4 py-2 bg-white text-black rounded-lg hover:bg-white/90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {selectedNews?.type === 'event' ? 'View Event' : 'Read More'}
-                  <ExternalLink className="w-4 h-4" />
-                </button>
+                    className="flex-1 px-4 py-2 bg-white text-black rounded-lg hover:bg-white/90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {selectedNews?.type === "event" ? "View Event" : "Read More"}
+                    <ExternalLink className="w-4 h-4 pointer-events-none" />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </>
   );
 };
