@@ -1,5 +1,5 @@
 // Media API client for Gallery
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api';
+import { API_BASE_URL } from './api';
 
 async function safeParseJson(response) {
   const contentType = response.headers.get('content-type') || '';
@@ -58,62 +58,18 @@ const mockMediaData = [
     viewCount: 456,
     createdAt: "2024-12-08T09:15:00Z",
     tags: ["lab", "workspace"]
-  },
-  {
-    _id: "4",
-    title: "Robot Eye Blinking Demo",
-    description: "Video demonstration of robot eye blinking mechanism",
-    fileType: "video",
-    fileUrl: "/Robot_Eye_Blinking_Survival_Video.mp4",
-    thumbnailUrl: "/servilancerobot.jpeg", // Thumbnail image for video
-    categoryId: "projects",
-    isFeatured: true,
-    viewCount: 2100,
-    duration: 45,
-    createdAt: "2024-12-05T16:45:00Z",
-    tags: ["robot", "eyes", "animation"]
-  },
-  {
-    _id: "5",
-    title: "Authentication System Demo",
-    description: "Video showing our authentication system in action",
-    fileType: "video",
-    fileUrl: "/authentication.mp4",
-    thumbnailUrl: "/humanoidRobotHealthcare.webp", // Thumbnail image for video
-    categoryId: "systems",
-    isFeatured: false,
-    viewCount: 320,
-    duration: 120,
-    createdAt: "2024-12-03T11:20:00Z",
-    tags: ["authentication", "security"]
-  },
-  {
-    _id: "6",
-    title: "Password Reset Flow",
-    description: "Demonstration of password reset functionality",
-    fileType: "video",
-    fileUrl: "/forgetPassword.mp4",
-    thumbnailUrl: "/bgImageforroboticslab.jpg", // Thumbnail image for video
-    categoryId: "systems",
-    isFeatured: false,
-    viewCount: 180,
-    duration: 90,
-    createdAt: "2024-12-01T13:10:00Z",
-    tags: ["password", "reset", "security"]
   }
 ];
 
 const mockCategories = [
   { _id: "lab", name: "Laboratory" },
   { _id: "projects", name: "Projects" },
-  { _id: "systems", name: "Systems" },
   { _id: "events", name: "Events" }
 ];
 
 const mockCollections = [
   { _id: "featured", name: "Featured Media" },
-  { _id: "recent", name: "Recent Uploads" },
-  { _id: "videos", name: "Video Collection" }
+  { _id: "recent", name: "Recent Uploads" }
 ];
 
 export const mediaService = {

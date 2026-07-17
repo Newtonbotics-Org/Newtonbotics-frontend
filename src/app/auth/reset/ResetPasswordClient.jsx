@@ -5,14 +5,30 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Lock, Eye, EyeOff, CheckCircle, AlertCircle } from "lucide-react";
 import { useAuth } from "../../../contexts/AuthContext";
+import AuthSideVideo, { FORGOT_PASSWORD_VIDEO } from "../components/AuthSideVideo";
+import AuthPageShell from "../components/AuthPageShell";
 
-function Input({ label, icon: Icon, ...props }) {
+function PasswordInput({ label, value, onChange, placeholder, show, onToggleShow }) {
   return (
     <label className="block">
       {label && <span className="mb-1 block text-sm text-white/80">{label}</span>}
       <div className="relative">
-        {Icon && <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />}
-        <input {...props} className={`w-full ${Icon ? "pl-10" : "pl-4"} pr-4 py-3 rounded-xl bg-black/50 border border-white/25 focus:outline-none focus:ring-2 focus:ring-sky-500/40 text-white placeholder-white/60`} />
+        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60 pointer-events-none" />
+        <input
+          type={show ? "text" : "password"}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className="w-full pl-10 pr-10 py-3 rounded-xl bg-black/50 border border-white/25 focus:outline-none focus:ring-2 focus:ring-sky-500/40 text-white placeholder-white/60"
+        />
+        <button
+          type="button"
+          onClick={onToggleShow}
+          className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center justify-center text-white/60 hover:text-white/80 transition"
+          aria-label={show ? "Hide password" : "Show password"}
+        >
+          {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+        </button>
       </div>
     </label>
   );
@@ -81,24 +97,10 @@ export default function ResetPasswordClient() {
 
   if (isSuccess) {
     return (
-      <div className="relative min-h-screen overflow-visible bg-[#070b12] text-white">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute -top-24 -left-10 w-[40rem] h-[40rem] rounded-full bg-sky-500/15 blur-3xl" />
-          <div className="absolute bottom-[-8rem] right-[-6rem] w-[42rem] h-[42rem] rounded-full bg-indigo-500/15 blur-3xl" />
-        </div>
+      <AuthPageShell withGrid={false}>
+        <AuthSideVideo src={FORGOT_PASSWORD_VIDEO} />
 
-        <div className="relative z-10 container mx-auto px-6 py-10">
-          <div className="mx-auto grid lg:grid-cols-2 gap-8 items-stretch">
-            <motion.div
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
-              className="hidden lg:flex relative overflow-hidden rounded-3xl border border-white/15 bg-black/30"
-            >
-              <video src="/authentication.mp4" autoPlay muted loop playsInline className="w-full h-full object-cover opacity-90" />
-            </motion.div>
-
-            <motion.div
+        <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
@@ -115,33 +117,17 @@ export default function ResetPasswordClient() {
               >
                 Continue to sign in
               </button>
-            </motion.div>
-          </div>
-        </div>
-      </div>
+        </motion.div>
+      </AuthPageShell>
     );
   }
 
   if (error && !token) {
     return (
-      <div className="relative min-h-screen overflow-visible bg-[#070b12] text-white">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute -top-24 -left-10 w-[40rem] h-[40rem] rounded-full bg-sky-500/15 blur-3xl" />
-          <div className="absolute bottom-[-8rem] right-[-6rem] w-[42rem] h-[42rem] rounded-full bg-indigo-500/15 blur-3xl" />
-        </div>
+      <AuthPageShell withGrid={false}>
+        <AuthSideVideo src={FORGOT_PASSWORD_VIDEO} />
 
-        <div className="relative z-10 container mx-auto px-6 py-10">
-          <div className="mx-auto grid lg:grid-cols-2 gap-8 items-stretch">
-            <motion.div
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
-              className="hidden lg:flex relative overflow-hidden rounded-3xl border border-white/15 bg-black/30"
-            >
-              <video src="/authentication.mp4" autoPlay muted loop playsInline className="w-full h-full object-cover opacity-90" />
-            </motion.div>
-
-            <motion.div
+        <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
@@ -160,40 +146,16 @@ export default function ResetPasswordClient() {
               >
                 Request new reset link
               </a>
-            </motion.div>
-          </div>
-        </div>
-      </div>
+        </motion.div>
+      </AuthPageShell>
     );
   }
 
   return (
-    <div className="relative min-h-screen overflow-visible bg-[#070b12] text-white">
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute -top-24 -left-10 w-[40rem] h-[40rem] rounded-full bg-sky-500/15 blur-3xl" />
-        <div className="absolute bottom-[-8rem] right-[-6rem] w-[42rem] h-[42rem] rounded-full bg-indigo-500/15 blur-3xl" />
-        <div
-          className="absolute inset-0 opacity-[0.08] hidden md:block"
-          style={{
-            backgroundImage:
-              "linear-gradient(to right, rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.6) 1px, transparent 1px)",
-            backgroundSize: "46px 46px",
-          }}
-        />
-      </div>
+    <AuthPageShell>
+      <AuthSideVideo src={FORGOT_PASSWORD_VIDEO} />
 
-      <div className="relative z-10 container mx-auto px-6 py-10">
-        <div className="mx-auto grid lg:grid-cols-2 gap-8 items-stretch">
-          <motion.div
-            initial={{ opacity: 0, x: -12 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="hidden lg:flex relative overflow-hidden rounded-3xl border border-white/15 bg-black/30"
-          >
-            <video src="/authentication.mp4" autoPlay muted loop playsInline className="w-full h-full object-cover opacity-90" />
-          </motion.div>
-
-          <motion.div
+      <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -205,41 +167,23 @@ export default function ResetPasswordClient() {
             </p>
 
             <form onSubmit={onSubmit} className="space-y-5">
-              <div className="relative">
-                <Input 
-                  label="New password" 
-                  icon={Lock} 
-                  type={showPassword ? "text" : "password"} 
-                  placeholder="Enter new password" 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white/80 transition"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
+              <PasswordInput
+                label="New password"
+                placeholder="Enter new password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                show={showPassword}
+                onToggleShow={() => setShowPassword(!showPassword)}
+              />
 
-              <div className="relative">
-                <Input 
-                  label="Confirm password" 
-                  icon={Lock} 
-                  type={showConfirmPassword ? "text" : "password"} 
-                  placeholder="Confirm new password" 
-                  value={confirmPassword} 
-                  onChange={(e) => setConfirmPassword(e.target.value)} 
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white/80 transition"
-                >
-                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
+              <PasswordInput
+                label="Confirm password"
+                placeholder="Confirm new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                show={showConfirmPassword}
+                onToggleShow={() => setShowConfirmPassword(!showConfirmPassword)}
+              />
 
               {error && (
                 <div className="flex items-center gap-2 text-red-400 text-sm">
@@ -261,9 +205,7 @@ export default function ResetPasswordClient() {
               Remember your password? <a href="/auth/signin" className="text-white hover:underline">Sign in</a>
             </div>
           </motion.div>
-        </div>
-      </div>
-    </div>
+    </AuthPageShell>
   );
 }
 

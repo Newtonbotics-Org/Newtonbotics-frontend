@@ -330,7 +330,7 @@ export default function ProfileCompletionPage() {
                 <div className="flex items-center gap-4 mb-4">
                   <div className="relative h-16 w-16 shrink-0">
                     <img
-                      src={profileData.profileImageUrl || '/vercel.svg'}
+                      src={profileData.profileImageUrl || '/white logo.png'}
                       alt="Profile"
                       className="h-16 w-16 rounded-full object-cover border border-white/20"
                     />

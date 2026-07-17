@@ -151,7 +151,7 @@ const NewsPage = () => {
   };
 
   const getImageUrl = (news) => {
-    return news.featuredImageUrl || news.image || "/next.svg";
+    return news.featuredImageUrl || news.image || "/white logo.png";
   };
 
   const getReadTime = (news) => {

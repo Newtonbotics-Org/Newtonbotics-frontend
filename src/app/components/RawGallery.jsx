@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import mediaService from "../../lib/media";
@@ -93,16 +92,12 @@ export default function RawGallery() {
 
   return (
     <div className="container mx-auto px-6">
-      <div className="flex items-end justify-between mb-6">
+        <div className="flex items-end justify-between mb-6">
         <h2 className="text-2xl md:text-3xl font-semibold text-white">And we have a lot of fun!</h2>
         <Link href="/Gallery" className="hidden sm:inline-block">
-          <motion.span
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.97 }}
-            className="px-4 py-2 rounded-lg bg-white/10 border border-white/15 text-white/90 hover:bg-white/15"
-          >
+          <span className="px-4 py-2 rounded-lg bg-white/10 border border-white/15 text-white/90 hover:bg-white/15">
             Explore more →
-          </motion.span>
+          </span>
         </Link>
       </div>
       <div className="relative mx-auto">
@@ -113,14 +108,9 @@ export default function RawGallery() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
             {featuredMedia.map((item, idx) => (
-              <motion.div
+              <div
                 key={item._id || idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: idx * 0.03 }}
-                whileHover={{ rotate: 0, scale: 1.04 }}
-                className="relative bg-white rounded-xl shadow-2xl shadow-black/50 p-1 rotate-0"
+                className="relative bg-white rounded-xl shadow-2xl shadow-black/50 p-1 rotate-0 transform transition-transform duration-150 hover:scale-102"
                 style={{ rotate: `${rotations[idx % rotations.length]}deg` }}
                 title={item.title}
               >
@@ -142,10 +132,10 @@ export default function RawGallery() {
                     <video
                       src={item.fileUrl}
                       className="w-full h-full object-cover"
-                      autoPlay
                       muted
-                      loop
                       playsInline
+                      controls
+                      preload="metadata"
                       title={item.title || "Video"}
                     />
                   ) : null}
@@ -154,7 +144,7 @@ export default function RawGallery() {
                     <div className="bg-gray-100 text-gray-600 p-2 rounded shadow">{item.title}</div>
                   )}
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         )}

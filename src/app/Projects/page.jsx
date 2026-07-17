@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { API_BASE_URL } from "@/lib/api";
 
 // Utility functions moved outside component for sharing
 const getProjectStatusColor = (status) => {
@@ -90,8 +91,6 @@ const ProjectsPage = () => {
     skip: 0,
     hasMore: false
   });
-  
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api';
 
   // Project statuses from API specification
   const projectStatuses = ['upcoming', 'ongoing', 'completed', 'on_hold'];

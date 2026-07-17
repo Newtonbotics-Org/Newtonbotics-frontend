@@ -25,6 +25,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRef } from "react";
 import { mediaService } from "@/lib/media";
+import { API_BASE_URL } from "@/lib/api";
 
 const ProjectDetail = () => {
   const params = useParams();
@@ -38,8 +39,6 @@ const ProjectDetail = () => {
   const [galleryCategoryId, setGalleryCategoryId] = useState(null);
   const videoRef = useRef(null);
   const [linkCopied, setLinkCopied] = useState(false);
-  
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api';
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -232,6 +231,9 @@ const ProjectDetail = () => {
     const completed = milestones.filter(m => m.status === 'completed').length;
     return Math.round((completed / milestones.length) * 100);
   };
+
+  const getDisplayProgress = (proj) =>
+    proj?.status === 'completed' ? 100 : (proj?.progress ?? calculateProgress(proj?.milestones));
 
   const getProgressColor = (progress) => {
     if (progress >= 80) return 'from-green-500 to-green-600';
@@ -747,14 +749,14 @@ const ProjectDetail = () => {
                     <span className="text-white font-medium">{project.completedMilestonesCount || 0} / {project.totalMilestonesCount || (project.milestones?.length || 0)}</span>
                   </div>
                 )}
-                {project.progress !== undefined && (
+                {(project.progress !== undefined || project.status === 'completed') && (
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-white/60">Progress</span>
-                      <span className="text-red-300 font-medium">{project.progress}%</span>
+                      <span className="text-red-300 font-medium">{getDisplayProgress(project)}%</span>
                     </div>
                     <div className="w-full bg-white/20 rounded-full h-2">
-                      <div className="bg-red-500 h-2 rounded-full" style={{ width: `${project.progress}%` }} />
+                      <div className="bg-red-500 h-2 rounded-full" style={{ width: `${getDisplayProgress(project)}%` }} />
                     </div>
                   </div>
                 )}

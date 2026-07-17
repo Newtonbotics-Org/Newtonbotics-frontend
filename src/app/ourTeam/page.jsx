@@ -21,6 +21,7 @@ import {
   X,
   Building2
 } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api";
 
 // Fallback images array for team members
 const fallbackImages = [
@@ -50,8 +51,6 @@ const TeamPage = () => {
   
   // Image modal state
   const [selectedImage, setSelectedImage] = useState(null);
-  
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api';
 
   useEffect(() => {
     fetchAllTeamData();

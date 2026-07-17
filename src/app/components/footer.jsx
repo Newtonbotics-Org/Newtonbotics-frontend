@@ -1,18 +1,28 @@
 "use client";
 import { Instagram, Linkedin, Mail, MapPin } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import clubData from "../AllDatas/data.json";
+import { NEWTONBOTICS_LOGO, NEWTONBOTICS_LOGO_WIDTH, NEWTONBOTICS_LOGO_HEIGHT } from "@/lib/branding";
+import FooterRobot from "./FooterRobot";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gray-900 text-white">
-      <div className="max-w-7xl mx-auto px-4 py-12 grid md:grid-cols-4 gap-8">
+    <footer className="relative z-10 bg-black/95 text-white">
+      <div className="absolute inset-0 bg-black/70 pointer-events-none" aria-hidden="true" />
+      <div className="relative z-10 max-w-7xl mx-auto px-4 py-12 flex flex-col md:flex-row md:items-start gap-8 md:gap-6 lg:gap-8">
         {/* Club Overview */}
-        <div>
+        <div className="md:flex-1 md:min-w-0">
           <div className="flex items-center mb-2">
-            <h3 className="text-xl font-bold">NewtonBotics</h3>
+            <Image
+              src={NEWTONBOTICS_LOGO}
+              alt="NewtonBotics"
+              width={NEWTONBOTICS_LOGO_WIDTH}
+              height={NEWTONBOTICS_LOGO_HEIGHT}
+              className="w-44 h-auto object-contain"
+            />
           </div>
           <p className="text-gray-400 text-xs mb-2 font-medium">
             Rishihood University
@@ -45,7 +55,7 @@ const Footer = () => {
         </div>
 
         {/* Quick Links */}
-        <div>
+        <div className="md:w-auto md:shrink-0">
           <h4 className="font-semibold mb-4 text-indigo-300">Quick Links</h4>
           <ul className="space-y-2">
             <li>
@@ -83,8 +93,11 @@ const Footer = () => {
           </ul>
         </div>
 
+        {/* Decorative figure — only as wide as the image */}
+        <FooterRobot />
+
         {/* Recent Achievements */}
-        <div>
+        <div className="md:flex-1 md:min-w-0">
           <h4 className="font-semibold mb-4 text-indigo-300">
             Recent Achievements
           </h4>
@@ -102,18 +115,18 @@ const Footer = () => {
         </div>
 
         {/* Contact Information */}
-        <div>
+        <div className="md:flex-1 md:min-w-0">
           <h4 className="font-semibold mb-4 text-indigo-300">Contact Us</h4>
           <div className="space-y-3">
             <div className="flex items-center">
-              <MapPin className="h-5 w-5 mr-3 text-indigo-400" />
+              <MapPin className="h-5 w-5 mr-3 text-indigo-400 shrink-0" />
               <span className="text-gray-300">
                 Academic Block, Room 407,<br />
                 Rishihood University
               </span>
             </div>
             <div className="flex items-center">
-              <Mail className="h-5 w-5 mr-3 text-indigo-400" />
+              <Mail className="h-5 w-5 mr-3 text-indigo-400 shrink-0" />
               <span className="text-gray-300">
                 contact@newtonbotics.tech
               </span>
@@ -123,7 +136,7 @@ const Footer = () => {
       </div>
 
       {/* Copyright and Founding Information */}
-      <div className="bg-gray-800 py-4">
+      <div className="relative z-10 bg-black/90 border-t border-white/10 py-4">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-sm">
             © {currentYear} NewtonBotics, Rishihood University. All rights reserved.

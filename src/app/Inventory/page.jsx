@@ -437,7 +437,7 @@ const InventoryPage = () => {
 
                     <div className="relative h-56 w-full mb-4 rounded-lg overflow-hidden bg-black/30">
                       <Image
-                        src={item.imageUrl || '/next.svg'}
+                        src={item.imageUrl || '/white logo.png'}
                         alt={item.name}
                         fill
                         className="object-contain z-0"
@@ -495,7 +495,7 @@ const InventoryPage = () => {
                     <div className="flex flex-col md:flex-row gap-5">
                       <div className="w-full md:w-48 h-40 rounded-lg overflow-hidden bg-black/30 relative">
                         <Image
-                          src={item.imageUrl || '/next.svg'}
+                          src={item.imageUrl || '/white logo.png'}
                           alt={item.name}
                           fill
                           className="object-contain"

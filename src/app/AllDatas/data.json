@@ -6,7 +6,12 @@
     "vision": "To be a leading hub for robotics research and development.",
     "logo": "/images/logo.png",
     "founded": 2024,
-    "foundedBy": ["Monu Raj", "Sourabh Sarkar", "Manish Kumar", "Aman Kumar"]
+    "foundedBy": [
+      "Monu Raj",
+      "Sourabh Sarkar",
+      "Manish Kumar",
+      "Aman Kumar"
+    ]
   },
   "founders": [
     {
@@ -14,7 +19,7 @@
       "role": "CSAI ",
       "batch": "Batch, 2023",
       "image": "/monu.jpeg",
-      "bio":"Drives project operations, events, and industry collaboration initiatives."
+      "bio": "Drives project operations, events, and industry collaboration initiatives."
     },
     {
       "name": "Sourabh Sarkar",
@@ -119,146 +124,9 @@
       "High-speed internet",
       "Workshop tools",
       "Collaboration spaces"
-    ],
-    "inventory": [
-      {
-        "id": 1,
-        "name": "Arduino Uno",
-        "category": "Microcontrollers",
-        "quantity": 15,
-        "image": "/servilancerobot.jpeg",
-        "description": "A popular microcontroller board for prototyping."
-      },
-      {
-        "id": 2,
-        "name": "Raspberry Pi 4",
-        "category": "Single-Board Computers",
-        "quantity": 8,
-        "image": "/humanoidRobotHealthcare.webp",
-        "description": "A powerful single-board computer for IoT projects."
-      },
-      {
-        "id": 3,
-        "name": "DC Motors",
-        "category": "Motors",
-        "quantity": 50,
-        "image": "/bgImageforroboticslab.jpg",
-        "description": "High-torque DC motors for robotics applications."
-      },
-      {
-        "id": 4,
-        "name": "LiPo Battery",
-        "category": "Power Supplies",
-        "quantity": 20,
-        "image": "/servilancerobot.jpeg",
-        "description": "Rechargeable lithium polymer batteries."
-      },
-      {
-        "id": 5,
-        "name": "Servo Motors",
-        "category": "Motors",
-        "quantity": 3,
-        "image": "/humanoidRobotHealthcare.webp",
-        "description": "Precision servo motors for accurate control."
-      },
-      {
-        "id": 6,
-        "name": "Jumper Wires",
-        "category": "Accessories",
-        "quantity": 200,
-        "image": "/bgImageforroboticslab.jpg",
-        "description": "Assorted jumper wires for circuit connections."
-      },
-      {
-        "id": 7,
-        "name": "Breadboard",
-        "category": "Accessories",
-        "quantity": 25,
-        "image": "/servilancerobot.jpeg",
-        "description": "Solderless breadboard for prototyping circuits."
-      },
-      {
-        "id": 8,
-        "name": "ESP32",
-        "category": "Microcontrollers",
-        "quantity": 0,
-        "image": "/humanoidRobotHealthcare.webp",
-        "description": "Wi-Fi and Bluetooth-enabled microcontroller."
-      }
     ]
   },
-  "workshopss": [
-    {
-      "name": "Drone Workshop",
-      "description": "Comprehensive drone design and operation training",
-      "topics": [
-        "Drone Assembly",
-        "Flight Mechanics",
-        "Aerial Photography",
-        "Autonomous Navigation"
-      ]
-    },
-    {
-      "name": "Line Follower Workshop",
-      "description": "Robotics fundamentals and autonomous navigation",
-      "topics": [
-        "Sensor Integration",
-        "Path Following Algorithms",
-        "Motor Control"
-      ]
-    },
-    {
-      "name": "Robo Soccer Competition",
-      "description": "Robotics challenge focusing on autonomous robot design",
-      "objectives": [
-        "Team Collaboration",
-        "Problem Solving",
-        "Real-world Robotics Application"
-      ]
-    }
-  ],
-  "guestLectures": [
-    {
-      "title": "Advances in Robotics and AI",
-      "speaker": "Dr. Ramesh Kumar",
-      "date": "2023-08-15",
-      "description": "Explored cutting-edge trends in robotics and AI integration."
-    },
-    {
-      "title": "Introduction to Drones",
-      "speaker": "Ms. Sneha Patel",
-      "date": "2024-03-10",
-      "description": "Comprehensive session on drone technology and applications."
-    }
-  ],
   "coreMemberCount": 25,
-  "coreMembers": [
-    "Rohit Sharma",
-    "Vivek Gupta",
-    "Priya Patel",
-    "Arun Singh",
-    "Neha Verma",
-    "Rajesh Kumar",
-    "Ananya Mishra",
-    "Vikram Reddy",
-    "Shreya Joshi",
-    "Mouli Shrivastab",
-    "Deepak Choudhary",
-    "Anjali Kumari",
-    "Sanjay Yadav",
-    "Meera Naidu",
-    "Vishal Patil",
-    "Kavita Sharma",
-    "Nitin Tiwari",
-    "Riya Kapoor",
-    "Akash Verma",
-    "Pooja Banerjee",
-    "Siddharth Mahajan",
-    "Lakshmi Narayan",
-    "Gaurav Singh",
-    "Divya Menon",
-    "Karthik Subramanian"
-  ],
   "achievements": [
     "Won 2nd prize in the Technoxian Competition 2024",
     "Organized 20+ workshops and events",
@@ -272,424 +140,43 @@
       "linkedin": "newtonbotics"
     }
   },
-  "news": {
-    "latest": [
-      {
-        "id": 1,
-        "title": "Robotics Club Wins National Championship 2024",
-        "category": "Achievement",
-        "date": "2024-12-15",
-        "author": "Aman Kumar",
-        "image": "/servilancerobot.jpeg",
-        "excerpt": "Our team secured first place in the National Robotics Championship 2024, showcasing innovative autonomous navigation systems.",
-        "content": "The Robotics Club achieved a historic victory at the National Robotics Championship 2024, held in Delhi. Our team, led by Aman Kumar, developed an advanced autonomous navigation system that outperformed 50+ competing teams from across the country. The winning robot demonstrated exceptional obstacle avoidance, path planning, and real-time decision-making capabilities.",
-        "tags": ["Competition", "Achievement", "Autonomous Systems"],
-        "featured": true,
-        "readTime": "3 min read"
-      },
-      {
-        "id": 2,
-        "title": "New AI Workshop Series Announced",
-        "category": "Workshop",
-        "date": "2024-12-10",
-        "author": "Sachin Sir",
-        "image": "/humanoidRobotHealthcare.webp",
-        "excerpt": "Join our comprehensive AI workshop series starting next month. Learn machine learning, computer vision, and robotics integration.",
-        "content": "We're excited to announce our new AI Workshop Series that will cover machine learning fundamentals, computer vision applications, and robotics integration. The series will be conducted by industry experts and our faculty members. Students will get hands-on experience with real-world projects and cutting-edge AI technologies.",
-        "tags": ["Workshop", "AI", "Machine Learning"],
-        "featured": false,
-        "readTime": "2 min read"
-      },
-      {
-        "id": 3,
-        "title": "Humanoid Robot Project Milestone Reached",
-        "category": "Project Update",
-        "date": "2024-12-08",
-        "author": "Monu Kumar",
-        "image": "/bgImageforroboticslab.jpg",
-        "excerpt": "Our humanoid robot project has successfully completed its first phase with basic locomotion and object recognition capabilities.",
-        "content": "The humanoid robot project, led by Monu Kumar, has reached a significant milestone. The robot now demonstrates stable bipedal locomotion, basic object recognition, and simple task execution. This achievement represents months of dedicated work by our team and opens new possibilities for advanced robotics research.",
-        "tags": ["Project", "Humanoid Robot", "AI"],
-        "featured": true,
-        "readTime": "4 min read"
-      },
-      {
-        "id": 4,
-        "title": "Industry Partnership with TechCorp Robotics",
-        "category": "Partnership",
-        "date": "2024-12-05",
-        "author": "Manish Kumar",
-        "image": "/servilancerobot.jpeg",
-        "excerpt": "Exciting new partnership announced with TechCorp Robotics for collaborative research and internship opportunities.",
-        "content": "We're thrilled to announce our new partnership with TechCorp Robotics, a leading robotics company. This collaboration will provide our students with internship opportunities, access to advanced robotics equipment, and collaborative research projects. The partnership will also include guest lectures from industry experts.",
-        "tags": ["Partnership", "Industry", "Internship"],
-        "featured": false,
-        "readTime": "3 min read"
-      },
-      {
-        "id": 5,
-        "title": "Drone Technology Workshop Success",
-        "category": "Event",
-        "date": "2024-12-03",
-        "author": "Sourabh Kumar",
-        "image": "/humanoidRobotHealthcare.webp",
-        "excerpt": "Over 50 students participated in our drone technology workshop, learning about autonomous flight and aerial robotics.",
-        "content": "Our recent drone technology workshop was a huge success with over 50 students participating. The workshop covered autonomous flight systems, drone programming, and aerial robotics applications. Students built and programmed their own drones, gaining hands-on experience with cutting-edge technology.",
-        "tags": ["Workshop", "Drone", "Technology"],
-        "featured": false,
-        "readTime": "2 min read"
-      },
-      {
-        "id": 6,
-        "title": "Research Paper Published in IEEE Robotics Journal",
-        "category": "Publication",
-        "date": "2024-11-28",
-        "author": "Priya Patel",
-        "image": "/bgImageforroboticslab.jpg",
-        "excerpt": "Our research on swarm robotics for disaster management has been published in the prestigious IEEE Robotics Journal.",
-        "content": "Congratulations to Priya Patel and her team for having their research paper on 'Swarm Robotics for Disaster Management' published in the IEEE Robotics Journal. This publication represents a significant contribution to the field of robotics and showcases our club's research capabilities.",
-        "tags": ["Publication", "Research", "Swarm Robotics"],
-        "featured": true,
-        "readTime": "3 min read"
-      }
-    ],
-    "categories": [
-      "All",
-      "Achievement",
-      "Workshop",
-      "Project Update",
-      "Partnership",
-      "Event",
-      "Publication",
-      "Announcement"
-    ]
-  },
-  "events": {
-    "upcoming": [
-      {
-        "id": 1,
-        "title": "Advanced Robotics Workshop Series",
-        "description": "A comprehensive 4-week workshop covering advanced robotics concepts, AI integration, and hands-on project building.",
-        "date": "2024-12-20",
-        "time": "10:00 AM - 2:00 PM",
-        "location": "Robotics Lab 301",
-        "type": "Workshop",
-        "category": "Technical",
-        "image": "/servilancerobot.jpeg",
-        "organizer": "Sachin Sir",
-        "capacity": 30,
-        "registered": 25,
-        "price": "Free",
-        "tags": ["Robotics", "AI", "Hands-on", "Advanced"],
-        "featured": true,
-        "status": "Open for Registration"
-      },
-      {
-        "id": 2,
-        "title": "AI in Robotics Seminar",
-        "description": "Join industry experts for an insightful seminar on the latest developments in AI-powered robotics and machine learning applications.",
-        "date": "2024-12-25",
-        "time": "2:00 PM - 4:00 PM",
-        "location": "Main Auditorium",
-        "type": "Seminar",
-        "category": "Educational",
-        "image": "/humanoidRobotHealthcare.webp",
-        "organizer": "Dr. Priya Patel",
-        "capacity": 100,
-        "registered": 45,
-        "price": "Free",
-        "tags": ["AI", "Machine Learning", "Seminar", "Expert Talk"],
-        "featured": false,
-        "status": "Open for Registration"
-      },
-      {
-        "id": 3,
-        "title": "Robotics Project Showcase 2024",
-        "description": "Annual showcase of student robotics projects. See innovative solutions and cutting-edge technology developed by our talented students.",
-        "date": "2024-12-30",
-        "time": "11:00 AM - 5:00 PM",
-        "location": "Main Hall & Exhibition Center",
-        "type": "Exhibition",
-        "category": "Showcase",
-        "image": "/bgImageforroboticslab.jpg",
-        "organizer": "Monu Kumar",
-        "capacity": 200,
-        "registered": 150,
-        "price": "Free",
-        "tags": ["Showcase", "Projects", "Innovation", "Exhibition"],
-        "featured": true,
-        "status": "Open for Registration"
-      },
-      {
-        "id": 4,
-        "title": "Drone Technology Workshop",
-        "description": "Learn about drone technology, autonomous flight systems, and aerial robotics. Build and program your own drone!",
-        "date": "2025-01-05",
-        "time": "9:00 AM - 3:00 PM",
-        "location": "Outdoor Robotics Arena",
-        "type": "Workshop",
-        "category": "Technical",
-        "image": "/servilancerobot.jpeg",
-        "organizer": "Sourabh Kumar",
-        "capacity": 20,
-        "registered": 18,
-        "price": "₹500",
-        "tags": ["Drone", "Aerial Robotics", "Autonomous Flight", "Hands-on"],
-        "featured": false,
-        "status": "Almost Full"
-      },
-      {
-        "id": 5,
-        "title": "Robotics Competition Preparation",
-        "description": "Intensive training session for upcoming robotics competitions. Practice problem-solving, coding, and robot building skills.",
-        "date": "2025-01-10",
-        "time": "1:00 PM - 6:00 PM",
-        "location": "Competition Arena",
-        "type": "Training",
-        "category": "Competition",
-        "image": "/humanoidRobotHealthcare.webp",
-        "organizer": "Aman Kumar",
-        "capacity": 15,
-        "registered": 12,
-        "price": "Free",
-        "tags": ["Competition", "Training", "Problem Solving", "Coding"],
-        "featured": false,
-        "status": "Open for Registration"
-      },
-      {
-        "id": 6,
-        "title": "Industry Connect Meet",
-        "description": "Network with industry professionals and learn about career opportunities in robotics and automation.",
-        "date": "2025-01-15",
-        "time": "3:00 PM - 5:00 PM",
-        "location": "Conference Room 201",
-        "type": "Networking",
-        "category": "Career",
-        "image": "/bgImageforroboticslab.jpg",
-        "organizer": "Manish Kumar",
-        "capacity": 50,
-        "registered": 35,
-        "price": "Free",
-        "tags": ["Networking", "Career", "Industry", "Professional Development"],
-        "featured": false,
-        "status": "Open for Registration"
-      }
-    ],
-    "past": [
-      {
-        "id": 7,
-        "title": "Introduction to Robotics Workshop",
-        "description": "Basic robotics workshop for beginners covering fundamentals of robotics, electronics, and programming.",
-        "date": "2024-11-15",
-        "time": "10:00 AM - 2:00 PM",
-        "location": "Robotics Lab 301",
-        "type": "Workshop",
-        "category": "Technical",
-        "image": "/servilancerobot.jpeg",
-        "organizer": "Sachin Sir",
-        "attendance": 25,
-        "status": "Completed",
-        "feedback": "Excellent workshop! Learned a lot about robotics basics."
-      },
-      {
-        "id": 8,
-        "title": "Robotics Club Annual Meet",
-        "description": "Annual gathering of robotics club members to discuss achievements, plan future activities, and celebrate successes.",
-        "date": "2024-11-10",
-        "time": "4:00 PM - 6:00 PM",
-        "location": "Main Hall",
-        "type": "Meeting",
-        "category": "Social",
-        "image": "/humanoidRobotHealthcare.webp",
-        "organizer": "Aman Kumar",
-        "attendance": 40,
-        "status": "Completed",
-        "feedback": "Great event! Loved the team spirit and future plans."
-      }
-    ],
-    "categories": [
-      "All",
-      "Workshop",
-      "Seminar",
-      "Exhibition",
-      "Training",
-      "Networking",
-      "Competition",
-      "Meeting"
-    ],
-    "types": [
-      "Technical",
-      "Educational",
-      "Showcase",
-      "Career",
-      "Social"
-    ]
-  },
   "projects": {
     "completed": [
-      {
-        "id": 1,
-        "name": "Autonomous Drone System",
-        "description": "Developed a fully autonomous drone capable of obstacle avoidance and GPS navigation.",
-        "image":"/servilancerobot.jpeg",
-        "team": ["Aman Kumar", "Manish Kumar", "Priya Patel"],
-        "date": "2023-05-15",
-        "status": "Completed"
-      },
-      {
-        "id": 2,
-        "name": "Robotic Arm for Industrial Automation",
-        "description": "Designed a robotic arm for assembly line automation with precision control.",
-        "image": "/humanoidRobotHealthcare.webp",
-        "team": ["Sourabh Kumar", "Neha Verma", "Rajesh Kumar"],
-        "date": "2023-08-20",
-        "status": "Completed"
-      }
+      {},
+      {}
     ],
     "ongoing": [
-      {
-        "id": 3,
-        "name": "AI-Powered Surveillance Robot",
-        "description": "Building a robot with AI-based object detection and real-time surveillance capabilities.",
-        "image": "/bgImageforroboticslab.jpg",
-        "team": ["Monu Kumar", "Vivek Gupta", "Ananya Mishra"],
-        "startDate": "2024-01-10",
-        "status": "Ongoing"
-      }
+      {}
     ],
     "upcoming": [
-      {
-        "id": 4,
-        "name": "Swarm Robotics for Disaster Management",
-        "description": "Developing a swarm of robots for search and rescue operations in disaster zones.",
-        "image": "/servilancerobot.jpeg",
-        "team": ["Rohit Sharma", "Shreya Joshi", "Mouli Shrivastab"],
-        "startDate": "2024-06-01",
-        "status": "Upcoming"
-      },
-      {
-        "id": 5,
-        "name": "Advanced Humanoid Robot",
-        "description": "Developing an advanced humanoid robot with AI capabilities for complex tasks.",
-        "image": "/humanoidRobotHealthcare.webp",
-        "team": ["Aman Kumar", "Priya Patel", "Vivek Gupta"],
-        "startDate": "2024-07-01",
-        "status": "Upcoming"
-      }
+      {},
+      {}
     ],
     "highlighted": [
-      {
-        "id": 6,
-        "name": "Humanoid Robot for Healthcare",
-        "description": "A humanoid robot designed to assist in patient care and medical procedures.",
-        "image": "/humanoidRobotHealthcare.webp",
-        "team": ["Aman Kumar", "Manish Kumar", "Priya Patel"],
-        "date": "2023-12-10",
-        "status": "Highlighted"
-      }
+      {}
     ]
   },
   "workshops": {
     "past": [
-      {
-        "id": 1,
-        "name": "Drone Workshop",
-        "description": "Comprehensive drone design and operation training.",
-        "image": "/servilancerobot.jpeg",
-        "video": "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        "impact": "Trained 50+ students in drone technology.",
-        "studentsJoined": 50,
-        "specialThanks": ["Sachin Sir", "Monu Kumar"],
-        "date": "2023-03-15"
-      },
-      {
-        "id": 2,
-        "name": "Line Follower Workshop",
-        "description": "Robotics fundamentals and autonomous navigation.",
-        "image": "/bgImageforroboticslab.jpg",
-        "video": "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        "impact": "Enabled 30+ students to build their first robot.",
-        "studentsJoined": 30,
-        "specialThanks": ["Manish Kumar", "Priya Patel"],
-        "date": "2023-06-20"
-      }
+      {},
+      {}
     ],
     "upcoming": [
-      {
-        "id": 3,
-        "name": "AI and Robotics Workshop",
-        "description": "Learn AI integration in robotics with hands-on projects.",
-        "image": "/humanoidRobotHealthcare.webp",
-        "date": "2024-07-10",
-        "registrationLink": "https://example.com/register"
-      },
-      {
-        "id": 4,
-        "name": "IoT for Beginners",
-        "description": "Introduction to IoT with practical applications.",
-        "image": "/servilancerobot.jpeg",
-        "date": "2024-08-15",
-        "registrationLink": "https://example.com/register"
-      }
+      {},
+      {}
     ]
   },
-  "projectRequests": [
-    {
-      "id": 1,
-      "title": "Autonomous Drone System",
-      "description": "Develop a drone with obstacle avoidance and GPS navigation.",
-      "teamMembers": ["Aman Kumar", "Manish Kumar", "Priya Patel"],
-      "budget": 5000,
-      "itemsNeeded": [
-        { "name": "Drone Kit", "quantity": 1 },
-        { "name": "LiPo Battery", "quantity": 2 }
-      ],
-      "startDate": "2024-06-01",
-      "endDate": "2024-08-31",
-      "status": "Pending",
-      "comments": [{ "by": "Monu Kumar", "comment": "Under review." }]
-    },
-    {
-      "id": 2,
-      "title": "Robotic Arm for Industrial Automation",
-      "description": "Design a robotic arm for assembly line automation.",
-      "teamMembers": ["Sourabh Kumar", "Neha Verma", "Rajesh Kumar"],
-      "budget": 7000,
-      "itemsNeeded": [
-        { "name": "Servo Motors", "quantity": 4 },
-        { "name": "Arduino Uno", "quantity": 1 }
-      ],
-      "startDate": "2024-05-15",
-      "endDate": "2024-07-15",
-      "status": "Approved",
-      "comments": [
-        {
-          "by": "Monu Kumar",
-          "comment": "Looks promising. Approved for next review."
-        },
-        { "by": "Sachin Sir", "comment": "Approved. Good initiative." },
-        {
-          "by": "Pryog Mali Sir",
-          "comment": "Final approval granted. Congratulations!"
-        }
-      ]
-    },
-    {
-      "id": 3,
-      "title": "AI-Powered Surveillance Robot",
-      "description": "Build a robot with AI-based object detection.",
-      "teamMembers": ["Monu Kumar", "Vivek Gupta", "Ananya Mishra"],
-      "budget": 10000,
-      "itemsNeeded": [
-        { "name": "Raspberry Pi 4", "quantity": 1 },
-        { "name": "Camera Module", "quantity": 1 }
-      ],
-      "startDate": "2024-07-01",
-      "endDate": "2024-09-30",
-      "status": "Rejected",
-      "comments": [
-        { "by": "Monu Kumar", "comment": "Budget too high. Please revise." }
-      ]
-    }
-  ]
+  "events": {
+    "upcoming": [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    "past": [],
+    "categories": [],
+    "types": []
+  }
 }

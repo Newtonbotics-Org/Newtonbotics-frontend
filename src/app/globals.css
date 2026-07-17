@@ -2,7 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom utilities */
+/* Custom NewtonBotics cursor — hide system cursor on fine pointers */
+html.nb-custom-cursor,
+html.nb-custom-cursor * {
+  cursor: none !important;
+}
+
+html.nb-custom-cursor a,
+html.nb-custom-cursor button,
+html.nb-custom-cursor [role="button"],
+html.nb-custom-cursor .cursor-pointer,
+html.nb-custom-cursor .nb-cta,
+html.nb-custom-cursor input,
+html.nb-custom-cursor textarea,
+html.nb-custom-cursor select,
+html.nb-custom-cursor label {
+  cursor: none !important;
+}
+
+@font-face {
+  font-family: 'Neuropol X';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Neuropol X Free'), url('https://fonts.cdnfonts.com/s/6234/neuropol%20x%20free.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Ethnocentric';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Ethnocentric Rg'), url('https://fonts.cdnfonts.com/s/6220/ethnocentric%20rg.woff') format('woff');
+}
+
+@keyframes news-ticker-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(var(--ticker-shift, -50%), 0, 0);
+  }
+}
+
+.news-ticker-track {
+  animation: news-ticker-scroll linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .news-ticker-track {
+    animation: none;
+  }
+}
+
 @layer utilities {
   .line-clamp-2 {
     display: -webkit-box;
@@ -130,85 +183,77 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+  h1,
+  h2 {
+    font-family: 'Ethnocentric', var(--font-orbitron), sans-serif;
+    letter-spacing: 0.04em;
+  }
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Neuropol X', var(--font-orbitron), sans-serif;
+    letter-spacing: 0.03em;
+  }
+  nav,
+  button,
+  label,
+  .font-heading {
+    font-family: 'Neuropol X', var(--font-orbitron), sans-serif;
+  }
+
+  button {
+    border-radius: 0 !important;
+    clip-path: polygon(
+      8px 0,
+      calc(100% - 8px) 0,
+      100% 8px,
+      100% calc(100% - 8px),
+      calc(100% - 8px) 100%,
+      8px 100%,
+      0 calc(100% - 8px),
+      0 8px
+    );
   }
 }
 
-/* Custom 404 Page Animations */
-@keyframes bounce-left {
-  0%, 100% { 
-    transform: translateY(0) translateX(0) rotate(0deg); 
+@layer components {
+  /* Chamfered 8-corner shape — cut corners, not pills or sharp squares */
+  .nb-chamfer {
+    border-radius: 0 !important;
+    clip-path: polygon(
+      var(--nb-chamfer, 8px) 0,
+      calc(100% - var(--nb-chamfer, 8px)) 0,
+      100% var(--nb-chamfer, 8px),
+      100% calc(100% - var(--nb-chamfer, 8px)),
+      calc(100% - var(--nb-chamfer, 8px)) 100%,
+      var(--nb-chamfer, 8px) 100%,
+      0 calc(100% - var(--nb-chamfer, 8px)),
+      0 var(--nb-chamfer, 8px)
+    );
   }
-  25% { 
-    transform: translateY(-8px) translateX(-12px) rotate(-2deg); 
-  }
-  50% { 
-    transform: translateY(-15px) translateX(-20px) rotate(-3deg); 
-  }
-  75% { 
-    transform: translateY(-8px) translateX(-12px) rotate(-1deg); 
-  }
-}
 
-@keyframes bounce-right {
-  0%, 100% { 
-    transform: translateY(0) translateX(0) rotate(0deg); 
+  .nb-chamfer-lg {
+    --nb-chamfer: 12px;
   }
-  25% { 
-    transform: translateY(-8px) translateX(12px) rotate(2deg); 
-  }
-  50% { 
-    transform: translateY(-15px) translateX(20px) rotate(3deg); 
-  }
-  75% { 
-    transform: translateY(-8px) translateX(12px) rotate(1deg); 
-  }
-}
 
-@keyframes float {
-  0%, 100% { 
-    transform: translateY(0) rotate(2deg) scale(1); 
+  .nb-cta {
+    --nb-chamfer: 12px;
+    border-radius: 0 !important;
+    clip-path: polygon(
+      12px 0,
+      calc(100% - 12px) 0,
+      100% 12px,
+      100% calc(100% - 12px),
+      calc(100% - 12px) 100%,
+      12px 100%,
+      0 calc(100% - 12px),
+      0 12px
+    );
+    filter: drop-shadow(0 10px 24px rgba(239, 68, 68, 0.28));
   }
-  25% { 
-    transform: translateY(-5px) rotate(1deg) scale(1.02); 
-  }
-  50% { 
-    transform: translateY(-10px) rotate(2deg) scale(1.05); 
-  }
-  75% { 
-    transform: translateY(-5px) rotate(3deg) scale(1.02); 
-  }
-}
-
-@keyframes wobble {
-  0%, 100% { 
-    transform: rotate(2deg); 
-  }
-  25% { 
-    transform: rotate(-1deg); 
-  }
-  50% { 
-    transform: rotate(3deg); 
-  }
-  75% { 
-    transform: rotate(0deg); 
-  }
-}
-
-.animate-bounce-left {
-  animation: bounce-left 4s ease-in-out infinite;
-}
-
-.animate-bounce-right {
-  animation: bounce-right 4s ease-in-out infinite 0.2s;
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite 0.5s;
-}
-
-.animate-wobble {
-  animation: wobble 2s ease-in-out infinite;
 }
 
 /* Custom Scrollbar Styles for Mobile Menu */
@@ -266,74 +311,186 @@
   scrollbar-color: rgba(239, 68, 68, 0.5) rgba(255, 255, 255, 0.05);
 }
 
-/* Performance optimizations for mobile */
+/* ===== Reduced motion preference ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Reduce blur effects on mobile for better performance */
 @media (max-width: 768px) {
-  /* Reduce motion for users who prefer reduced motion */
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
-  }
-  
-  /* Optimize video rendering on mobile */
-  video {
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-  }
-  
-  /* Reduce blur effects on mobile for better performance */
   .blur-3xl,
   .blur-2xl {
     filter: blur(20px) !important;
   }
 }
 
-/* Hero section CSS animations for mobile - faster and smoother */
-@media (max-width: 1023px) {
-  .hero-fade-in {
-    animation: heroFadeIn 0.25s ease-out forwards;
-    opacity: 0;
-  }
-  
-  .hero-title-fade-in {
-    animation: heroFadeIn 0.3s ease-out 0.05s forwards;
-    opacity: 0;
-  }
-  
-  .hero-text-fade-in {
-    animation: heroFadeIn 0.3s ease-out 0.1s forwards;
-    opacity: 0;
-  }
-  
-  .hero-button-fade-in {
-    animation: heroFadeIn 0.3s ease-out 0.15s forwards;
-    opacity: 0;
-  }
-  
-  @keyframes heroFadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  /* Use GPU acceleration for smoother animations */
-  .hero-fade-in,
-  .hero-title-fade-in,
-  .hero-text-fade-in,
-  .hero-button-fade-in {
-    will-change: opacity, transform;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
+/* ===== Hero staggered entrance ===== */
+/* Disable hero stagger animations for faster landing load */
+.hero-stagger .hero-stagger-item {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+.hero-stagger .hero-stagger-item:nth-child(1) { animation-delay: 0.05s; }
+.hero-stagger .hero-stagger-item:nth-child(2) { animation-delay: 0.12s; }
+.hero-stagger .hero-stagger-item:nth-child(3) { animation-delay: 0.18s; }
+.hero-stagger .hero-stagger-item:nth-child(4) { animation-delay: 0.24s; }
+.hero-stagger .hero-stagger-item:nth-child(5) { animation-delay: 0.30s; }
+
+@keyframes heroEnter {
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
+
+/* ===== Scroll-triggered section fade-in (CSS-only via IntersectionObserver polyfill-free) ===== */
+.section-fade-in {
+  /* Show sections immediately to avoid scroll-linked animations */
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+/* Start animation when element is in viewport — JS-free approach using animation-timeline where supported */
+@supports (animation-timeline: view()) {
+  .section-fade-in {
+    animation-play-state: running;
+    animation-timeline: view();
+    animation-range: entry 0% entry 30%;
+  }
+}
+
+/* Fallback: just show immediately with a simple delay for browsers without animation-timeline */
+@supports not (animation-timeline: view()) {
+  .section-fade-in {
+    animation-play-state: running;
+  }
+}
+
+@keyframes sectionEnter {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Simple fade-in utility ===== */
+.fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== NewtonBotics Lazy Loader ===== */
+@keyframes nb-loader-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes nb-loader-pulse {
+  0%, 100% { transform: scale(0.85); opacity: 0.55; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+
+@keyframes nb-loader-bar {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
+}
+
+.nb-loader-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-top-color: #ef4444;
+  border-right-color: rgba(239, 68, 68, 0.45);
+  animation: nb-loader-spin 0.85s linear infinite;
+}
+
+.nb-loader-ring--sm {
+  position: relative;
+  inset: auto;
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.nb-loader-core {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 9999px;
+  background: #ef4444;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.85);
+  animation: nb-loader-pulse 1.1s ease-in-out infinite;
+}
+
+.nb-loader-bar {
+  position: relative;
+  width: 8rem;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.nb-loader-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, #ef4444, transparent);
+  animation: nb-loader-bar 1.1s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nb-loader-ring,
+  .nb-loader-ring--sm,
+  .nb-loader-core,
+  .nb-loader-bar::after {
+    animation: none;
+  }
+}
+
+/* ===== Floating background shapes — pure CSS ===== */
+.css-float,
+.css-float-delayed {
+  /* Disable continuous floating decorative animations to reduce paint work */
+  animation: none !important;
+}
+
+@keyframes cssFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-20px) scale(1.05); }
+}
+
+/* ===== Scroll indicator bounce ===== */
+.css-bounce {
+  /* Disable bounce on scroll indicator to avoid constant repaints */
+  animation: none !important;
+}
+
+@keyframes cssBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(5px); }
+}
+
+/* Scroll indicator fades out on scroll */
+.scroll-indicator {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+/* Hide scroll indicator once user scrolls past hero (pure CSS can't detect scroll, 
+   but the indicator is at bottom of hero, so it scrolls out of view naturally) */

@@ -1,14 +1,13 @@
 "use client";
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { Calendar, ArrowRight, Users, Clock, MapPin } from "lucide-react";
 import Link from "next/link";
+import { API_BASE_URL } from "@/lib/api";
 
 const UpcomingEvents = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api';
 
   // Helper to combine date and time
   const combineDateTime = (dateString, timeString) => {
@@ -151,18 +150,12 @@ const UpcomingEvents = () => {
 
   if (loading) {
     return (
-      <section className="py-20 bg-black">
+      <section className="py-20 relative z-10 bg-black/20 backdrop-blur-[1px]">
         <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
+          <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Upcoming Events</h2>
             <p className="text-lg text-white/60">Stay updated with our latest robotics events and workshops</p>
-          </motion.div>
+          </div>
           
           {/* Loading skeleton */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -186,18 +179,12 @@ const UpcomingEvents = () => {
 
   if (error) {
     return (
-      <section className="py-20 bg-black">
+      <section className="py-20 relative z-10 bg-black/20 backdrop-blur-[1px]">
         <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
+          <div className="text-center py-12">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Upcoming Events</h2>
             <p className="text-lg text-white/60">Stay updated with our latest robotics events and workshops</p>
-          </motion.div>
+          </div>
           
           <div className="text-center py-12">
             <div className="text-red-400 text-6xl mb-4">⚠️</div>
@@ -216,55 +203,31 @@ const UpcomingEvents = () => {
   }
 
   return (
-    <section className="py-20 bg-black">
+    <section className="py-20 relative z-10 bg-black/20 backdrop-blur-[1px]">
       <div className="container mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-center mb-12"
-        >
+        <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-red-400 to-white">
             Upcoming Events
           </h2>
           <p className="text-lg text-white/60">Stay updated with our latest robotics events and workshops</p>
-        </motion.div>
+        </div>
 
         {events.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center py-12"
-          >
+          <div className="text-center py-12">
             <div className="text-white/40 text-6xl mb-4">📅</div>
             <h3 className="text-xl font-semibold text-white mb-2">No Upcoming Events</h3>
             <p className="text-white/60 mb-6">Check back later for exciting new events and workshops!</p>
             <Link href="/Events">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-              >
+              <button className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                 View All Events
-              </motion.button>
+              </button>
             </Link>
-          </motion.div>
+          </div>
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
               {events.map((event, index) => (
-                <motion.div
-                  key={event._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.2, duration: 0.8 }}
-                  viewport={{ once: true }}
-                  whileHover={{ scale: 1.02, y: -5 }}
-                  className="group"
-                >
+                <div key={event._id} className="group transition-transform duration-150 hover:-translate-y-1">
                   <Link href={`/Events/${event._id}`}>
                     <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 hover:bg-white/10 cursor-pointer h-full">
                       {/* Event Header */}
@@ -327,29 +290,19 @@ const UpcomingEvents = () => {
                       </div>
                     </div>
                   </Link>
-                </motion.div>
+                </div>
               ))}
             </div>
 
             {/* View All Events Button */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
-              viewport={{ once: true }}
-              className="text-center"
-            >
+            <div className="text-center">
               <Link href="/Events">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-lg border border-white/20 transition-all flex items-center gap-3 mx-auto group text-lg font-semibold"
-                >
+                <button className="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-lg border border-white/20 transition-all flex items-center gap-3 mx-auto group text-lg font-semibold">
                   View All Events
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </motion.button>
+                </button>
               </Link>
-            </motion.div>
+            </div>
           </>
         )}
       </div>

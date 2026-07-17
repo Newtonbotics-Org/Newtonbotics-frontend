@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { AlertCircle, ShieldCheck } from "lucide-react";
 import { useAuth } from "../../../contexts/AuthContext";
+import AuthSideVideo, { FORGOT_PASSWORD_VIDEO } from "../components/AuthSideVideo";
+import AuthPageShell from "../components/AuthPageShell";
 
 function OtpInputs({ value, onChange, disabled }) {
   const digits = value.split("");
@@ -121,36 +123,10 @@ function VerifyOtpContent() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-visible bg-[#070b12] text-white">
-      {/* Background */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute -top-24 -left-10 w-[40rem] h-[40rem] rounded-full bg-sky-500/15 blur-3xl" />
-        <div className="absolute bottom-[-8rem] right-[-6rem] w-[42rem] h-[42rem] rounded-full bg-indigo-500/15 blur-3xl" />
-        <div
-          className="absolute inset-0 opacity-[0.08] hidden md:block"
-          style={{
-            backgroundImage:
-              "linear-gradient(to right, rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.6) 1px, transparent 1px)",
-            backgroundSize: "46px 46px",
-          }}
-        />
-      </div>
+    <AuthPageShell>
+      <AuthSideVideo src={FORGOT_PASSWORD_VIDEO} />
 
-      {/* Grid: left video, right form */}
-      <div className="relative z-10 container mx-auto px-6 py-10">
-        <div className="mx-auto grid lg:grid-cols-2 gap-8 items-stretch">
-          {/* Left video */}
-          <motion.div
-            initial={{ opacity: 0, x: -12 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="hidden lg:flex relative overflow-hidden rounded-3xl border border-white/15 bg-black/30"
-          >
-            <video src="/forgetpasswords.mp4" autoPlay muted loop playsInline className="w-full h-full object-cover opacity-90" />
-          </motion.div>
-
-          {/* Right form */}
-          <motion.div
+      <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -187,9 +163,7 @@ function VerifyOtpContent() {
               Didn't receive it? You can request a new OTP from the previous page.
             </div>
           </motion.div>
-        </div>
-      </div>
-    </div>
+    </AuthPageShell>
   );
 }
 

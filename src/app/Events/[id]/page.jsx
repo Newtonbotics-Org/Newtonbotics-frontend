@@ -19,6 +19,7 @@ import {
   Link2
 } from "lucide-react";
 import Link from "next/link";
+import { API_BASE_URL } from "@/lib/api";
 
 const EventDetail = () => {
   const params = useParams();
@@ -30,8 +31,6 @@ const EventDetail = () => {
   const [timeLeft, setTimeLeft] = useState(null);
   const [linkCopied, setLinkCopied] = useState(false);
   const [isImageOpen, setIsImageOpen] = useState(false);
-  
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api';
 
   // Helper to combine date and time
   const combineDateTime = (dateString, timeString) => {

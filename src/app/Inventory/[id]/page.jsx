@@ -5,6 +5,7 @@ import inventoryService from "../../../lib/inventory";
 import authService from "../../../lib/auth";
 import { useAuth } from "../../../contexts/AuthContext";
 import LoadingSpinner from "../../../components/LoadingSpinner";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function EquipmentDetailPage(){
   const params = useParams();
@@ -32,8 +33,6 @@ export default function EquipmentDetailPage(){
   const [selectedCheckoutId, setSelectedCheckoutId] = useState("");
   const [returnQty, setReturnQty] = useState(1);
   const [returnNotes, setReturnNotes] = useState("");
-
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api';
 
   const role = user?.role || null;
   const hasInventoryManagementSubrole = hasSubrole('inventory_manager') || hasSubrole('inventory_management');

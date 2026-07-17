@@ -9,6 +9,7 @@ import {
 import { useAuth } from "../../contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import CloudinaryUploader from "../../components/CloudinaryUploader";
+import { API_BASE_URL } from "@/lib/api";
 
 const ProjectRequestPage = () => {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -24,8 +25,6 @@ const ProjectRequestPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingRequest, setEditingRequest] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-  
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api';
 
   const [formData, setFormData] = useState({
     title: "",
