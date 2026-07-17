@@ -279,7 +279,6 @@ export const AuthProvider = ({ children }) => {
   // Update profile function
   const updateProfile = useCallback(async (profileData) => {
     try {
-      setIsLoading(true);
       setError(null);
       
       const response = await authService.updateProfile(profileData);
@@ -301,15 +300,12 @@ export const AuthProvider = ({ children }) => {
       }
       setError(error.message);
       return { success: false, error: error.message };
-    } finally {
-      setIsLoading(false);
     }
   }, []);
 
   // Change password function
   const changePassword = useCallback(async (currentPassword, newPassword) => {
     try {
-      setIsLoading(true);
       setError(null);
       
       const response = await authService.changePassword(currentPassword, newPassword);
@@ -329,8 +325,21 @@ export const AuthProvider = ({ children }) => {
       }
       setError(error.message);
       return { success: false, error: error.message };
-    } finally {
-      setIsLoading(false);
+    }
+  }, []);
+
+  // Silently refresh current user profile (no global loading flash)
+  const refreshUser = useCallback(async () => {
+    try {
+      const response = await authService.getCurrentUserProfile();
+      if (response.success && response.data?.user) {
+        setUser(response.data.user);
+        return { success: true, user: response.data.user };
+      }
+      return { success: false };
+    } catch (error) {
+      console.error('Failed to refresh user profile:', error);
+      return { success: false, error: error.message };
     }
   }, []);
 
@@ -387,6 +396,7 @@ export const AuthProvider = ({ children }) => {
     resetPasswordWithOtp,
     updateProfile,
     changePassword,
+    refreshUser,
     getMyDashboard,
     clearError,
     hasPermission,

@@ -1,23 +1,29 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useAuth } from "../../contexts/AuthContext";
 import { motion } from "framer-motion";
 import { User2, Mail, Phone, Building, Calendar, Lock, Eye, EyeOff, Save, AlertCircle, CheckCircle } from "lucide-react";
 import ProtectedRoute from "../../components/ProtectedRoute";
 import CloudinaryUploader from "../../components/CloudinaryUploader";
 
-function Input({ label, icon: Icon, disabled: isDisabled, ...props }) {
+function Input({ label, icon: Icon, rightElement, disabled: isDisabled, ...props }) {
   return (
     <label className="block">
       {label && <span className="mb-2 block text-sm text-white/80">{label}</span>}
       <div className="relative">
-        {Icon && <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />}
+        {Icon && <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60 pointer-events-none" />}
         <input 
           {...props} 
           disabled={isDisabled}
-          className={`w-full ${Icon ? "pl-10" : "pl-4"} pr-4 py-3 rounded-xl bg-white/10 border border-white/15 focus:outline-none focus:ring-2 focus:ring-red-500/40 text-white placeholder-white/50 ${isDisabled ? "opacity-60 cursor-not-allowed" : ""}`} 
+          className={`w-full ${Icon ? "pl-10" : "pl-4"} ${rightElement ? "pr-10" : "pr-4"} py-2.5 rounded-xl bg-white/10 border border-white/15 focus:outline-none focus:ring-2 focus:ring-red-500/40 text-sm leading-normal text-white placeholder-white/50 [font-family:system-ui,Segoe_UI,Roboto,sans-serif] ${isDisabled ? "opacity-60 cursor-not-allowed" : ""}`} 
         />
+        {rightElement && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
+            {rightElement}
+          </div>
+        )}
       </div>
     </label>
   );
@@ -32,7 +38,7 @@ function Select({ label, icon: Icon, disabled: isDisabled, children, ...props })
         <select
           {...props}
           disabled={isDisabled}
-          className={`w-full ${Icon ? "pl-10" : "pl-4"} pr-4 py-3 rounded-xl bg-white/10 border border-white/15 focus:outline-none focus:ring-2 focus:ring-red-500/40 text-white ${isDisabled ? "opacity-60 cursor-not-allowed" : ""}`}
+          className={`w-full ${Icon ? "pl-10" : "pl-4"} pr-4 py-2.5 rounded-xl bg-white/10 border border-white/15 focus:outline-none focus:ring-2 focus:ring-red-500/40 text-sm leading-normal text-white [font-family:system-ui,Segoe_UI,Roboto,sans-serif] ${isDisabled ? "opacity-60 cursor-not-allowed" : ""}`}
         >
           {children}
         </select>
@@ -52,58 +58,31 @@ const departments = [
 ];
 
 export default function ProfileCompletionPage() {
-  const { user, updateProfile, changePassword } = useAuth();
+  const { user, updateProfile, changePassword, refreshUser } = useAuth();
   const [refreshingUser, setRefreshingUser] = useState(false);
   
   // Refresh user profile on mount to get latest data including subroles
   useEffect(() => {
+    let cancelled = false;
+
     const refreshUserProfile = async () => {
       if (!user) return;
-      
+
       try {
         setRefreshingUser(true);
-        console.log('Current user object before refresh:', user);
-        console.log('Current user.subroles:', user.subroles);
-        
-        const authService = (await import('../../lib/auth')).default;
-        console.log('Calling getCurrentUserProfile...');
-        const response = await authService.getCurrentUserProfile();
-        
-        console.log('API Response:', response);
-        console.log('Response success:', response.success);
-        console.log('Response data:', response.data);
-        
-        if (response.success && response.data?.user) {
-          console.log('Refreshed user profile:', response.data.user);
-          console.log('Refreshed user subroles:', response.data.user.subroles);
-          console.log('Refreshed user subroles type:', typeof response.data.user.subroles);
-          console.log('Refreshed user subroles isArray:', Array.isArray(response.data.user.subroles));
-          
-          // Check localStorage to see what was stored
-          const storedUser = JSON.parse(localStorage.getItem('nb_user') || 'null');
-          console.log('User in localStorage after refresh:', storedUser);
-          console.log('Subroles in localStorage:', storedUser?.subroles);
-          
-          // The user state will be updated from localStorage on next render
-          // Small delay to ensure localStorage is updated
-          setTimeout(() => {
-            window.location.reload();
-          }, 500);
-        } else {
-          console.error('Profile refresh failed - response not successful:', response);
-          setRefreshingUser(false);
-        }
+        await refreshUser();
       } catch (error) {
         console.error('Failed to refresh user profile:', error);
-        console.error('Error details:', error.message, error.stack);
-        setRefreshingUser(false);
+      } finally {
+        if (!cancelled) setRefreshingUser(false);
       }
     };
-    
-    // Always refresh on mount to ensure we have latest data
-    if (user) {
-      refreshUserProfile();
-    }
+
+    refreshUserProfile();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run once on mount
   
   const [profileData, setProfileData] = useState({
@@ -491,7 +470,7 @@ export default function ProfileCompletionPage() {
                       value={profileData.bio}
                       disabled={!isEditing}
                       onChange={(e) => handleProfileInputChange('bio', e.target.value)}
-                      className={`w-full pl-4 pr-4 py-3 rounded-xl bg-white/10 border border-white/15 focus:outline-none focus:ring-2 focus:ring-red-500/40 text-white placeholder-white/50 resize-none ${!isEditing ? "opacity-60 cursor-not-allowed" : ""}`}
+                      className={`w-full pl-4 pr-4 py-2.5 rounded-xl bg-white/10 border border-white/15 focus:outline-none focus:ring-2 focus:ring-red-500/40 text-sm leading-normal text-white placeholder-white/50 resize-none [font-family:system-ui,Segoe_UI,Roboto,sans-serif] ${!isEditing ? "opacity-60 cursor-not-allowed" : ""}`}
                       rows={3}
                     />
                   </div>
@@ -503,7 +482,7 @@ export default function ProfileCompletionPage() {
                       placeholder="Press Enter to add a skill"
                       onKeyDown={isEditing ? handleSkillInput : undefined}
                       disabled={!isEditing}
-                      className={`w-full pl-4 pr-4 py-3 rounded-xl bg-white/10 border border-white/15 focus:outline-none focus:ring-2 focus:ring-red-500/40 text-white placeholder-white/50 ${!isEditing ? "opacity-60 cursor-not-allowed" : ""}`}
+                      className={`w-full pl-4 pr-4 py-2.5 rounded-xl bg-white/10 border border-white/15 focus:outline-none focus:ring-2 focus:ring-red-500/40 text-sm leading-normal text-white placeholder-white/50 [font-family:system-ui,Segoe_UI,Roboto,sans-serif] ${!isEditing ? "opacity-60 cursor-not-allowed" : ""}`}
                     />
                     {profileData.skills.length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-2">
@@ -585,59 +564,62 @@ export default function ProfileCompletionPage() {
                 </h2>
 
                 <form onSubmit={handlePasswordChange} className="space-y-4">
-                  <div className="relative">
-                    <Input 
-                      label="Current Password"
-                      icon={Lock}
-                      type={showCurrentPassword ? "text" : "password"}
-                      placeholder="Current password"
-                      value={passwordData.currentPassword}
-                      onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white/80 transition"
-                    >
-                      {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
+                  <Input 
+                    label="Current Password"
+                    icon={Lock}
+                    type={showCurrentPassword ? "text" : "password"}
+                    placeholder="Current password"
+                    value={passwordData.currentPassword}
+                    onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
+                    rightElement={
+                      <button
+                        type="button"
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        className="text-white/60 hover:text-white/80 transition"
+                        aria-label={showCurrentPassword ? "Hide password" : "Show password"}
+                      >
+                        {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    }
+                  />
 
-                  <div className="relative">
-                    <Input 
-                      label="New Password"
-                      icon={Lock}
-                      type={showNewPassword ? "text" : "password"}
-                      placeholder="New password"
-                      value={passwordData.newPassword}
-                      onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white/80 transition"
-                    >
-                      {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
+                  <Input 
+                    label="New Password"
+                    icon={Lock}
+                    type={showNewPassword ? "text" : "password"}
+                    placeholder="New password"
+                    value={passwordData.newPassword}
+                    onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
+                    rightElement={
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="text-white/60 hover:text-white/80 transition"
+                        aria-label={showNewPassword ? "Hide password" : "Show password"}
+                      >
+                        {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    }
+                  />
 
-                  <div className="relative">
-                    <Input 
-                      label="Confirm New Password"
-                      icon={Lock}
-                      type={showConfirmPassword ? "text" : "password"}
-                      placeholder="Confirm new password"
-                      value={passwordData.confirmPassword}
-                      onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white/80 transition"
-                    >
-                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
+                  <Input 
+                    label="Confirm New Password"
+                    icon={Lock}
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm new password"
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
+                    rightElement={
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="text-white/60 hover:text-white/80 transition"
+                        aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                      >
+                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    }
+                  />
 
                   <div className="text-xs text-white/60">
                     Password must contain at least 8 characters with uppercase, lowercase, number, and special character.
@@ -674,6 +656,13 @@ export default function ProfileCompletionPage() {
                       </>
                     )}
                   </button>
+
+                  <Link
+                    href="/auth/forgot"
+                    className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 transition font-semibold flex items-center justify-center gap-2 text-sm"
+                  >
+                    Forgot Password?
+                  </Link>
                 </form>
               </motion.div>
             </div>
