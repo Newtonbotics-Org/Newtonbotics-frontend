@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Brain, Box, Layout, Search, Filter, ArrowRight, Calendar, Users, Clock, MapPin } from "lucide-react";
 import Link from "next/link";
+import { API_BASE_URL } from "@/lib/api";
 
 const EventsPage = () => {
   const [events, setEvents] = useState([]);
@@ -20,8 +21,6 @@ const EventsPage = () => {
     skip: 0,
     hasMore: false
   });
-  
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api';
 
   // Event types from API specification
   const eventTypes = [

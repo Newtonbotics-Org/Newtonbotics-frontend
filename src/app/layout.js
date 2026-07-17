@@ -1,19 +1,15 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Orbitron } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/navbar";
 import Footer from "./components/footer";
-import NewsTicker from "./components/NewsTicker";
-import DiwaliCelebration from "./components/DiwaliCelebration";
+import CustomCursor from "./components/CustomCursor";
 import { AuthProvider } from "../contexts/AuthContext";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const orbitron = Orbitron({
+  variable: "--font-orbitron",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  display: "swap",
 });
 
 export const metadata = {
@@ -64,6 +60,14 @@ export const metadata = {
   },
   themeColor: "#000000",
   category: "Education",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+  },
 };
 
 export const viewport = {
@@ -79,7 +83,7 @@ export default function RootLayout({ children }) {
     "name": "NewtonBotics Robotics Lab",
     "alternateName": "NewtonBotics",
     "url": "https://newtonbotics.tech",
-    "logo": "https://newtonbotics.tech/logo.png",
+    "logo": "https://newtonbotics.tech/white%20logo.png",
     "description": "NewtonBotics Robotics Lab at Rishihood University - Advancing robotics and AI research through innovation, collaboration, and hands-on learning.",
     "address": {
       "@type": "PostalAddress",
@@ -142,6 +146,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
+        <link rel="preconnect" href="https://fonts.cdnfonts.com" crossOrigin="anonymous" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
@@ -156,12 +161,11 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${orbitron.variable} font-sans antialiased`}
         >
         <AuthProvider>
-          {/* <DiwaliCelebration/> */}
+          <CustomCursor />
           <Navbar/>
-          <NewsTicker/>
           {children}
           <Footer/>
         </AuthProvider>

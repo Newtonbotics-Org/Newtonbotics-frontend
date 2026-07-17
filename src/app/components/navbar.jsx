@@ -1,10 +1,13 @@
 // components/Navbar.js
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { FiMenu, FiX, FiChevronDown, FiUser, FiPackage, FiList, FiLogOut, FiSettings, FiFileText, FiShield } from "react-icons/fi";
+import { FiMenu, FiX, FiChevronDown, FiUser, FiPackage, FiList, FiLogOut, FiSettings, FiFileText, FiShield, FiBookOpen } from "react-icons/fi";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "../../contexts/AuthContext";
+import { API_BASE_URL } from "@/lib/api";
+import { NEWTONBOTICS_LOGO, NEWTONBOTICS_LOGO_WIDTH, NEWTONBOTICS_LOGO_HEIGHT } from "@/lib/branding";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -75,7 +78,6 @@ const Navbar = () => {
       }
 
       try {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api';
         const userId = user.id || user._id;
         
         if (!userId) {
@@ -173,10 +175,16 @@ const Navbar = () => {
         <div className="flex items-center">
           <Link
             href="/DashBoard"
-            className="flex flex-col hover:text-red-500 transition"
+            className="flex items-center gap-3 hover:opacity-90 transition"
           >
-            <span className="text-2xl font-bold text-white">NewtonBotics</span>
-            <span className="text-xs text-white/70 font-medium">Rishihood University</span>
+            <Image
+              src={NEWTONBOTICS_LOGO}
+              alt="NewtonBotics"
+              width={NEWTONBOTICS_LOGO_WIDTH}
+              height={NEWTONBOTICS_LOGO_HEIGHT}
+              className="w-44 sm:w-52 h-auto object-contain"
+              priority
+            />
           </Link>
         </div>
 
@@ -214,7 +222,7 @@ const Navbar = () => {
           {!isLoggedIn ? (
             <Link
               href="/auth"
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+              className="inline-block px-4 py-2 bg-red-600 text-white nb-chamfer hover:bg-red-700 transition"
             >
               Sign in
             </Link>
@@ -226,7 +234,7 @@ const Navbar = () => {
               onMouseLeave={() => setShowProfile(false)}
             >
               <button
-                className="flex items-center gap-2 px-3 py-2 bg-white/10 text-white rounded-full border border-white/20 hover:bg-white/20 transition"
+                className="flex items-center gap-2 px-3 py-2 bg-white/10 text-white nb-chamfer border border-white/20 hover:bg-white/20 transition"
                 aria-haspopup="menu"
                 aria-expanded={showProfile}
               >
@@ -245,7 +253,7 @@ const Navbar = () => {
 
               {/* Dropdown */}
               <div
-                className={`invisible opacity-0 translate-y-1 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 absolute right-0 mt-3 w-64 rounded-2xl border border-white/10 bg-black shadow-2xl ring-1 ring-white/10 ${showProfile ? "visible opacity-100 translate-y-0" : ""}`}
+                className={`invisible opacity-0 translate-y-1 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 absolute right-0 mt-3 w-64 rounded-md border border-white/10 bg-black shadow-2xl ring-1 ring-white/10 ${showProfile ? "visible opacity-100 translate-y-0" : ""}`}
                 role="menu"
               >
                 {/* Arrow */}
@@ -309,6 +317,13 @@ const Navbar = () => {
                 )}
 
                 <div className="border-t border-white/10">
+                  <Link
+                    href="/Resources"
+                    className="flex items-center gap-2 px-4 py-2 text-white/90 hover:bg-white/10"
+                    onClick={() => setShowProfile(false)}
+                  >
+                    <FiBookOpen /> Resources
+                  </Link>
                   <Link
                     href="/my-activity"
                     className="flex items-center gap-2 px-4 py-2 text-white/90 hover:bg-white/10"
@@ -385,7 +400,7 @@ const Navbar = () => {
           {!isLoggedIn ? (
             <Link
               href="/auth"
-              className="block mx-4 my-3 py-2 bg-red-600 text-white text-center rounded-lg hover:bg-red-700 transition"
+              className="block mx-4 my-3 py-2 bg-red-600 text-white text-center nb-chamfer hover:bg-red-700 transition"
               onClick={() => setIsOpen(false)}
             >
               Sign in
@@ -454,8 +469,16 @@ const Navbar = () => {
               )}
               
               <div className="border-t border-white/10">
-                <Link 
-                  href="/my-activity" 
+                <Link
+                  href="/Resources"
+                  className="flex items-center gap-3 py-2 px-4 text-white hover:bg-red-900 transition"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <FiBookOpen className="w-4 h-4" />
+                  <span>Resources</span>
+                </Link>
+                <Link
+                  href="/my-activity"
                   className="flex items-center gap-3 py-2 px-4 text-white hover:bg-red-900 transition" 
                   onClick={() => setIsOpen(false)}
                 >

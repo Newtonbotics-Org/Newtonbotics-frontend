@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Brain, Box, Layout, ArrowLeft, Users, Calendar, Award, ExternalLink, User, Mail } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { API_BASE_URL } from "@/lib/api";
 
 const ResearchAreaDetail = () => {
   const params = useParams();
@@ -15,8 +16,6 @@ const ResearchAreaDetail = () => {
   const [loadingMembers, setLoadingMembers] = useState(false);
   const [error, setError] = useState(null);
   const [linkCopied, setLinkCopied] = useState(false);
-  
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api';
 
   useEffect(() => {
     const fetchResearchArea = async () => {

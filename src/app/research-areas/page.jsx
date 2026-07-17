@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Brain, Box, Layout, Search, Filter, ArrowRight, Users, Calendar, Award } from "lucide-react";
 import Link from "next/link";
+import { API_BASE_URL } from "@/lib/api";
 
 const ResearchAreasPage = () => {
   const [researchAreas, setResearchAreas] = useState([]);
@@ -10,8 +11,6 @@ const ResearchAreasPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [categories, setCategories] = useState([]);
-  
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api';
 
   // Fetch all research areas
   useEffect(() => {

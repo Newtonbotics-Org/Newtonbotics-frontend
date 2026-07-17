@@ -55,14 +55,13 @@ export default {
   			}
   		},
   		fontFamily: {
-  			display: [
-  				'Poppins',
-  				'sans-serif'
-  			],
-  			body: [
-  				'Open Sans',
-  				'sans-serif'
-  			]
+  			sans: ['var(--font-orbitron)', 'Orbitron', 'sans-serif'],
+  			orbitron: ['var(--font-orbitron)', 'Orbitron', 'sans-serif'],
+  			neuropol: ['Neuropol X', 'var(--font-orbitron)', 'sans-serif'],
+  			ethnocentric: ['Ethnocentric', 'var(--font-orbitron)', 'sans-serif'],
+  			display: ['Ethnocentric', 'var(--font-orbitron)', 'sans-serif'],
+  			body: ['var(--font-orbitron)', 'Orbitron', 'sans-serif'],
+  			heading: ['Neuropol X', 'var(--font-orbitron)', 'sans-serif'],
   		},
   		backgroundImage: {
   			'gradient-primary': 'linear-gradient(45deg, #1a365d, #2563eb)',

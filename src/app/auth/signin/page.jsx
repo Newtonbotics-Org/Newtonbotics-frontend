@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Mail, Lock, LogIn, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../../contexts/AuthContext";
+import AuthSideVideo from "../components/AuthSideVideo";
+import AuthPageShell from "../components/AuthPageShell";
 
 function Input({ icon: Icon, ...props }) {
   return (
@@ -87,54 +89,15 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-visible bg-[#070b12] text-white">
-      {/* Decorative left hologram area */}
-      <div className="absolute inset-0 -z-10">
-        {/* Soft gradient background */}
-        <div className="absolute -top-24 -left-10 w-[40rem] h-[40rem] rounded-full bg-sky-500/15 blur-3xl" />
-        <div className="absolute bottom-[-8rem] right-[-6rem] w-[42rem] h-[42rem] rounded-full bg-indigo-500/15 blur-3xl" />
-        {/* Grid overlay */}
-        <div
-          className="absolute inset-0 opacity-[0.08] hidden md:block"
-          style={{
-            backgroundImage:
-              "linear-gradient(to right, rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.6) 1px, transparent 1px)",
-            backgroundSize: "46px 46px",
-          }}
-        />
-        {/* Hologram orb */}
-        <div className="hidden lg:block absolute left-10 top-1/2 -translate-y-1/2 w-[34rem] h-[34rem]">
-          <div className="absolute inset-0 rounded-full border border-sky-400/40 bg-gradient-to-br from-sky-400/10 to-transparent shadow-[0_0_60px_rgba(56,189,248,.25)]" />
-          <div className="absolute inset-6 rounded-full border border-sky-300/30" />
-          <div className="absolute inset-12 rounded-full border border-sky-200/20" />
-          <div className="absolute -inset-6 rounded-full animate-pulse bg-sky-400/5 blur-2xl" />
-          {/* orbiting dots */}
-          <span className="absolute left-1/2 top-0 -translate-x-1/2 w-2 h-2 bg-sky-400 rounded-full shadow-[0_0_12px_2px_rgba(56,189,248,.6)]" />
-          <span className="absolute right-6 top-1/2 -translate-y-1/2 w-2 h-2 bg-cyan-300 rounded-full shadow-[0_0_12px_2px_rgba(103,232,249,.6)]" />
-          <span className="absolute left-14 bottom-10 w-2 h-2 bg-blue-300 rounded-full shadow-[0_0_12px_2px_rgba(147,197,253,.6)]" />
-        </div>
-      </div>
+    <AuthPageShell>
+      <AuthSideVideo />
 
-      {/* Two-column layout: left form, right video */}
-      <div className="relative z-10 container mx-auto px-6 py-10">
-        <div className="mx-auto grid lg:grid-cols-2 gap-8 items-stretch">
-          {/* Left video */}
-          <motion.div
-            initial={{ opacity: 0, x: -12 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="hidden lg:flex relative overflow-hidden rounded-3xl border border-white/15 bg-black/30"
-          >
-            <video src="/authentication.mp4" autoPlay muted loop playsInline className="w-full h-full object-cover opacity-90" />
-          </motion.div>
-
-          {/* Right form */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="w-full max-w-md lg:max-w-none rounded-3xl border border-white/15 bg-white/[0.06] backdrop-blur-xl shadow-2xl p-6 md:p-8"
-          >
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md lg:max-w-none rounded-3xl border border-white/15 bg-white/[0.06] backdrop-blur-xl shadow-2xl p-6 md:p-8"
+      >
             <h1 className="text-2xl md:text-3xl font-bold mb-1">Welcome back</h1>
             <p className="text-white/70 mb-6">Sign in to your NewtonBotics account.</p>
 
@@ -167,9 +130,7 @@ export default function SignInPage() {
             <div className="mt-4 text-sm text-white/70 text-center">
               New to the club? <a href="/auth/signup" className="text-white hover:underline">Create an account</a>
             </div>
-          </motion.div>
-        </div>
-      </div>
-    </div>
+      </motion.div>
+    </AuthPageShell>
   );
 } 

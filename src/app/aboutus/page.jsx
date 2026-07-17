@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import {
@@ -11,11 +11,43 @@ import {
   Calendar,
   BookOpen,
   Rocket,
+  Linkedin,
+  Crown,
 } from "lucide-react";
 // Navbar is provided by root layout
 import clubData from "../AllDatas/data.json";
+import { API_BASE_URL } from "@/lib/api";
+import { formatTenureRange, tenureSortValue } from "@/lib/tenureDates";
 
 const AboutUs = () => {
+
+  // Past leaders (admin-controlled via the admin panel)
+  const [pastLeaders, setPastLeaders] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchPastLeaders = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/past-leaders?isActive=true&limit=200`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (isMounted && data.success) setPastLeaders(data.data.items || []);
+      } catch (_) {
+        // Silently ignore; section stays hidden when nothing loads
+      }
+    };
+    fetchPastLeaders();
+    return () => { isMounted = false; };
+  }, []);
+
+  const tenureLabel = (l) => formatTenureRange(l.tenureStart, l.tenureEnd);
+  const leaderGroups = Object.entries(
+    pastLeaders.reduce((acc, l) => {
+      const label = tenureLabel(l);
+      (acc[label] = acc[label] || []).push(l);
+      return acc;
+    }, {})
+  ).sort((a, b) => tenureSortValue(b[1][0]?.tenureStart) - tenureSortValue(a[1][0]?.tenureStart));
   // Derived data for About content
   const establishedYear = clubData?.clubInfo?.founded;
   const founders = clubData?.clubInfo?.foundedBy || [];
@@ -122,6 +154,68 @@ const AboutUs = () => {
           ))}
         </div>
       </section>
+
+      {/* Past Leadership Team (admin-controlled, below founding team) */}
+      {leaderGroups.length > 0 && (
+        <section className="max-w-7xl mx-auto mb-12">
+          <h2 className="text-3xl font-bold mb-2 font-display flex items-center gap-3">
+            <Crown className="w-8 h-8 text-red-500" /> Past Leadership Team
+          </h2>
+          <p className="text-white/60 mb-8">
+            Former presidents, vice presidents, and leadership team members who shaped NewtonBotics.
+          </p>
+
+          <div className="relative ml-3 md:ml-4 border-l-2 border-red-500/30 space-y-12 pl-8 md:pl-12">
+            {leaderGroups.map(([label, leaders]) => (
+              <div key={label} className="relative">
+                {/* Timeline node */}
+                <span className="absolute -left-[41px] md:-left-[57px] top-1 w-4 h-4 rounded-full bg-red-500 ring-4 ring-red-500/20"></span>
+                <h3 className="text-xl md:text-2xl font-bold text-red-400 mb-5 font-display">{label}</h3>
+
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {leaders.map((leader) => (
+                    <div
+                      key={leader._id}
+                      className="bg-white/5 backdrop-blur-lg rounded-xl p-5 border border-white/10 hover:bg-white/10 hover:border-red-500/20 transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="relative w-16 h-16 rounded-full overflow-hidden bg-white/10 flex-shrink-0 flex items-center justify-center">
+                          {leader.imageUrl ? (
+                            <img src={leader.imageUrl} alt={leader.fullName} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-xl font-bold text-white/60">
+                              {leader.fullName?.split(' ').map((w) => w[0]).slice(0, 2).join('')}
+                            </span>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-lg font-bold font-display truncate">{leader.fullName}</h4>
+                          <p className="text-sm text-red-400 font-medium">{leader.position}</p>
+                          <p className="text-xs text-white/50 mt-0.5">{tenureLabel(leader)}</p>
+                        </div>
+                        {leader.linkedinUrl && (
+                          <a
+                            href={leader.linkedinUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`${leader.fullName} on LinkedIn`}
+                            className="ml-auto text-blue-400 hover:text-blue-300 flex-shrink-0"
+                          >
+                            <Linkedin className="w-5 h-5" />
+                          </a>
+                        )}
+                      </div>
+                      {leader.description && (
+                        <p className="text-sm text-white/70 mt-3 leading-relaxed">{leader.description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Lab Details Section */}
       <section className="py-16 bg-black">

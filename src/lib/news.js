@@ -1,5 +1,5 @@
 // Public News and Newsletter API client
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api';
+import { API_BASE_URL } from './api';
 
 async function safeParseJson(response) {
   const contentType = response.headers.get('content-type') || '';
@@ -16,6 +16,10 @@ function toQuery(params = {}) {
   });
   const qs = search.toString();
   return qs ? `?${qs}` : '';
+}
+
+export function isValidObjectId(id) {
+  return typeof id === 'string' && /^[a-f\d]{24}$/i.test(id);
 }
 
 export const newsService = {
@@ -56,20 +60,28 @@ export const newsService = {
 
   // GET /api/news/:id
   async getNews(id) {
+    if (!isValidObjectId(id)) {
+      return null;
+    }
+
     try {
       const res = await fetch(`${API_BASE_URL}/news/${id}`, { cache: 'no-store' });
-      
+
+      if (res.status === 404) {
+        return null;
+      }
+
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
-      
+
       const data = await safeParseJson(res);
       if (data?.success === false) {
         const msg = data?.error?.message || data?.message || 'Failed to load news item';
         throw new Error(msg);
       }
-      
-      return data?.data?.item;
+
+      return data?.data?.item ?? null;
     } catch (error) {
       console.error('Error fetching news item:', error);
       throw new Error(`Failed to load news item: ${error.message}`);
@@ -91,7 +103,7 @@ export const newsService = {
         throw new Error(msg);
       }
       
-      return data?.data?.items || [];
+      return data?.data?.categories || data?.data?.items || [];
     } catch (error) {
       console.error('Error fetching categories:', error);
       throw new Error(`Failed to load categories: ${error.message}`);

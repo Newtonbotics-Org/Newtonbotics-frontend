@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api';
+import { API_BASE_URL } from './api';
 import authService from './auth';
 
 async function safeParseJson(response) {
