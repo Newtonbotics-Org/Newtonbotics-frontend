@@ -95,7 +95,7 @@ export default function RootLayout({ children }) {
     "contactPoint": {
       "@type": "ContactPoint",
       "contactType": "General Inquiry",
-      "email": "robotics.club@rishihood.edu.in"
+      "email": "newtonbotics.club@rishihood.edu.in"
     },
     "sameAs": [
       "https://www.instagram.com/newtonbotics",
