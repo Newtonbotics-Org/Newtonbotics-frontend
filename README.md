@@ -232,3 +232,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ---
 
 **Note**: This is a development version. For production use, implement additional security measures like 2FA, session management, and audit logging.
+# Newtonbotics-frontend
