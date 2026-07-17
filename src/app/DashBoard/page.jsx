@@ -10,6 +10,7 @@ import { subscribeToNewsletter } from "../../lib/newsletter";
 import { API_BASE_URL } from "@/lib/api";
 import { NEWTONBOTICS_LOGO, NEWTONBOTICS_LOGO_WIDTH, NEWTONBOTICS_LOGO_HEIGHT } from "@/lib/branding";
 import HeroRobot from "../components/HeroRobot";
+import ResearchRobot3D from "../components/ResearchRobot3D";
 import LazyLoader, { LazySkeleton } from "../components/LazyLoader";
 
 // Lazy load below-the-fold components for better initial page load
@@ -163,12 +164,12 @@ const HomePage = () => {
   ];
 
   return (
-    <main className="relative min-h-screen bg-black text-white font-sans" itemScope itemType="https://schema.org/WebPage">
+    <main className="relative min-h-screen overflow-x-clip bg-black text-white font-sans" itemScope itemType="https://schema.org/WebPage">
       <HomeBgVideo />
 
       {/* Role notice toast */}
       {roleNotice && (
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 max-w-xl w-[92%] md:w-auto bg-white/10 border border-white/15 backdrop-blur-xl rounded-2xl px-4 py-3 fade-in">
+        <div className="fixed top-20 sm:top-24 left-1/2 -translate-x-1/2 z-50 max-w-xl w-[min(92%,24rem)] md:w-auto bg-white/10 border border-white/15 backdrop-blur-xl rounded-2xl px-4 py-3 fade-in">
           <button
             onClick={() => setRoleNotice(null)}
             aria-label="Dismiss notification"
@@ -186,19 +187,19 @@ const HomePage = () => {
         </div>
       )}
 
-      {/* ===== HERO SECTION ===== */}
-      <section className="relative min-h-screen flex items-center z-10" itemScope itemType="https://schema.org/Organization">
-        {/* Latest news ticker overlaid at the top of the hero */}
-        <div className="absolute top-0 left-0 w-full z-20">
-          <NewsTicker />
-        </div>
+      {/* ===== NEWS TICKER ===== */}
+      <NewsTicker />
 
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-20 py-20 lg:py-0">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center min-h-[calc(100vh-6rem)]">
-            <div className="max-w-3xl mx-auto lg:mx-0 text-center lg:text-left">
-              <div className="flex items-center justify-center lg:justify-start gap-2 mb-4">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span className="text-white/80 font-medium text-sm sm:text-base">Innovation Hub at Rishihood University</span>
+      {/* ===== HERO SECTION ===== */}
+      <section className="relative min-h-[80svh] flex items-start lg:items-center z-10 overflow-x-clip" itemScope itemType="https://schema.org/Organization">
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 pt-8 pb-14 sm:pt-10 sm:pb-16 lg:py-0">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-8 lg:gap-12 items-center lg:min-h-[calc(100svh-6rem)]">
+            {/* Text — below robot on mobile, left column on lg+ */}
+            <div className="max-w-3xl mx-auto lg:mx-0 text-center lg:text-left order-2 lg:order-1 mt-2 sm:mt-0">
+              {/* Desktop / tablet eyebrow — hidden on small phones */}
+              <div className="hidden sm:flex items-center justify-center lg:justify-start gap-2 mb-3 sm:mb-4">
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-red-500 rounded-full shrink-0"></div>
+                <span className="text-white/80 font-medium text-xs sm:text-sm md:text-base">Innovation Hub at Rishihood University</span>
               </div>
 
               <Image
@@ -206,41 +207,48 @@ const HomePage = () => {
                 alt="NewtonBotics"
                 width={NEWTONBOTICS_LOGO_WIDTH}
                 height={NEWTONBOTICS_LOGO_HEIGHT}
-                className="w-72 sm:w-96 md:w-[28rem] h-auto object-contain mx-auto lg:mx-0 mb-6"
+                className="w-[min(100%,11.5rem)] sm:w-80 md:w-96 lg:w-[26rem] xl:w-[28rem] h-auto object-contain mx-auto lg:mx-0 mb-2 sm:mb-6"
                 priority
               />
               
               <h1 className="sr-only" itemProp="name">NewtonBotics</h1>
               
-              <p className="text-sm sm:text-base md:text-lg text-white/70 mt-3 mb-4">
+              {/* Full supporting line — tablet/desktop only */}
+              <p className="hidden sm:block text-sm md:text-base lg:text-lg text-white/70 mt-2 sm:mt-3 mb-3 sm:mb-4">
                 <span className="text-white/90 font-medium">at Rishihood University</span>
               </p>
               
-              <p className="text-lg sm:text-xl md:text-2xl text-white/80 mt-4 mb-8 leading-relaxed max-w-lg mx-auto lg:mx-0" itemProp="description">
-                Where Innovation Meets Precision in Robotics Excellence.{" "}
-                <span className="text-red-400 font-semibold">Building the future, one robot at a time.</span>
+              <p className="text-sm sm:text-lg md:text-xl lg:text-2xl text-white/80 mt-1 sm:mt-4 mb-4 sm:mb-8 leading-snug sm:leading-relaxed max-w-xs sm:max-w-lg mx-auto lg:mx-0" itemProp="description">
+                <span className="sm:hidden text-red-400 font-semibold">Building the future, one robot at a time.</span>
+                <span className="hidden sm:inline">
+                  Where Innovation Meets Precision in Robotics Excellence.{" "}
+                  <span className="text-red-400 font-semibold">Building the future, one robot at a time.</span>
+                </span>
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
-                <Link href="/Projects" className="inline-block">
-                  <div className="nb-cta nb-chamfer-lg bg-gradient-to-r from-red-500 to-red-600 text-white px-8 py-4 text-lg font-semibold hover:scale-[1.03] active:scale-[0.97] transition-all duration-200 flex items-center justify-center gap-2 group">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start w-full sm:w-auto">
+                <Link href="/Projects" className="inline-block w-full sm:w-auto">
+                  <div className="nb-cta nb-chamfer-lg bg-gradient-to-r from-red-500 to-red-600 text-white px-5 py-3 text-sm sm:px-8 sm:py-4 sm:text-lg font-semibold hover:scale-[1.03] active:scale-[0.97] transition-all duration-200 flex items-center justify-center gap-2 group w-full sm:w-auto">
                     Discover Our Innovations
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform shrink-0" />
                   </div>
                 </Link>
               </div>
             </div>
 
-            <HeroRobot />
+            {/* Robot — on top for mobile, right column on lg+ */}
+            <div className="order-1 lg:order-2 flex justify-center lg:justify-end mb-2 lg:mb-0">
+              <HeroRobot />
+            </div>
           </div>
         </div>
 
         {/* Scroll indicator — hides once scrolling starts */}
-        <div className={`absolute bottom-28 left-1/2 -translate-x-1/2 hidden sm:flex flex-col items-center gap-2 z-20 transition-opacity duration-500 ${hasScrolled ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+        <div className={`absolute bottom-5 sm:bottom-10 lg:bottom-16 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 sm:gap-2 z-20 transition-opacity duration-500 ${hasScrolled ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
           <div className="css-bounce">
-            <svg className="w-6 h-6 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
           </div>
-          <span className="text-xs text-white/50 select-none">Scroll to explore</span>
+          <span className="text-[10px] sm:text-xs text-white/50 select-none">Scroll to explore</span>
         </div>
       </section>
 
@@ -261,7 +269,7 @@ const HomePage = () => {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="bg-white/5 rounded-2xl p-6 lg:p-8 border border-white/10 hover:border-red-500/20 hover:bg-white/[0.08] transition-all duration-300 group section-fade-in"
+                className="bg-white/5 rounded-xl sm:rounded-2xl p-5 sm:p-6 lg:p-8 border border-white/10 hover:border-red-500/20 hover:bg-white/[0.08] transition-all duration-300 group section-fade-in"
                 style={{ animationDelay: `${index * 80}ms` }}
               >
                 <div className="bg-gradient-to-br from-white/10 to-red-500/10 p-3 sm:p-4 rounded-xl w-fit mb-4 sm:mb-6 group-hover:shadow-lg transition-shadow duration-300">
@@ -283,19 +291,13 @@ const HomePage = () => {
       <section className="py-16 md:py-24 relative z-10" aria-label="Research Areas">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 lg:gap-10 items-center">
-            {/* Left — 1/4: research figure */}
-            <div className="relative flex justify-center lg:justify-start pointer-events-none select-none order-1">
-              <Image
-                src="/reaserch area image.png"
-                alt="NewtonBotics research robotics figure"
-                width={480}
-                height={720}
-                className="w-48 sm:w-56 lg:w-full max-w-[16rem] lg:max-w-none h-auto object-contain drop-shadow-[0_0_40px_rgba(0,180,255,0.12)]"
-              />
+            {/* Left — 1/4: research figure (Three.js 360° on desktop) */}
+            <div className="relative flex justify-center lg:justify-start select-none order-2 lg:order-1 mt-4 lg:mt-0 pointer-events-auto">
+              <ResearchRobot3D />
             </div>
 
             {/* Right — 3/4: heading + research information */}
-            <div className="lg:col-span-3 order-2">
+            <div className="lg:col-span-3 order-1 lg:order-2">
               <div className="text-center lg:text-left mb-8 sm:mb-10 section-fade-in">
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-3 sm:mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-red-400 to-white">
                   Research Areas
@@ -359,7 +361,7 @@ const HomePage = () => {
                 )}
               </div>
 
-              <div className="mt-8 flex justify-end section-fade-in">
+              <div className="mt-8 flex justify-center lg:justify-end section-fade-in">
                 <Link href="/research-areas">
                   <button className="bg-white/10 hover:bg-white/20 text-white px-5 py-2.5 rounded-lg border border-white/20 transition-all duration-200 flex items-center gap-2 group text-sm">
                     Explore more
@@ -436,14 +438,14 @@ const HomePage = () => {
                 {newsletterStep === 2 && (
                   <form onSubmit={handleNewsletterSubmit}>
                     <div className="mb-4">
-                      <p className="text-white/70 text-sm mb-4">
+                      <p className="text-white/70 text-sm mb-4 break-all sm:break-normal">
                         Great! We have your email: <span className="text-red-400 font-medium">{newsletterEmail}</span>
                       </p>
                       <p className="text-white/60 text-sm mb-4">
                         Add your name (optional) to personalize your newsletter experience.
                       </p>
                       
-                      <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                         <input
                           type="text"
                           placeholder="First name (optional)"
@@ -460,11 +462,11 @@ const HomePage = () => {
                         />
                       </div>
                       
-                      <div className="flex gap-3">
+                      <div className="flex flex-col-reverse sm:flex-row gap-3">
                         <button
                           type="button"
                           onClick={handleBackToEmail}
-                          className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-all duration-200 flex items-center gap-2"
+                          className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2"
                         >
                           ← Back
                         </button>

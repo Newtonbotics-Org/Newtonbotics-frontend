@@ -8,8 +8,8 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
 
 /**
- * Premium GSAP animation system for the hero robot PNG only.
- * Does not alter hero layout, typography, buttons, or left content.
+ * Static 2D hero robot PNG with premium GSAP motion (desktop).
+ * No Three.js — keeps the original flat image look.
  */
 export default function HeroRobot() {
   const rootRef = useRef(null);
@@ -47,11 +47,24 @@ export default function HeroRobot() {
       },
       (context) => {
         const { isDesktop, reduceMotion } = context.conditions;
-        if (!isDesktop) return;
 
         if (reduceMotion) {
           gsap.set(introLayer, { opacity: 1, x: 0, scale: 1, rotateY: 0 });
           return;
+        }
+
+        if (!isDesktop) {
+          gsap.set(introLayer, { opacity: 1, x: 0, scale: 1, rotateY: 0 });
+          const floatTween = gsap.to(floatLayer, {
+            y: -8,
+            duration: 3.2,
+            ease: "sine.inOut",
+            yoyo: true,
+            repeat: -1,
+          });
+          return () => {
+            floatTween.kill();
+          };
         }
 
         const glowTargets = [
@@ -89,7 +102,6 @@ export default function HeroRobot() {
         });
         gsap.set(visorSweepRef.current, { xPercent: -120, opacity: 0 });
 
-        // —— Initial load ——
         const intro = gsap.to(introLayer, {
           opacity: 1,
           x: 0,
@@ -99,7 +111,6 @@ export default function HeroRobot() {
           ease: "power4.out",
         });
 
-        // —— Idle floating ——
         const floatTween = gsap.to(floatLayer, {
           y: -12,
           duration: 3.5,
@@ -109,7 +120,6 @@ export default function HeroRobot() {
           delay: 1.8,
         });
 
-        // —— Breathing (dedicated scale layer) ——
         const breathTween = gsap.to(scaleLayer, {
           scale: 1.01,
           duration: 2.4,
@@ -119,7 +129,6 @@ export default function HeroRobot() {
           delay: 2.2,
         });
 
-        // —— Chest reactor glow ——
         const chestOuter = gsap.to(chestOuterRef.current, {
           scale: 1.18,
           opacity: 0.85,
@@ -142,7 +151,6 @@ export default function HeroRobot() {
           delay: 2.0,
         });
 
-        // —— LED pulses (desynced) ——
         const ledBlue = gsap.to(ledBlueRef.current, {
           opacity: 0.95,
           scale: 1.25,
@@ -187,7 +195,6 @@ export default function HeroRobot() {
           delay: 2.8,
         });
 
-        // —— Helmet reflection sweep (every ~5s) ——
         const visorTl = gsap.timeline({
           repeat: -1,
           repeatDelay: 5,
@@ -208,7 +215,6 @@ export default function HeroRobot() {
             ease: "power2.in",
           });
 
-        // —— Mouse parallax ——
         const xTo = gsap.quickTo(parallaxLayer, "x", { duration: 0.7, ease: "power3.out" });
         const yTo = gsap.quickTo(parallaxLayer, "y", { duration: 0.7, ease: "power3.out" });
         const rotYTo = gsap.quickTo(parallaxLayer, "rotateY", {
@@ -222,11 +228,25 @@ export default function HeroRobot() {
 
         let hovering = false;
 
+        const isOverRobot = (e) => {
+          const rect = root.getBoundingClientRect();
+          return (
+            e.clientX >= rect.left &&
+            e.clientX <= rect.right &&
+            e.clientY >= rect.top &&
+            e.clientY <= rect.bottom
+          );
+        };
+
         const onPointerMove = (e) => {
           const cx = window.innerWidth / 2;
           const cy = window.innerHeight / 2;
           const nx = gsap.utils.clamp(-1, 1, (e.clientX - cx) / cx);
           const ny = gsap.utils.clamp(-1, 1, (e.clientY - cy) / cy);
+
+          const over = isOverRobot(e);
+          if (over && !hovering) onEnter();
+          if (!over && hovering) onLeave();
 
           const maxRotY = hovering ? 12 : 10;
           const maxRotX = hovering ? 6 : 5;
@@ -239,7 +259,6 @@ export default function HeroRobot() {
           rotXTo(-ny * maxRotX);
         };
 
-        // —— Hover ——
         const onEnter = () => {
           hovering = true;
           breathTween.pause();
@@ -305,11 +324,9 @@ export default function HeroRobot() {
           rotXTo(0);
         };
 
+        // Window-level only — root uses pointer-events-none so wheel scroll is never blocked
         window.addEventListener("pointermove", onPointerMove, { passive: true });
-        root.addEventListener("pointerenter", onEnter);
-        root.addEventListener("pointerleave", onLeave);
 
-        // —— Scroll parallax ——
         const scrollTween = gsap.to(scrollLayer, {
           y: 80,
           rotate: 2,
@@ -324,8 +341,6 @@ export default function HeroRobot() {
 
         return () => {
           window.removeEventListener("pointermove", onPointerMove);
-          root.removeEventListener("pointerenter", onEnter);
-          root.removeEventListener("pointerleave", onLeave);
           intro.kill();
           floatTween.kill();
           breathTween.kill();
@@ -348,10 +363,10 @@ export default function HeroRobot() {
   return (
     <div
       ref={rootRef}
-      className="relative hidden lg:flex items-center justify-end select-none lg:translate-x-8 xl:translate-x-16 pointer-events-auto"
+      className="relative flex items-center justify-center lg:justify-end select-none pointer-events-none w-full max-w-[14rem] sm:max-w-[18rem] md:max-w-[22rem] lg:max-w-[26rem] xl:max-w-[30rem] lg:translate-x-4 xl:translate-x-8"
       style={{ perspective: "1400px" }}
     >
-      <div ref={scrollLayerRef} className="relative will-change-transform">
+      <div ref={scrollLayerRef} className="relative will-change-transform w-full">
         <div
           ref={parallaxLayerRef}
           className="relative will-change-transform"
@@ -369,11 +384,12 @@ export default function HeroRobot() {
                   alt="NewtonBotics cybernetic figure"
                   width={720}
                   height={900}
-                  className="w-full max-w-[26rem] xl:max-w-[30rem] h-auto object-contain drop-shadow-[0_0_40px_rgba(0,180,255,0.15)]"
+                  draggable={false}
+                  className="w-full h-auto object-contain drop-shadow-[0_0_40px_rgba(0,180,255,0.15)] pointer-events-none"
                   priority
+                  sizes="(max-width: 640px) 14rem, (max-width: 768px) 18rem, (max-width: 1024px) 22rem, (max-width: 1280px) 26rem, 30rem"
                 />
 
-                {/* Chest reactor — blue outer */}
                 <div
                   ref={chestOuterRef}
                   aria-hidden
@@ -385,7 +401,6 @@ export default function HeroRobot() {
                   }}
                 />
 
-                {/* Chest reactor — red inner */}
                 <div
                   ref={chestInnerRef}
                   aria-hidden
@@ -397,7 +412,6 @@ export default function HeroRobot() {
                   }}
                 />
 
-                {/* LED accents */}
                 <div
                   ref={ledBlueRef}
                   aria-hidden
@@ -435,7 +449,6 @@ export default function HeroRobot() {
                   }}
                 />
 
-                {/* Helmet visor reflective sweep */}
                 <div
                   aria-hidden
                   className="pointer-events-none absolute left-[34%] top-[11%] w-[32%] h-[12%] overflow-hidden rounded-[40%]"
