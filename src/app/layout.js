@@ -4,6 +4,12 @@ import Navbar from "./components/navbar";
 import Footer from "./components/footer";
 import CustomCursor from "./components/CustomCursor";
 import { AuthProvider } from "../contexts/AuthContext";
+import {
+  SITE_URL,
+  SITE_NAME,
+  SITE_TAGLINE,
+  DEFAULT_OG_IMAGE,
+} from "../lib/site";
 
 const orbitron = Orbitron({
   variable: "--font-orbitron",
@@ -13,52 +19,66 @@ const orbitron = Orbitron({
 });
 
 export const metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "NewtonBotics Robotics Lab - Advancing Robotics & AI Research | Rishihood University",
-    template: "%s | NewtonBotics"
+    default: `${SITE_NAME} - Advancing Robotics & AI Research | Rishihood University`,
+    template: "%s | NewtonBotics",
   },
-  description: "Join NewtonBotics Robotics Lab at Rishihood University - where innovation meets precision in robotics excellence. Explore cutting-edge projects, research areas, events, and join our community of researchers, students, and mentors dedicated to advancing robotics and AI technology.",
-  keywords: "robotics, artificial intelligence, robotics lab, NewtonBotics, Rishihood University, research, innovation, automation, drones, healthcare robotics, industrial robotics, AI research, robotics projects, humanoid robots",
+  description:
+    "Join NewtonBotics Robotics Lab at Rishihood University - where innovation meets precision in robotics excellence. Explore cutting-edge projects, research areas, events, and join our community of researchers, students, and mentors dedicated to advancing robotics and AI technology.",
+  keywords: [
+    "NewtonBotics",
+    "newtonbotics.in",
+    "robotics lab",
+    "Rishihood University",
+    "artificial intelligence",
+    "robotics research",
+    "humanoid robots",
+    "drones",
+    "automation",
+    "AI projects",
+    "Sonipat robotics",
+  ],
   authors: [{ name: "NewtonBotics Team" }],
-  creator: "NewtonBotics Robotics Lab",
+  creator: SITE_NAME,
   publisher: "NewtonBotics",
+  applicationName: "NewtonBotics",
   robots: {
     index: true,
     follow: true,
     googleBot: {
       index: true,
       follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
     },
   },
   alternates: {
-    canonical: "https://newtonbotics.tech",
+    canonical: "/",
   },
   openGraph: {
-    title: "NewtonBotics Robotics Lab - Advancing Robotics & AI Research",
-    description: "Join NewtonBotics Robotics Lab - where innovation meets precision in robotics excellence. Building the future, one robot at a time.",
+    title: `${SITE_NAME} - Advancing Robotics & AI Research`,
+    description: `${SITE_TAGLINE} Explore projects, research, events, and the robotics community at Rishihood University.`,
     type: "website",
-    locale: "en_US",
-    siteName: "NewtonBotics Robotics Lab",
-    url: "https://newtonbotics.tech",
+    locale: "en_IN",
+    siteName: SITE_NAME,
+    url: SITE_URL,
     images: [
       {
-        url: "https://newtonbotics.tech/og-image.jpg",
+        url: DEFAULT_OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: "NewtonBotics Robotics Lab - Innovation Hub",
+        alt: `${SITE_NAME} - Innovation Hub`,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "NewtonBotics Robotics Lab - Advancing Robotics & AI Research",
-    description: "Join NewtonBotics Robotics Lab - where innovation meets precision in robotics excellence.",
-    images: ["https://newtonbotics.tech/og-image.jpg"],
+    title: `${SITE_NAME} - Advancing Robotics & AI Research`,
+    description: SITE_TAGLINE,
+    images: [DEFAULT_OG_IMAGE],
   },
-  themeColor: "#000000",
   category: "Education",
   icons: {
     icon: [
@@ -73,74 +93,82 @@ export const metadata = {
 export const viewport = {
   width: "device-width",
   initialScale: 1,
+  themeColor: "#000000",
 };
 
 export default function RootLayout({ children }) {
-  // JSON-LD Structured Data for SEO
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "name": "NewtonBotics Robotics Lab",
-    "alternateName": "NewtonBotics",
-    "url": "https://newtonbotics.tech",
-    "logo": "https://newtonbotics.tech/white-logo.webp",
-    "description": "NewtonBotics Robotics Lab at Rishihood University - Advancing robotics and AI research through innovation, collaboration, and hands-on learning.",
-    "address": {
+    name: SITE_NAME,
+    alternateName: ["NewtonBotics", "Newton Botics"],
+    url: SITE_URL,
+    logo: `${SITE_URL}/white-logo.webp`,
+    image: DEFAULT_OG_IMAGE,
+    description:
+      "NewtonBotics Robotics Lab at Rishihood University - Advancing robotics and AI research through innovation, collaboration, and hands-on learning.",
+    address: {
       "@type": "PostalAddress",
-      "streetAddress": "Academic Block, Room 407",
-      "addressLocality": "Sonipat",
-      "addressRegion": "Haryana",
-      "addressCountry": "IN"
+      streetAddress: "Academic Block, Room 407",
+      addressLocality: "Sonipat",
+      addressRegion: "Haryana",
+      postalCode: "131021",
+      addressCountry: "IN",
     },
-    "contactPoint": {
+    contactPoint: {
       "@type": "ContactPoint",
-      "contactType": "General Inquiry",
-      "email": "newtonbotics.club@rishihood.edu.in"
+      contactType: "General Inquiry",
+      email: "newtonbotics.club@rishihood.edu.in",
+      availableLanguage: ["English", "Hindi"],
     },
-    "sameAs": [
+    sameAs: [
       "https://www.instagram.com/newtonbotics",
-      "https://www.linkedin.com/company/newtonbotics"
+      "https://www.linkedin.com/company/newtonbotics",
     ],
-    "memberOf": {
+    memberOf: {
       "@type": "EducationalOrganization",
-      "name": "Rishihood University"
-    }
+      name: "Rishihood University",
+      url: "https://rishihood.edu.in",
+    },
   };
 
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "NewtonBotics Robotics Lab",
-    "url": "https://newtonbotics.tech",
-    "description": "Official website of NewtonBotics Robotics Lab - A hub for robotics innovation, research, and education.",
-    "publisher": {
+    name: SITE_NAME,
+    alternateName: "NewtonBotics",
+    url: SITE_URL,
+    description:
+      "Official website of NewtonBotics Robotics Lab - A hub for robotics innovation, research, and education.",
+    publisher: {
       "@type": "Organization",
-      "name": "NewtonBotics Robotics Lab"
+      name: SITE_NAME,
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/white-logo.webp`,
+      },
     },
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": "https://newtonbotics.tech/search?q={search_term_string}",
-      "query-input": "required name=search_term_string"
-    }
+    inLanguage: "en-IN",
   };
 
-  const webPageSchema = {
+  const educationalOrgSchema = {
     "@context": "https://schema.org",
-    "@type": "WebPage",
-    "name": "NewtonBotics Robotics Lab - Home",
-    "description": "Join NewtonBotics Robotics Lab - where innovation meets precision in robotics excellence. Building the future, one robot at a time.",
-    "url": "https://newtonbotics.tech",
-    "inLanguage": "en-US",
-    "isPartOf": {
-      "@type": "WebSite",
-      "name": "NewtonBotics Robotics Lab",
-      "url": "https://newtonbotics.tech"
+    "@type": "EducationalOrganization",
+    name: SITE_NAME,
+    url: SITE_URL,
+    description:
+      "Student-led robotics and AI research lab at Rishihood University.",
+    parentOrganization: {
+      "@type": "CollegeOrUniversity",
+      name: "Rishihood University",
     },
-    "about": {
-      "@type": "Organization",
-      "name": "NewtonBotics Robotics Lab",
-      "description": "A hub for robotics innovation, research, and education at Rishihood University"
-    }
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Academic Block, Room 407",
+      addressLocality: "Sonipat",
+      addressRegion: "Haryana",
+      addressCountry: "IN",
+    },
   };
 
   return (
@@ -172,17 +200,15 @@ export default function RootLayout({ children }) {
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(educationalOrgSchema) }}
         />
       </head>
-      <body
-        className={`${orbitron.variable} font-sans antialiased`}
-        >
+      <body className={`${orbitron.variable} font-sans antialiased`}>
         <AuthProvider>
           <CustomCursor />
-          <Navbar/>
+          <Navbar />
           {children}
-          <Footer/>
+          <Footer />
         </AuthProvider>
       </body>
     </html>
