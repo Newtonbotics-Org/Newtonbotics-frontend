@@ -4,7 +4,7 @@ import { useRef, useLayoutEffect } from "react";
 import Image from "next/image";
 import gsap from "gsap";
 
-const RESEARCH_ROBOT_SRC = "/reaserch area image.png";
+const RESEARCH_ROBOT_SRC = "/research-area.webp";
 
 /**
  * Research Areas figure — Three.js + GSAP full 360° cursor-follow on desktop.

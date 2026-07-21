@@ -83,7 +83,7 @@ export default function RootLayout({ children }) {
     "name": "NewtonBotics Robotics Lab",
     "alternateName": "NewtonBotics",
     "url": "https://newtonbotics.tech",
-    "logo": "https://newtonbotics.tech/white%20logo.png",
+    "logo": "https://newtonbotics.tech/white-logo.webp",
     "description": "NewtonBotics Robotics Lab at Rishihood University - Advancing robotics and AI research through innovation, collaboration, and hands-on learning.",
     "address": {
       "@type": "PostalAddress",
@@ -147,6 +147,21 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <head>
         <link rel="preconnect" href="https://fonts.cdnfonts.com" crossOrigin="anonymous" />
+        <link
+          rel="preload"
+          as="image"
+          href="/heropagebg.webp"
+          type="image/webp"
+          imageSrcSet="/heropagebg-mobile.webp 560w, /heropagebg.webp 960w"
+          imageSizes="(max-width: 768px) 18rem, 30rem"
+          fetchPriority="high"
+        />
+        <link
+          rel="preload"
+          as="image"
+          href="/white-logo.webp"
+          type="image/webp"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
