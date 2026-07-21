@@ -4,6 +4,11 @@ import { useRef, useLayoutEffect } from "react";
 import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import {
+  HERO_ROBOT_IMAGE,
+  HERO_ROBOT_WIDTH,
+  HERO_ROBOT_HEIGHT,
+} from "@/lib/branding";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -53,8 +58,10 @@ export default function HeroRobot() {
           return;
         }
 
+        // Keep the hero image visible immediately (better LCP). Animate transform only.
+        gsap.set(introLayer, { opacity: 1, x: 0, scale: 1, rotateY: 0 });
+
         if (!isDesktop) {
-          gsap.set(introLayer, { opacity: 1, x: 0, scale: 1, rotateY: 0 });
           const floatTween = gsap.to(floatLayer, {
             y: -8,
             duration: 3.2,
@@ -78,10 +85,9 @@ export default function HeroRobot() {
         ];
 
         gsap.set(introLayer, {
-          opacity: 0,
-          x: 120,
-          scale: 0.92,
-          rotateY: 18,
+          x: 80,
+          scale: 0.96,
+          rotateY: 12,
           transformPerspective: 1200,
           force3D: true,
         });
@@ -103,12 +109,11 @@ export default function HeroRobot() {
         gsap.set(visorSweepRef.current, { xPercent: -120, opacity: 0 });
 
         const intro = gsap.to(introLayer, {
-          opacity: 1,
           x: 0,
           scale: 1,
           rotateY: 0,
-          duration: 1.8,
-          ease: "power4.out",
+          duration: 1.2,
+          ease: "power3.out",
         });
 
         const floatTween = gsap.to(floatLayer, {
@@ -117,7 +122,7 @@ export default function HeroRobot() {
           ease: "sine.inOut",
           yoyo: true,
           repeat: -1,
-          delay: 1.8,
+          delay: 1.2,
         });
 
         const breathTween = gsap.to(scaleLayer, {
@@ -379,16 +384,25 @@ export default function HeroRobot() {
               style={{ transformStyle: "preserve-3d" }}
             >
               <div ref={scaleLayerRef} className="relative will-change-transform">
-                <Image
-                  src="/heropagebg.png"
-                  alt="NewtonBotics cybernetic figure"
-                  width={720}
-                  height={900}
-                  draggable={false}
-                  className="w-full h-auto object-contain drop-shadow-[0_0_40px_rgba(0,180,255,0.15)] pointer-events-none"
-                  priority
-                  sizes="(max-width: 640px) 14rem, (max-width: 768px) 18rem, (max-width: 1024px) 22rem, (max-width: 1280px) 26rem, 30rem"
-                />
+                <picture>
+                  <source
+                    media="(max-width: 768px)"
+                    srcSet="/heropagebg-mobile.webp"
+                    type="image/webp"
+                  />
+                  <Image
+                    src={HERO_ROBOT_IMAGE}
+                    alt="NewtonBotics cybernetic figure"
+                    width={HERO_ROBOT_WIDTH}
+                    height={HERO_ROBOT_HEIGHT}
+                    draggable={false}
+                    className="w-full h-auto object-contain drop-shadow-[0_0_40px_rgba(0,180,255,0.15)] pointer-events-none"
+                    priority
+                    fetchPriority="high"
+                    unoptimized
+                    sizes="(max-width: 640px) 14rem, (max-width: 768px) 18rem, (max-width: 1024px) 22rem, (max-width: 1280px) 26rem, 30rem"
+                  />
+                </picture>
 
                 <div
                   ref={chestOuterRef}

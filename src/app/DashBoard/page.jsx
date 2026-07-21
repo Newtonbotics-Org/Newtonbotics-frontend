@@ -208,7 +208,7 @@ const HomePage = () => {
                 width={NEWTONBOTICS_LOGO_WIDTH}
                 height={NEWTONBOTICS_LOGO_HEIGHT}
                 className="w-[min(100%,11.5rem)] sm:w-80 md:w-96 lg:w-[26rem] xl:w-[28rem] h-auto object-contain mx-auto lg:mx-0 mb-2 sm:mb-6"
-                priority
+                unoptimized
               />
               
               <h1 className="sr-only" itemProp="name">NewtonBotics</h1>

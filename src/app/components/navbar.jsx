@@ -184,6 +184,9 @@ const Navbar = () => {
               height={NEWTONBOTICS_LOGO_HEIGHT}
               className="w-44 sm:w-52 h-auto object-contain"
               priority
+              fetchPriority="high"
+              unoptimized
+              sizes="(max-width: 640px) 11rem, 13rem"
             />
           </Link>
         </div>

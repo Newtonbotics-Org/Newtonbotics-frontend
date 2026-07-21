@@ -4,44 +4,46 @@ import Image from "next/image";
 import { Rocket, Award, Users, Globe, Star, Calendar } from "lucide-react";
 import { API_BASE_URL } from "@/lib/api";
 
-const ImpactSection = () => {
+const DEFAULT_ACHIEVEMENTS = [
+  { id: "researchProjects", number: "50+", label: "Research Projects", icon: <Rocket className="w-8 h-8" /> },
+  { id: "publications", number: "200+", label: "Publications", icon: <Award className="w-8 h-8" /> },
+  { id: "labMembers", number: "30+", label: "Lab Members", icon: <Users className="w-8 h-8" /> },
+  { id: "industryPartners", number: "15+", label: "Industry Partners", icon: <Globe className="w-8 h-8" /> },
+  { id: "awardsWon", number: "25+", label: "Awards Won", icon: <Star className="w-8 h-8" /> },
+  { id: "workshopsConducted", number: "100+", label: "Workshops Conducted", icon: <Calendar className="w-8 h-8" /> },
+];
+
+export default function ImpactSection() {
   const [metrics, setMetrics] = useState(null);
   const [loadingMetrics, setLoadingMetrics] = useState(false);
-
-  const defaultAchievements = [
-    { id: "researchProjects", number: "50+", label: "Research Projects", icon: <Rocket className="w-8 h-8" /> },
-    { id: "publications", number: "200+", label: "Publications", icon: <Award className="w-8 h-8" /> },
-    { id: "labMembers", number: "30+", label: "Lab Members", icon: <Users className="w-8 h-8" /> },
-    { id: "industryPartners", number: "15+", label: "Industry Partners", icon: <Globe className="w-8 h-8" /> },
-    { id: "awardsWon", number: "25+", label: "Awards Won", icon: <Star className="w-8 h-8" /> },
-    { id: "workshopsConducted", number: "100+", label: "Workshops Conducted", icon: <Calendar className="w-8 h-8" /> }
-  ];
 
   useEffect(() => {
     let isMounted = true;
     const fetchMetrics = async () => {
       try {
         setLoadingMetrics(true);
-        const res = await fetch(`${API_BASE_URL}/public/metrics`, { cache: 'no-store' });
-        if (!res.ok) throw new Error('Failed to fetch metrics');
+        const res = await fetch(`${API_BASE_URL}/public/metrics`, { cache: "no-store" });
+        if (!res.ok) return;
         const data = await res.json();
         if (isMounted && data.success) {
           setMetrics(data);
         }
-      } catch (err) {
-        console.error('Error fetching metrics:', err);
+      } catch {
+        // Backend may be offline in local/dev — keep DEFAULT_ACHIEVEMENTS.
       } finally {
         if (isMounted) setLoadingMetrics(false);
       }
     };
     fetchMetrics();
-    return () => { isMounted = false; };
-  }, [API_BASE_URL]);
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const achievements = useMemo(() => {
     const labels = metrics?.data?.labels;
-    if (!labels) return defaultAchievements;
-    return defaultAchievements.map((item) => {
+    if (!labels) return DEFAULT_ACHIEVEMENTS;
+    return DEFAULT_ACHIEVEMENTS.map((item) => {
       if (item.id === "researchProjects") return { ...item, number: labels.projects || item.number };
       if (item.id === "publications") return { ...item, number: labels.publications || item.number };
       if (item.id === "labMembers") return { ...item, number: labels.labMembers || item.number };
@@ -102,7 +104,7 @@ const ImpactSection = () => {
           {/* Right — 1/4: impact figure */}
           <div className="relative flex justify-center lg:justify-end pointer-events-none select-none order-2 lg:order-2 mt-6 lg:mt-0">
             <Image
-              src="/our impact iamge.png"
+              src="/our-impact.webp"
               alt="NewtonBotics impact robotics figure"
               width={480}
               height={720}
@@ -113,6 +115,4 @@ const ImpactSection = () => {
       </div>
     </section>
   );
-};
-
-export default ImpactSection;
+}
