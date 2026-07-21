@@ -120,14 +120,18 @@ const Navbar = () => {
   }, [isAuthenticated, user, hasRole]);
 
   const isLoggedIn = isAuthenticated && user;
-  // Treat 'admin' role as full admin; keep legacy mentor/researcher and permission fallback
-  // Also include team-members who are project leaders
+  // Full admin: role-based or project leaders
   const isAdmin = isLoggedIn && (
     hasRole('admin') || 
     hasRole('mentor') || 
     hasRole('researcher') || 
     hasPermission('admin:access') ||
     (hasRole('team_member') && isProjectLeader)
+  );
+  // Scoped admin panel access (e.g. Event Manager can open the panel for events)
+  const canOpenAdminPanel = isLoggedIn && (
+    isAdmin ||
+    hasSubrole('event_manager')
   );
 
   const handleLogout = async () => {
@@ -291,7 +295,7 @@ const Navbar = () => {
                   </div>
                 </div>
 
-                {isAdmin && (
+                {canOpenAdminPanel && (
                   <div className="py-1">
                     <div className="px-4 py-2 text-[11px] uppercase tracking-wider text-white/40">Admin Tools</div>
                     <a
@@ -441,7 +445,7 @@ const Navbar = () => {
                 </div>
               </div>
               
-              {isAdmin && (
+              {canOpenAdminPanel && (
                 <>
                   <div className="px-4 py-2 text-[10px] uppercase tracking-wider text-white/40 bg-white/5">Admin Tools</div>
                   <a
