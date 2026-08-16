@@ -82,17 +82,26 @@ NewtonBoticsFrontend/
    ```
 
 3. **Environment Setup**
-   Create a `.env.local` file in the root directory:
+   Copy `.env.example` to `.env` and fill in your own values:
    ```bash
-   # API Configuration
-   NEXT_PUBLIC_API_URL=http://localhost:3005/api
-   
-   # Authentication Configuration
-   NEXT_PUBLIC_AUTH_ENABLED=true
-   
-   # Development Configuration
-   NODE_ENV=development
+   cp .env.example .env
    ```
+
+   Required:
+   ```
+   NEXT_PUBLIC_API_URL=http://localhost:3006/api
+   NEXT_PUBLIC_SITE_URL=https://www.newtonbotics.in
+   ```
+
+   Optional (maintainers only; leave empty in public clones):
+   ```
+   NEXT_PUBLIC_ADMIN_URL=
+   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
+   NEXT_PUBLIC_CLOUDINARY_API_KEY=
+   CLOUDINARY_API_SECRET=
+   ```
+
+   Never commit `.env`. Use your own Cloudinary cloud — do not put production secrets in this repo.
 
 4. **Run the development server**
 ```bash
@@ -177,45 +186,25 @@ npm start
 ```
 
 ### Environment Variables for Production
-```bash
+Set these in your host (for example Vercel), not in git:
+```
 NEXT_PUBLIC_API_URL=https://your-api-domain.com/api
-NEXT_PUBLIC_AUTH_ENABLED=true
-NODE_ENV=production
+NEXT_PUBLIC_SITE_URL=https://www.newtonbotics.in
+NEXT_PUBLIC_ADMIN_URL=
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
+NEXT_PUBLIC_CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
 ```
 
-## 🤝 Contributing
+## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+See [CONTRIBUTING.md](CONTRIBUTING.md). In short: fork, branch from `main`, copy `.env.example` to `.env` with your own values, then open a pull request.
 
-### Development Guidelines
-- Follow the existing code style
-- Add proper error handling
-- Include loading states
-- Test authentication flows
-- Update documentation
+## Support
 
-## 📚 Documentation
-
-- **Authentication Setup**: See `AUTHENTICATION_SETUP.md` for detailed setup instructions
-- **API Documentation**: Check backend API specifications
-- **Component Library**: Review component usage in `src/components/`
-
-## 🆘 Support
-
-For authentication-related issues:
-1. Check the authentication setup documentation
-2. Verify environment configuration
-3. Review browser console for errors
-4. Check network requests in DevTools
-
-For general issues:
-1. Review this README
-2. Check existing issues
-3. Create a new issue with detailed information
+1. Check environment configuration (`.env.example`)
+2. Review the browser console and Network tab
+3. Search existing issues, then open a new one if needed.
 
 ## 📄 License
 
@@ -232,4 +221,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ---
 
 **Note**: This is a development version. For production use, implement additional security measures like 2FA, session management, and audit logging.
-# Newtonbotics-frontend
+
