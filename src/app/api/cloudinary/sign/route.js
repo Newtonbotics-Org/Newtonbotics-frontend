@@ -43,6 +43,7 @@ export async function POST(req) {
 		// Never sign the raw file
 		delete paramsToSign.file;
 
+		// Server-only. Never hardcode or prefix with NEXT_PUBLIC_.
 		const apiSecret = process.env.CLOUDINARY_API_SECRET || (process.env.CLOUDINARY_URL ? new URL(process.env.CLOUDINARY_URL).password : undefined);
 		if (!apiSecret) {
 			return NextResponse.json({ error: 'Cloudinary API secret not configured' }, { status: 500 });

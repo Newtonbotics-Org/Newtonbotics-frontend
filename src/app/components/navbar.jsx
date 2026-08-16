@@ -7,6 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "../../contexts/AuthContext";
 import { API_BASE_URL } from "@/lib/api";
+import { ADMIN_PANEL_URL } from "@/lib/site";
 import { NEWTONBOTICS_LOGO, NEWTONBOTICS_LOGO_WIDTH, NEWTONBOTICS_LOGO_HEIGHT } from "@/lib/branding";
 
 const Navbar = () => {
@@ -295,11 +296,11 @@ const Navbar = () => {
                   </div>
                 </div>
 
-                {canOpenAdminPanel && (
+                {canOpenAdminPanel && ADMIN_PANEL_URL && (
                   <div className="py-1">
                     <div className="px-4 py-2 text-[11px] uppercase tracking-wider text-white/40">Admin Tools</div>
                     <a
-                      href="https://newtonbotics-admin-pannel.vercel.app/"
+                      href={ADMIN_PANEL_URL}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 px-4 py-2 text-white/90 hover:bg-white/10"
@@ -445,11 +446,11 @@ const Navbar = () => {
                 </div>
               </div>
               
-              {canOpenAdminPanel && (
+              {canOpenAdminPanel && ADMIN_PANEL_URL && (
                 <>
                   <div className="px-4 py-2 text-[10px] uppercase tracking-wider text-white/40 bg-white/5">Admin Tools</div>
                   <a
-                    href="https://newtonbotics-admin-pannel.vercel.app/"
+                    href={ADMIN_PANEL_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 py-2 px-4 text-white hover:bg-red-900 transition"
