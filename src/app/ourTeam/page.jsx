@@ -1,16 +1,13 @@
-import { API_BASE_URL } from "@/lib/api";
+import { fetchApi } from "@/lib/api";
 import TeamPageClient from "./TeamPageClient";
 
 async function fetchTeamJson(path) {
+  const res = await fetchApi(path, { next: { revalidate: 60 } });
+  if (!res?.ok) return [];
   try {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
-      next: { revalidate: 60 },
-    });
-    if (!res.ok) return [];
     const data = await res.json();
     return data?.success ? data.data?.items || [] : [];
-  } catch (err) {
-    console.error(`Failed to fetch ${path}:`, err);
+  } catch {
     return [];
   }
 }

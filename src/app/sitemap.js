@@ -29,9 +29,11 @@ function entry(path, extras = {}) {
 
 async function fetchJson(url) {
   try {
+    new URL(url);
     const res = await fetch(url, {
       cache: "no-store",
       headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) return null;
     const data = await res.json();
@@ -63,7 +65,7 @@ function collectIds(payload, listKeys = ["items", "projects", "data"]) {
 
 async function dynamicRoutes() {
   const api = getApiBaseUrl();
-  if (!api || api.includes("API_URL_NOT_SET")) return [];
+  if (!api) return [];
 
   const routes = [];
 
