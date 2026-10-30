@@ -19,7 +19,8 @@ import {
   Star,
   Zap,
   MapPin,
-  CalendarDays
+  CalendarDays,
+  Boxes
 } from "lucide-react";
 import Link from "next/link";
 import RemoteImage from "@/components/RemoteImage";
@@ -51,6 +52,8 @@ const ProjectDetail = () => {
     const fetchProject = async () => {
       try {
         setLoading(true);
+        setError(null);
+
         const url = `${API_BASE_URL}/projects/${params.id}`;
         console.log('Fetching project from:', url);
         
@@ -406,6 +409,16 @@ const ProjectDetail = () => {
                   </p>
                 )}
               </div>
+
+              {/* View Project Components CTA */}
+              <Link
+                href={`/Inventory/projects/${encodeURIComponent(params.id)}`}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-semibold transition-colors shadow-lg shadow-red-900/30 self-start"
+                id="project-components-link"
+              >
+                <Boxes className="w-4 h-4" />
+                View Project Components
+              </Link>
             </div>
 
             <div className="lg:col-span-2">
@@ -915,6 +928,32 @@ const ProjectDetail = () => {
                   Featured project
                 </div>
               )}
+            </motion.div>
+
+            {/* Project Components / Inventory Card */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.35, duration: 0.8 }}
+              className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10"
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-9 h-9 bg-red-500/20 rounded-xl flex items-center justify-center">
+                  <Boxes className="w-5 h-5 text-red-400" />
+                </div>
+                <h3 className="text-lg font-bold text-white">Project Components</h3>
+              </div>
+              <p className="text-white/60 text-sm mb-4 leading-relaxed">
+                Browse and manage the parts and equipment dedicated to this project. General Lab components are tracked separately.
+              </p>
+              <Link
+                href={`/Inventory/projects/${encodeURIComponent(params.id)}`}
+                id="sidebar-project-components-link"
+                className="flex items-center justify-center gap-2 w-full bg-red-600 hover:bg-red-500 text-white px-4 py-2.5 rounded-lg font-semibold text-sm transition-colors"
+              >
+                <Boxes className="w-4 h-4" />
+                View Project Components
+              </Link>
             </motion.div>
 
             {/* Tags */}

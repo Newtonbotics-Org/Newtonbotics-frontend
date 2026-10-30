@@ -18,6 +18,9 @@ export default function ResearchRobot3D() {
     const el = mobileFloatRef.current;
     if (!el) return;
 
+    let isVisible = false;
+    let isPageVisible = !document.hidden;
+    let tween;
     const mm = gsap.matchMedia();
     mm.add(
       {
@@ -28,14 +31,40 @@ export default function ResearchRobot3D() {
         const { isMobile, reduceMotion } = context.conditions;
         if (!isMobile || reduceMotion) return;
 
-        const tween = gsap.to(el, {
+        tween = gsap.to(el, {
           y: -6,
           duration: 3.2,
           ease: "sine.inOut",
           yoyo: true,
           repeat: -1,
         });
-        return () => tween.kill();
+
+        const syncPlayback = () => {
+          if (isVisible && isPageVisible) tween.resume();
+          else tween.pause();
+        };
+        const observer = typeof IntersectionObserver === "undefined"
+          ? null
+          : new IntersectionObserver(([entry]) => {
+              isVisible = entry.isIntersecting;
+              syncPlayback();
+            });
+        const onVisibilityChange = () => {
+          isPageVisible = !document.hidden;
+          syncPlayback();
+        };
+
+        observer?.observe(el);
+        document.addEventListener("visibilitychange", onVisibilityChange);
+        if (!observer) {
+          isVisible = true;
+          syncPlayback();
+        }
+        return () => {
+          observer?.disconnect();
+          document.removeEventListener("visibilitychange", onVisibilityChange);
+          tween.kill();
+        };
       }
     );
 
@@ -53,10 +82,16 @@ export default function ResearchRobot3D() {
     let mesh;
     let texture;
     let frameId = 0;
+    let isVisible = false;
+    let isPageVisible = !document.hidden;
+    let initialized = false;
     let floatTween;
     let introTween;
+    let introScaleTween;
     let removePointer;
     let removeResize;
+    let render = () => {};
+    let initialize = async () => {};
 
     const mm = gsap.matchMedia();
 
@@ -71,7 +106,44 @@ export default function ResearchRobot3D() {
 
         let alive = true;
 
-        (async () => {
+        const syncPlayback = () => {
+          const shouldPlay = alive && isVisible && isPageVisible;
+          if (!shouldPlay) {
+            if (frameId) cancelAnimationFrame(frameId);
+            frameId = 0;
+            floatTween?.pause();
+            introTween?.pause();
+            introScaleTween?.pause();
+            return;
+          }
+          floatTween?.resume();
+          introTween?.resume();
+          introScaleTween?.resume();
+          if (renderer && !frameId) render();
+        };
+        const tryInitialize = () => {
+          if (!isVisible || !isPageVisible || initialized) return;
+          initialized = true;
+          void initialize().catch((error) => {
+            console.error("Failed to initialize the research robot", error);
+          });
+        };
+        const onVisibilityChange = () => {
+          isPageVisible = !document.hidden;
+          syncPlayback();
+          tryInitialize();
+        };
+        const observer = typeof IntersectionObserver === "undefined"
+          ? null
+          : new IntersectionObserver(([entry]) => {
+              isVisible = entry.isIntersecting;
+              syncPlayback();
+              tryInitialize();
+            });
+        document.addEventListener("visibilitychange", onVisibilityChange);
+        observer?.observe(host);
+
+        initialize = async () => {
           const THREE = await import("three");
           if (!alive || disposed) return;
 
@@ -164,7 +236,7 @@ export default function ResearchRobot3D() {
             duration: 1.1,
             ease: "power2.out",
           });
-          gsap.to(mesh.scale, {
+          introScaleTween = gsap.to(mesh.scale, {
             x: 1,
             y: 1,
             z: 1,
@@ -180,9 +252,10 @@ export default function ResearchRobot3D() {
             repeat: -1,
             delay: 0.5,
           });
+          syncPlayback();
 
           const onPointerMove = (e) => {
-            if (!mesh) return;
+            if (!mesh || !isVisible || !isPageVisible) return;
             const nx = gsap.utils.clamp(0, 1, e.clientX / window.innerWidth);
             const ny = gsap.utils.clamp(0, 1, e.clientY / window.innerHeight);
             rotYTo(gsap.utils.mapRange(0, 1, -Math.PI, Math.PI, nx));
@@ -208,21 +281,30 @@ export default function ResearchRobot3D() {
           removePointer = () => window.removeEventListener("pointermove", onPointerMove);
           removeResize = () => window.removeEventListener("resize", onResize);
 
-          const render = () => {
-            if (!alive || disposed || !renderer) return;
-            frameId = requestAnimationFrame(render);
+          render = () => {
+            frameId = 0;
+            if (!alive || disposed || !renderer || !isVisible || !isPageVisible) return;
             renderer.render(scene, camera);
+            frameId = requestAnimationFrame(render);
           };
-          render();
-        })().catch(() => {});
+          syncPlayback();
+        };
+
+        if (!observer) {
+          isVisible = true;
+          tryInitialize();
+        }
 
         return () => {
           alive = false;
+          observer?.disconnect();
+          document.removeEventListener("visibilitychange", onVisibilityChange);
           cancelAnimationFrame(frameId);
           removePointer?.();
           removeResize?.();
           floatTween?.kill();
           introTween?.kill();
+          introScaleTween?.kill();
           if (mesh) {
             mesh.geometry?.dispose();
             if (mesh.material) {
@@ -269,7 +351,16 @@ export default function ResearchRobot3D() {
         className="relative hidden lg:block w-full aspect-[2/3] min-h-[26rem] xl:min-h-[30rem] drop-shadow-[0_0_40px_rgba(0,180,255,0.12)] pointer-events-none"
         aria-label="Interactive NewtonBotics research robot"
         role="img"
-      />
+      >
+        <Image
+          src={RESEARCH_ROBOT_SRC}
+          alt=""
+          aria-hidden="true"
+          width={480}
+          height={720}
+          className="hidden motion-reduce:block absolute inset-0 w-full h-full object-contain"
+        />
+      </div>
     </div>
   );
 }

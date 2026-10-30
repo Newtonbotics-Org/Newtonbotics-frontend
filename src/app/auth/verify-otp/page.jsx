@@ -133,7 +133,7 @@ function VerifyOtpContent() {
             className="w-full max-w-md lg:max-w-none rounded-3xl border border-white/15 bg-white/[0.06] backdrop-blur-xl shadow-2xl p-6 md:p-8"
           >
             <div className="flex items-center gap-2 mb-2">
-              <ShieldCheck className="w-5 h-5 text-sky-400" />
+              <ShieldCheck className="w-5 h-5 text-red-400" />
               <h1 className="text-2xl md:text-3xl font-bold">Verify OTP</h1>
             </div>
             <p className="text-white/70 mb-6">
@@ -153,7 +153,7 @@ function VerifyOtpContent() {
               <button
                 type="submit"
                 disabled={isSubmitting || expiresIn === 0}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 disabled:from-sky-800 disabled:to-indigo-800 disabled:cursor-not-allowed transition font-semibold"
+                className="w-full py-3 rounded-xl bg-red-600 hover:bg-red-500 disabled:bg-red-800 disabled:cursor-not-allowed transition font-semibold"
               >
                 {isSubmitting ? "Verifying..." : expiresIn === 0 ? "OTP expired" : "Verify"}
               </button>
@@ -172,7 +172,7 @@ export default function VerifyOtpPage() {
     <Suspense fallback={
       <div className="min-h-screen bg-[#070b12] text-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-400 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-400 mx-auto mb-4"></div>
           <p className="text-white/70">Loading...</p>
         </div>
       </div>

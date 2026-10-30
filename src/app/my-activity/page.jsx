@@ -36,8 +36,9 @@ export default function MyActivityPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-[#070b12] text-white">
-        <div className="container mx-auto px-6 py-10">
+      <div className="min-h-screen bg-black text-white">
+        <div className="container mx-auto px-4 sm:px-6 py-10 sm:py-14">
+          <p className="nb-page-eyebrow">NEWTONBOTICS / MEMBER DASHBOARD</p>
           <h1 className="text-3xl md:text-4xl font-bold mb-6">My Activity</h1>
 
           {loading && <ActivityDashboardSkeleton />}
@@ -48,7 +49,7 @@ export default function MyActivityPage() {
           {!loading && !error && dashboard && (
             <div className="grid gap-6">
               {/* Profile summary */}
-              <div className="bg-white/[0.06] rounded-2xl border border-white/10 p-5">
+              <div className="nb-item-card bg-white/[0.04] p-5">
                 <div className="text-lg font-semibold mb-2">Profile</div>
                 <div className="text-white/80">{dashboard?.user?.displayName}</div>
                 <div className="text-white/60 capitalize">{dashboard?.user?.role} • {dashboard?.user?.department}</div>
@@ -59,7 +60,7 @@ export default function MyActivityPage() {
               </div>
 
               {/* Projects */}
-              <div className="bg-white/[0.06] rounded-2xl border border-white/10 p-5">
+              <div className="nb-item-card bg-white/[0.04] p-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="text-lg font-semibold">Projects</div>
                   <div className="text-white/60">Total: {dashboard?.projects?.total || 0}</div>
@@ -84,7 +85,7 @@ export default function MyActivityPage() {
               </div>
 
               {/* Events */}
-              <div className="bg-white/[0.06] rounded-2xl border border-white/10 p-5">
+              <div className="nb-item-card bg-white/[0.04] p-5">
                 <div className="text-lg font-semibold mb-3">Events</div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -115,7 +116,7 @@ export default function MyActivityPage() {
               </div>
 
               {/* Workshops */}
-              <div className="bg-white/[0.06] rounded-2xl border border-white/10 p-5">
+              <div className="nb-item-card bg-white/[0.04] p-5">
                 <div className="text-lg font-semibold mb-3">Workshops</div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -138,7 +139,7 @@ export default function MyActivityPage() {
               </div>
 
               {/* Communications */}
-              <div className="bg-white/[0.06] rounded-2xl border border-white/10 p-5">
+              <div className="nb-item-card bg-white/[0.04] p-5">
                 <div className="text-lg font-semibold mb-3">Communications</div>
                 <div className="text-white/60 text-sm">Inbox: {dashboard?.communications?.inboxCount || 0} • Sent: {dashboard?.communications?.sentCount || 0}</div>
                 <div className="mt-3 grid gap-2">

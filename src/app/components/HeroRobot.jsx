@@ -44,6 +44,23 @@ export default function HeroRobot() {
     }
 
     const mm = gsap.matchMedia();
+    let isElementVisible = false;
+    let isPageVisible = !document.hidden;
+    let updateMotion = () => {};
+    const syncMotion = () => updateMotion(isElementVisible && isPageVisible);
+    const observer = typeof IntersectionObserver === "undefined"
+      ? null
+      : new IntersectionObserver(([entry]) => {
+          isElementVisible = entry.isIntersecting;
+          syncMotion();
+        });
+    const onVisibilityChange = () => {
+      isPageVisible = !document.hidden;
+      syncMotion();
+    };
+    observer?.observe(root);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    if (!observer) isElementVisible = true;
 
     mm.add(
       {
@@ -69,7 +86,13 @@ export default function HeroRobot() {
             yoyo: true,
             repeat: -1,
           });
+          updateMotion = (active) => {
+            if (active) floatTween.resume();
+            else floatTween.pause();
+          };
+          syncMotion();
           return () => {
+            updateMotion = () => {};
             floatTween.kill();
           };
         }
@@ -99,12 +122,10 @@ export default function HeroRobot() {
         gsap.set(chestOuterRef.current, {
           opacity: 0.55,
           scale: 1,
-          filter: "blur(8px) drop-shadow(0 0 18px rgba(0,180,255,0.65))",
         });
         gsap.set(chestInnerRef.current, {
           opacity: 0.5,
           scale: 1,
-          filter: "blur(3px) drop-shadow(0 0 10px rgba(255,40,60,0.7))",
         });
         gsap.set(visorSweepRef.current, { xPercent: -120, opacity: 0 });
 
@@ -137,7 +158,6 @@ export default function HeroRobot() {
         const chestOuter = gsap.to(chestOuterRef.current, {
           scale: 1.18,
           opacity: 0.85,
-          filter: "blur(10px) drop-shadow(0 0 28px rgba(0,180,255,0.95))",
           duration: 1.6,
           ease: "sine.inOut",
           yoyo: true,
@@ -148,7 +168,6 @@ export default function HeroRobot() {
         const chestInner = gsap.to(chestInnerRef.current, {
           scale: 1.22,
           opacity: 0.9,
-          filter: "blur(4px) drop-shadow(0 0 14px rgba(255,40,60,0.95))",
           duration: 1.1,
           ease: "sine.inOut",
           yoyo: true,
@@ -159,7 +178,6 @@ export default function HeroRobot() {
         const ledBlue = gsap.to(ledBlueRef.current, {
           opacity: 0.95,
           scale: 1.25,
-          filter: "blur(2px) drop-shadow(0 0 8px rgba(0,180,255,1))",
           duration: 1.35,
           ease: "sine.inOut",
           yoyo: true,
@@ -170,7 +188,6 @@ export default function HeroRobot() {
         const ledRed = gsap.to(ledRedRef.current, {
           opacity: 0.9,
           scale: 1.3,
-          filter: "blur(2px) drop-shadow(0 0 8px rgba(255,40,60,1))",
           duration: 1.85,
           ease: "sine.inOut",
           yoyo: true,
@@ -181,7 +198,6 @@ export default function HeroRobot() {
         const ledBlueAlt = gsap.to(ledBlueAltRef.current, {
           opacity: 0.85,
           scale: 1.2,
-          filter: "blur(2px) drop-shadow(0 0 6px rgba(0,200,255,0.9))",
           duration: 2.15,
           ease: "sine.inOut",
           yoyo: true,
@@ -192,7 +208,6 @@ export default function HeroRobot() {
         const ledRedAlt = gsap.to(ledRedAltRef.current, {
           opacity: 0.8,
           scale: 1.28,
-          filter: "blur(2px) drop-shadow(0 0 6px rgba(255,50,70,0.9))",
           duration: 1.55,
           ease: "sine.inOut",
           yoyo: true,
@@ -220,6 +235,34 @@ export default function HeroRobot() {
             ease: "power2.in",
           });
 
+        let hovering = false;
+        let hoverTweens = [];
+        const ambientTweens = [
+          intro,
+          floatTween,
+          breathTween,
+          chestOuter,
+          chestInner,
+          ledBlue,
+          ledRed,
+          ledBlueAlt,
+          ledRedAlt,
+          visorTl,
+        ];
+        updateMotion = (active) => {
+          ambientTweens.forEach((tween) => {
+            const pausedForHover = hovering &&
+              [breathTween, chestOuter, chestInner].includes(tween);
+            if (active && !pausedForHover) tween.resume();
+            else tween.pause();
+          });
+          hoverTweens.forEach((tween) => {
+            if (active) tween.resume();
+            else tween.pause();
+          });
+        };
+        syncMotion();
+
         const xTo = gsap.quickTo(parallaxLayer, "x", { duration: 0.7, ease: "power3.out" });
         const yTo = gsap.quickTo(parallaxLayer, "y", { duration: 0.7, ease: "power3.out" });
         const rotYTo = gsap.quickTo(parallaxLayer, "rotateY", {
@@ -230,8 +273,6 @@ export default function HeroRobot() {
           duration: 0.85,
           ease: "power3.out",
         });
-
-        let hovering = false;
 
         const isOverRobot = (e) => {
           const rect = root.getBoundingClientRect();
@@ -244,6 +285,7 @@ export default function HeroRobot() {
         };
 
         const onPointerMove = (e) => {
+          if (!isElementVisible || !isPageVisible) return;
           const cx = window.innerWidth / 2;
           const cy = window.innerHeight / 2;
           const nx = gsap.utils.clamp(-1, 1, (e.clientX - cx) / cx);
@@ -270,57 +312,62 @@ export default function HeroRobot() {
           chestOuter.pause();
           chestInner.pause();
 
-          gsap.to(scaleLayer, {
-            scale: 1.03,
-            duration: 0.55,
-            ease: "power3.out",
-            overwrite: "auto",
-          });
-          gsap.to(chestOuterRef.current, {
-            opacity: 1,
-            scale: 1.35,
-            filter: "blur(12px) drop-shadow(0 0 40px rgba(0,180,255,1))",
-            duration: 0.5,
-            ease: "power2.out",
-            overwrite: "auto",
-          });
-          gsap.to(chestInnerRef.current, {
-            opacity: 1,
-            scale: 1.4,
-            filter: "blur(5px) drop-shadow(0 0 22px rgba(255,40,60,1))",
-            duration: 0.5,
-            ease: "power2.out",
-            overwrite: "auto",
-          });
+          hoverTweens.forEach((tween) => tween.kill());
+          hoverTweens = [
+            gsap.to(scaleLayer, {
+              scale: 1.03,
+              duration: 0.55,
+              ease: "power3.out",
+              overwrite: "auto",
+            }),
+            gsap.to(chestOuterRef.current, {
+              opacity: 1,
+              scale: 1.35,
+              duration: 0.5,
+              ease: "power2.out",
+              overwrite: "auto",
+            }),
+            gsap.to(chestInnerRef.current, {
+              opacity: 1,
+              scale: 1.4,
+              duration: 0.5,
+              ease: "power2.out",
+              overwrite: "auto",
+            }),
+          ];
+          syncMotion();
         };
 
         const onLeave = () => {
           hovering = false;
 
-          gsap.to(scaleLayer, {
-            scale: 1,
-            duration: 0.7,
-            ease: "power3.out",
-            overwrite: "auto",
-            onComplete: () => breathTween.resume(),
-          });
-          gsap.to(chestOuterRef.current, {
-            opacity: 0.55,
-            scale: 1,
-            filter: "blur(8px) drop-shadow(0 0 18px rgba(0,180,255,0.65))",
-            duration: 0.65,
-            ease: "power2.out",
-            overwrite: "auto",
-            onComplete: () => chestOuter.resume(),
-          });
-          gsap.to(chestInnerRef.current, {
-            opacity: 0.5,
-            scale: 1,
-            filter: "blur(3px) drop-shadow(0 0 10px rgba(255,40,60,0.7))",
-            duration: 0.65,
-            ease: "power2.out",
-            overwrite: "auto",
-            onComplete: () => chestInner.resume(),
+          hoverTweens.forEach((tween) => tween.kill());
+          hoverTweens = [
+            gsap.to(scaleLayer, {
+              scale: 1,
+              duration: 0.7,
+              ease: "power3.out",
+              overwrite: "auto",
+            }),
+            gsap.to(chestOuterRef.current, {
+              opacity: 0.55,
+              scale: 1,
+              duration: 0.65,
+              ease: "power2.out",
+              overwrite: "auto",
+            }),
+            gsap.to(chestInnerRef.current, {
+              opacity: 0.5,
+              scale: 1,
+              duration: 0.65,
+              ease: "power2.out",
+              overwrite: "auto",
+              onComplete: syncMotion,
+            }),
+          ];
+          hoverTweens.forEach((tween) => {
+            if (isElementVisible && isPageVisible) tween.resume();
+            else tween.pause();
           });
 
           xTo(0);
@@ -346,6 +393,8 @@ export default function HeroRobot() {
 
         return () => {
           window.removeEventListener("pointermove", onPointerMove);
+          updateMotion = () => {};
+          hoverTweens.forEach((tween) => tween.kill());
           intro.kill();
           floatTween.kill();
           breathTween.kill();
@@ -362,7 +411,12 @@ export default function HeroRobot() {
       }
     );
 
-    return () => mm.revert();
+    return () => {
+      observer?.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      updateMotion = () => {};
+      mm.revert();
+    };
   }, []);
 
   return (

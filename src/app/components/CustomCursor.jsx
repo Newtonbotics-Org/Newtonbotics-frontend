@@ -32,6 +32,8 @@ export default function CustomCursor() {
     gsap.set(icon, {
       xPercent: -50,
       yPercent: -50,
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2,
       force3D: true,
       opacity: 0,
     });
@@ -41,6 +43,8 @@ export default function CustomCursor() {
 
     let hovering = false;
     let visible = false;
+    let pointerX = window.innerWidth / 2;
+    let pointerY = window.innerHeight / 2;
 
     const show = () => {
       if (visible) return;
@@ -53,11 +57,22 @@ export default function CustomCursor() {
       gsap.to(icon, { opacity: 0, duration: 0.2, overwrite: "auto" });
     };
 
-    const onMove = (e) => {
-      show();
-      xTo(e.clientX);
-      yTo(e.clientY);
+    const positionWithinViewport = () => {
+      const margin = 14;
+      const maxX = Math.max(margin, window.innerWidth - margin);
+      const maxY = Math.max(margin, window.innerHeight - margin);
+      xTo(Math.min(Math.max(pointerX, margin), maxX));
+      yTo(Math.min(Math.max(pointerY, margin), maxY));
     };
+
+    const onMove = (e) => {
+      pointerX = e.clientX;
+      pointerY = e.clientY;
+      show();
+      positionWithinViewport();
+    };
+
+    const onResize = () => positionWithinViewport();
 
     const setHover = (on) => {
       if (hovering === on) return;
@@ -100,6 +115,7 @@ export default function CustomCursor() {
     };
 
     window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("resize", onResize);
     document.addEventListener("pointerover", onOver, true);
     document.addEventListener("pointerout", onOut, true);
     window.addEventListener("pointerdown", onDown);
@@ -110,6 +126,7 @@ export default function CustomCursor() {
     return () => {
       document.documentElement.classList.remove("nb-custom-cursor");
       window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("resize", onResize);
       document.removeEventListener("pointerover", onOver, true);
       document.removeEventListener("pointerout", onOut, true);
       window.removeEventListener("pointerdown", onDown);

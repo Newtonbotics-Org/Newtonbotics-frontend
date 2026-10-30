@@ -1,11 +1,16 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import inventoryService from "../../../lib/inventory";
 import authService from "../../../lib/auth";
 import { useAuth } from "../../../contexts/AuthContext";
 import { DetailPageSkeleton } from "@/components/PageSkeletons";
 import { API_BASE_URL } from "@/lib/api";
+import { isDemoMode } from "@/lib/demoMode";
+import { getDemoEquipmentById, getDemoProjects } from "@/lib/demoStore";
+
+const DEMO = isDemoMode();
 
 export default function EquipmentDetailPage(){
   const params = useParams();
@@ -36,12 +41,20 @@ export default function EquipmentDetailPage(){
 
   const role = user?.role || null;
   const hasInventoryManagementSubrole = hasSubrole('inventory_manager') || hasSubrole('inventory_management');
-  const canManage = isAuthenticated && (["mentor","researcher","admin"].includes(role) || hasInventoryManagementSubrole);
+  const canManage = !DEMO && isAuthenticated && (["mentor","researcher","admin"].includes(role) || hasInventoryManagementSubrole);
   const isAdmin = isAuthenticated && (["mentor","researcher","admin"].includes(role) || hasInventoryManagementSubrole);
 
   const refresh = async () => {
     try{
       setLoading(true);
+      if (DEMO) {
+        const data = getDemoEquipmentById(params.id);
+        if (!data) throw new Error("Demo equipment not found.");
+        setItem(data);
+        setCheckouts([]);
+        setActiveCheckouts([]);
+        return;
+      }
       const data = await inventoryService.getEquipment(params.id);
       setItem(data);
       await loadCheckouts();
@@ -77,6 +90,10 @@ export default function EquipmentDetailPage(){
 
   const loadProjects = async () => {
     try {
+      if (DEMO) {
+        setProjects(getDemoProjects());
+        return;
+      }
       const res = await fetch(`${API_BASE_URL}/projects?limit=100`, { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
@@ -118,6 +135,17 @@ export default function EquipmentDetailPage(){
     (async()=>{
       try{
         setLoading(true);
+        setError("");
+        if (DEMO) {
+          const data = getDemoEquipmentById(params.id);
+          if (!isMounted) return;
+          if (!data) throw new Error("Demo equipment not found.");
+          setItem(data);
+          setCheckouts([]);
+          setActiveCheckouts([]);
+          setProjects(getDemoProjects());
+          return;
+        }
         const data = await inventoryService.getEquipment(params.id);
         if(!isMounted) return;
         setItem(data);
@@ -257,9 +285,18 @@ export default function EquipmentDetailPage(){
   return (
     <div className="min-h-screen bg-black text-white py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-4">
+          <Link href="/Inventory" className="text-sm text-white/60 hover:text-white transition-colors">← Back to Inventory</Link>
+        </div>
+        {DEMO && (
+          <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-white/75" role="status">
+            <span className="mr-2 inline-flex rounded-full border border-red-500/40 bg-red-500/20 px-2 py-0.5 text-[0.65rem] tracking-[0.12em] uppercase text-red-200">Demo mode</span>
+            Showing local sample component details. Checkout and return stay disabled so demo data is never sent to the real API.
+          </div>
+        )}
+        <div className="flex items-center justify-between mb-6 gap-4">
           <h1 className="text-2xl font-bold">{item.name}</h1>
-          <div className={`px-3 py-1 rounded-full text-sm ${statusClass}`}>{status.replace(/_/g,' ')}</div>
+          <div className={`px-3 py-1 rounded-full text-sm ${statusClass}`}>{String(status || "unknown").replace(/_/g,' ')}</div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -297,7 +334,11 @@ export default function EquipmentDetailPage(){
           </div>
         )}
 
-        {canManage ? (
+        {DEMO ? (
+          <div className="mt-8 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/65">
+            Demo mode keeps checkout/return offline. Use Add / Edit / Delete on the General Lab catalogue to change sample stock locally.
+          </div>
+        ) : canManage ? (
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button 
               disabled={item.currentQuantity===0} 
@@ -352,15 +393,19 @@ export default function EquipmentDetailPage(){
         <div className="mt-10">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold">Checkout History</h2>
-            <button 
-              onClick={loadCheckouts} 
-              disabled={loadingCheckouts}
-              className="text-sm text-white/60 hover:text-white/80 disabled:opacity-50"
-            >
-              {loadingCheckouts ? 'Loading...' : 'Refresh'}
-            </button>
+            {!DEMO && (
+              <button
+                onClick={loadCheckouts}
+                disabled={loadingCheckouts}
+                className="text-sm text-white/60 hover:text-white/80 disabled:opacity-50"
+              >
+                {loadingCheckouts ? 'Loading...' : 'Refresh'}
+              </button>
+            )}
           </div>
-          {loadingCheckouts ? (
+          {DEMO ? (
+            <div className="text-center py-8 text-white/60">No checkout history in demo mode</div>
+          ) : loadingCheckouts ? (
             <div className="text-center py-8 text-white/60">Loading checkouts...</div>
           ) : checkouts.length === 0 ? (
             <div className="text-center py-8 text-white/60">No checkout history</div>

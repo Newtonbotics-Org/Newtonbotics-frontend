@@ -282,10 +282,10 @@ export default function ContactPageClient({ coreMembers = [] }) {
               </h4>
               <div className="flex flex-wrap gap-4">
                 <a
-                  href={`https://instagram.com/${clubData.contactInfo.socialMedia.instagram.replace(
+                  href={`https://www.instagram.com/${clubData.contactInfo.socialMedia.instagram.replace(
                     "@",
                     ""
-                  )}`}
+                  )}/`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-red-500 hover:text-red-600"

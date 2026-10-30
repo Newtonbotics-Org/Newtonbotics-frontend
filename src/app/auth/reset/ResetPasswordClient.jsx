@@ -113,7 +113,7 @@ export default function ResetPasswordClient() {
               </p>
               <button
                 onClick={() => router.push("/auth/signin")}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 transition font-semibold"
+                className="w-full py-3 rounded-xl bg-red-600 hover:bg-red-500 transition font-semibold"
               >
                 Continue to sign in
               </button>
@@ -142,7 +142,7 @@ export default function ResetPasswordClient() {
               </p>
               <a
                 href="/auth/forgot"
-                className="inline-block w-full py-3 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 transition font-semibold"
+                className="inline-block w-full py-3 rounded-xl bg-red-600 hover:bg-red-500 transition font-semibold"
               >
                 Request new reset link
               </a>
@@ -195,7 +195,7 @@ export default function ResetPasswordClient() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 disabled:from-sky-800 disabled:to-indigo-800 disabled:cursor-not-allowed transition font-semibold"
+                className="w-full py-3 rounded-xl bg-red-600 hover:bg-red-500 disabled:bg-red-800 disabled:cursor-not-allowed transition font-semibold"
               >
                 {isSubmitting ? "Updating..." : "Update password"}
               </button>

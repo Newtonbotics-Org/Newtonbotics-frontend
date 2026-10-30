@@ -391,8 +391,9 @@ export default function GalleryClient() {
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center mb-12">
+        <div className="container mx-auto px-4 sm:px-6 py-10 sm:py-14">
+          <div className="text-center mb-10 sm:mb-12">
+            <p className="nb-page-eyebrow justify-center">NEWTONBOTICS / ARCHIVE</p>
             <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-red-600">
               Our Gallery
             </h1>
@@ -432,9 +433,10 @@ export default function GalleryClient() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-10 sm:py-14">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-10 sm:mb-12">
+          <p className="nb-page-eyebrow justify-center">NEWTONBOTICS / ARCHIVE</p>
           <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-red-600">
             Our Gallery
           </h1>
@@ -578,7 +580,7 @@ export default function GalleryClient() {
                     handleVideoUnhover(item._id);
                   }
                 }}
-                className="relative group bg-white/5 rounded-xl border border-white/10 overflow-hidden hover:border-white/20 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 aspect-square"
+                className="nb-item-card relative group bg-white/5 border border-white/10 overflow-hidden focus:outline-none focus:ring-2 focus:ring-red-500 aspect-square"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}

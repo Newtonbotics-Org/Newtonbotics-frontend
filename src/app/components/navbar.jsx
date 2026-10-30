@@ -193,10 +193,12 @@ const Navbar = () => {
     <nav
       ref={navRef}
       className={`sticky top-0 z-[100] w-full transition-all duration-300 ${
-        isScrolled ? "bg-black backdrop-blur-lg" : "bg-black"
+        isScrolled
+          ? "bg-black/95 backdrop-blur-xl shadow-[0_1px_0_rgba(255,255,255,0.07)] border-b border-white/[0.06]"
+          : "bg-black"
       }`}
     >
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between relative">
+      <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-3.5 flex items-center justify-between relative">
         {/* Logo */}
         <div className="flex items-center">
             <Link

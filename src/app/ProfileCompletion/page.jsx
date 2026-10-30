@@ -272,14 +272,8 @@ export default function ProfileCompletionPage() {
 
   return (
     <ProtectedRoute>
-      <div className="relative min-h-screen bg-[#070b12] text-white overflow-hidden">
-        {/* Background visuals */}
-        <div className="absolute inset-0">
-          <div className="absolute -top-24 -left-10 w-[36rem] h-[36rem] rounded-full bg-red-500/10 blur-3xl" />
-          <div className="absolute bottom-[-8rem] right-[-6rem] w-[36rem] h-[36rem] rounded-full bg-indigo-500/10 blur-3xl" />
-        </div>
-
-        <div className="relative container mx-auto px-6 py-10">
+      <div className="relative min-h-screen bg-black text-white">
+        <div className="container mx-auto px-4 sm:px-6 py-10 sm:py-14">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -287,6 +281,7 @@ export default function ProfileCompletionPage() {
           >
             {/* Header */}
             <div className="text-center mb-8">
+              <p className="nb-page-eyebrow justify-center">NEWTONBOTICS / ACCOUNT</p>
               <h1 className="text-3xl md:text-4xl font-bold mb-2">Profile Settings</h1>
               <p className="text-white/70">Manage your account information and preferences</p>
             </div>
@@ -296,7 +291,7 @@ export default function ProfileCompletionPage() {
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="bg-white/[0.06] rounded-3xl border border-white/10 p-6"
+                className="bg-white/[0.04] rounded-2xl border border-white/10 p-5 sm:p-6"
               >
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-semibold flex items-center gap-2">
@@ -352,7 +347,7 @@ export default function ProfileCompletionPage() {
                   <div className="mb-2">
                     <label className="block text-sm text-white/80 mb-2">Role & Responsibilities</label>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="px-3 py-1.5 bg-blue-500/20 text-blue-300 rounded-lg text-sm font-medium border border-blue-500/30 capitalize">
+                      <span className="px-3 py-1.5 bg-red-500/15 text-red-200 rounded-lg text-sm font-medium border border-red-500/30 capitalize">
                         {user.role?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Member'}
                       </span>
                       {(() => {
@@ -569,7 +564,7 @@ export default function ProfileCompletionPage() {
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="bg-white/[0.06] rounded-3xl border border-white/10 p-6"
+                className="bg-white/[0.04] rounded-2xl border border-white/10 p-5 sm:p-6"
               >
                 <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
                   <Lock className="w-5 h-5" />
@@ -655,7 +650,7 @@ export default function ProfileCompletionPage() {
                   <button
                     type="submit"
                     disabled={isChangingPassword}
-                    className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed transition font-semibold flex items-center justify-center gap-2"
+                    className="w-full py-3 rounded-xl bg-red-600 hover:bg-red-500 disabled:bg-red-800 disabled:cursor-not-allowed transition font-semibold flex items-center justify-center gap-2"
                   >
                     {isChangingPassword ? (
                       <>

@@ -36,7 +36,7 @@ function ResourceCard({ resource, onOpen }) {
   const previewUrl = getResourcePreviewUrl(resource);
 
   return (
-    <article className="group rounded-2xl border border-white/10 bg-white/[0.05] overflow-hidden hover:border-red-500/30 hover:bg-white/[0.08] transition-all duration-300">
+    <article className="nb-item-card group bg-white/[0.05]">
       <div className="relative aspect-[16/10] bg-black/40 overflow-hidden">
         {previewUrl ? (
           <Image
@@ -132,13 +132,22 @@ function ResourcesContent() {
     setViewer(resource);
   };
 
+  useEffect(() => {
+    if (!viewer) return undefined;
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setViewer(null);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [viewer]);
+
   const filteredCount = useMemo(() => items.length, [items]);
 
   return (
     <div className="min-h-screen bg-[#070b12] text-white">
-      <div className="container mx-auto px-4 sm:px-6 py-10">
-        <div className="mb-8">
-          <p className="text-red-400 text-sm font-medium uppercase tracking-wider mb-2">Member library</p>
+      <div className="container mx-auto px-4 sm:px-6 py-10 sm:py-14">
+        <div className="mb-10">
+          <p className="nb-page-eyebrow">MEMBER LIBRARY / RESOURCES</p>
           <h1 className="text-3xl md:text-4xl font-bold mb-3">Lab Resources</h1>
           <p className="text-white/70 max-w-2xl">
             Shared robotics materials for signed-in members — drone guides, motor specs, reference links,
@@ -150,6 +159,7 @@ function ResourcesContent() {
           <div className="md:col-span-2 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
             <input
+              aria-label="Search resources"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search drones, motors, guides..."
@@ -157,6 +167,7 @@ function ResourcesContent() {
             />
           </div>
           <select
+            aria-label="Filter resources by category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="px-4 py-3 rounded-xl bg-white/10 border border-white/15 text-white focus:outline-none focus:ring-2 focus:ring-red-500/40"
@@ -169,6 +180,7 @@ function ResourcesContent() {
             ))}
           </select>
           <select
+            aria-label="Filter resources by type"
             value={resourceType}
             onChange={(e) => setResourceType(e.target.value)}
             className="px-4 py-3 rounded-xl bg-white/10 border border-white/15 text-white focus:outline-none focus:ring-2 focus:ring-red-500/40"
@@ -208,19 +220,19 @@ function ResourcesContent() {
       </div>
 
       {viewer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80" onClick={() => setViewer(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80" role="dialog" aria-modal="true" aria-labelledby="resource-viewer-title" onClick={() => setViewer(null)}>
           <div
             className="w-full max-w-4xl rounded-2xl border border-white/10 bg-[#0b1018] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
               <div>
-                <h3 className="font-bold text-lg">{viewer.title}</h3>
+                <h3 id="resource-viewer-title" className="font-bold text-lg">{viewer.title}</h3>
                 <p className="text-sm text-white/50">
                   {categoryLabel(viewer.category)} · {typeLabel(viewer.resourceType)}
                 </p>
               </div>
-              <button type="button" onClick={() => setViewer(null)} className="text-white/60 hover:text-white">
+              <button type="button" onClick={() => setViewer(null)} className="text-white/60 hover:text-white" aria-label="Close resource viewer">
                 <X className="w-5 h-5" />
               </button>
             </div>
