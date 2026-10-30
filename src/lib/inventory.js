@@ -1,6 +1,16 @@
 import { API_BASE_URL } from './api';
 import authService from './auth';
 
+/** Throw a clear message early if the API base URL was never configured. */
+function requireApiUrl() {
+  if (!API_BASE_URL) {
+    throw new Error(
+      'Inventory is unavailable: the backend API URL is not configured. ' +
+      'Set NEXT_PUBLIC_API_URL in .env.local (e.g. http://localhost:3006/api) and restart the dev server.'
+    );
+  }
+}
+
 async function safeParseJson(response) {
   const contentType = response.headers.get('content-type') || '';
   if (contentType.includes('application/json')) return response.json();
@@ -18,10 +28,21 @@ function toQuery(params = {}) {
   return qs ? `?${qs}` : '';
 }
 
+async function authenticatedInventoryRequest(url, options, fallbackMessage) {
+  await authService.ensureValidToken();
+  const response = await authService.makeAuthenticatedRequest(url, options);
+  const data = await safeParseJson(response);
+  if (!response.ok || data?.success === false) {
+    throw new Error(data?.error?.message || data?.message || fallbackMessage);
+  }
+  return data?.data;
+}
+
 export const inventoryService = {
   // GET /api/inventory/equipment
   async listEquipment({ categoryId, status, q, limit = 20, skip = 0 } = {}) {
     try {
+      requireApiUrl();
       const query = toQuery({ categoryId, status, q, limit, skip });
       const res = await fetch(`${API_BASE_URL}/inventory/equipment${query}`, { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
@@ -30,10 +51,17 @@ export const inventoryService = {
         const msg = data?.error?.message || data?.message || 'Failed to load equipment';
         throw new Error(msg);
       }
-      return data?.data || { items: [], pagination: { total: 0, limit, skip, hasMore: false } };
+      if (!Array.isArray(data?.data?.items)) throw new Error('The equipment response is incomplete.');
+      return data.data;
     } catch (error) {
       console.error('Error fetching equipment:', error);
-      throw new Error(`Failed to load equipment: ${error.message}`);
+      // Preserve the full message — avoids hiding "Failed to fetch" (backend down)
+      // vs "not configured" vs real HTTP errors.
+      const isNetworkError = error.message === 'Failed to fetch' || error.name === 'TypeError';
+      throw new Error(isNetworkError
+        ? `Cannot reach the backend at ${API_BASE_URL}. Check that your backend server is running.`
+        : error.message
+      );
     }
   },
 
@@ -303,6 +331,7 @@ export const inventoryService = {
   // GET /api/inventory/categories
   async listCategories() {
     try {
+      requireApiUrl();
       const res = await fetch(`${API_BASE_URL}/inventory/categories`, { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       const data = await safeParseJson(res);
@@ -310,10 +339,15 @@ export const inventoryService = {
         const msg = data?.error?.message || data?.message || 'Failed to load categories';
         throw new Error(msg);
       }
-      return data?.data?.items || [];
+      if (!Array.isArray(data?.data?.items)) throw new Error('The category response is incomplete.');
+      return data.data.items;
     } catch (error) {
       console.error('Error fetching inventory categories:', error);
-      throw new Error(`Failed to load categories: ${error.message}`);
+      const isNetworkError = error.message === 'Failed to fetch' || error.name === 'TypeError';
+      throw new Error(isNetworkError
+        ? `Cannot reach the backend at ${API_BASE_URL}. Check that your backend server is running.`
+        : error.message
+      );
     }
   },
 
@@ -371,6 +405,95 @@ export const inventoryService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  async listProjectComponents(projectId, { q, category, limit = 100, skip = 0 } = {}) {
+    requireApiUrl();
+    const query = toQuery({ q, category, limit, skip });
+    const data = await authenticatedInventoryRequest(
+      `${API_BASE_URL}/inventory/projects/${encodeURIComponent(projectId)}/components${query}`,
+      { method: 'GET' },
+      'Failed to load project components'
+    );
+    if (!Array.isArray(data?.items)) throw new Error('The project component response is incomplete.');
+    return data;
+  },
+
+  async createProjectComponent(projectId, payload) {
+    requireApiUrl();
+    const data = await authenticatedInventoryRequest(
+      `${API_BASE_URL}/inventory/projects/${encodeURIComponent(projectId)}/components`,
+      { method: 'POST', body: JSON.stringify(payload) },
+      'Failed to create project component'
+    );
+    return data?.item;
+  },
+
+  async updateProjectComponent(projectId, componentId, payload) {
+    requireApiUrl();
+    const data = await authenticatedInventoryRequest(
+      `${API_BASE_URL}/inventory/projects/${encodeURIComponent(projectId)}/components/${encodeURIComponent(componentId)}`,
+      { method: 'PUT', body: JSON.stringify(payload) },
+      'Failed to update project component'
+    );
+    return data?.item;
+  },
+
+  async deleteProjectComponent(projectId, componentId) {
+    requireApiUrl();
+    await authenticatedInventoryRequest(
+      `${API_BASE_URL}/inventory/projects/${encodeURIComponent(projectId)}/components/${encodeURIComponent(componentId)}`,
+      { method: 'DELETE' },
+      'Failed to delete project component'
+    );
+    return true;
+  },
+
+  async createComponentRequest(payload) {
+    requireApiUrl();
+    const data = await authenticatedInventoryRequest(
+      `${API_BASE_URL}/inventory/requests`,
+      { method: 'POST', body: JSON.stringify(payload) },
+      'Failed to submit component request'
+    );
+    if (!data?.request?._id) throw new Error('The component request response is incomplete.');
+    return data.request;
+  },
+
+  async listMyComponentRequests({ status, limit = 50, skip = 0 } = {}) {
+    requireApiUrl();
+    const query = toQuery({ status, limit, skip });
+    const data = await authenticatedInventoryRequest(
+      `${API_BASE_URL}/inventory/requests/my-requests${query}`,
+      { method: 'GET' },
+      'Failed to load component request history'
+    );
+    if (!Array.isArray(data?.items)) throw new Error('The component request response is incomplete.');
+    return data;
+  },
+
+  async listComponentRequests({ status, projectId, limit = 100, skip = 0 } = {}) {
+    requireApiUrl();
+    const query = toQuery({ status, projectId, limit, skip });
+    const data = await authenticatedInventoryRequest(
+      `${API_BASE_URL}/inventory/requests${query}`,
+      { method: 'GET' },
+      'Failed to load component requests'
+    );
+    if (!Array.isArray(data?.items)) throw new Error('The component request response is incomplete.');
+    return data;
+  },
+
+  async reviewComponentRequest(requestId, { status, reviewNotes } = {}) {
+    requireApiUrl();
+    const action = status === 'approved' ? 'approve' : 'reject';
+    const data = await authenticatedInventoryRequest(
+      `${API_BASE_URL}/inventory/requests/${encodeURIComponent(requestId)}/${action}`,
+      { method: 'POST', body: JSON.stringify({ reviewNotes }) },
+      'Failed to review component request'
+    );
+    if (!data?.request?._id) throw new Error('The component request response is incomplete.');
+    return data.request;
   },
 };
 

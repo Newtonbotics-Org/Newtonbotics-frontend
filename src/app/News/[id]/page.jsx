@@ -67,28 +67,29 @@ export default function NewsDetailPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 max-w-5xl">
         <button onClick={() => router.back()} className="inline-flex items-center gap-2 text-white/70 hover:text-white mb-4">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
 
-        <div className="relative h-64 w-full rounded-2xl overflow-hidden border border-white/10 mb-6">
+        <div className="relative aspect-[16/8] min-h-48 max-h-[34rem] w-full rounded-xl overflow-hidden border border-white/10 mb-6 sm:mb-8">
           <Image src={item.featuredImageUrl || "/white logo.png"} alt={item.title} fill className="object-cover" />
         </div>
 
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">{item.title}</h1>
-        <div className="flex items-center gap-2 text-white/60 mb-6">
+        <p className="nb-page-eyebrow">NEWTONBOTICS / NEWS</p>
+        <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-3">{item.title}</h1>
+        <div className="flex flex-wrap items-center gap-2 text-white/60 mb-6">
           <Calendar className="w-4 h-4" />
           <span>{new Date(item.publishedAt || item.createdAt).toLocaleDateString()}</span>
         </div>
 
         {/* Excerpt */}
         {item.excerpt && (
-          <p className="text-white/80 text-lg mb-6">{item.excerpt}</p>
+          <p className="text-white/75 text-base sm:text-lg leading-relaxed mb-6">{item.excerpt}</p>
         )}
 
         {/* Content (may contain HTML/markdown) */}
-        <div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: item.content || "" }} />
+        <div className="prose prose-invert max-w-none prose-headings:font-display prose-headings:text-white prose-a:text-red-300 prose-a:underline-offset-4 prose-img:rounded-lg prose-p:leading-relaxed" dangerouslySetInnerHTML={{ __html: item.content || "" }} />
       </div>
     </div>
   );

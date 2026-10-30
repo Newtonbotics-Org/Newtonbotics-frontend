@@ -93,7 +93,7 @@ export default function SignUpPage() {
                 <div className="text-sm text-white/80 mb-2">Role</div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                   {roles.map((r) => (
-                    <button key={r.id} type="button" onClick={()=>setRole(r.id)} className={`flex items-center gap-2 rounded-xl border px-3 py-2 transition ${role===r.id?"border-sky-400 bg-sky-400/10":"border-white/20 bg-white/5 hover:bg-white/10"}`}>
+                    <button key={r.id} type="button" onClick={()=>setRole(r.id)} className={`flex items-center gap-2 rounded-xl border px-3 py-2 transition ${role===r.id?"border-red-400 bg-red-400/10":"border-white/20 bg-white/5 hover:bg-white/10"}`}>
                       <r.icon className="w-4 h-4" />
                       <span className="text-sm">{r.name}</span>
                     </button>
@@ -106,7 +106,7 @@ export default function SignUpPage() {
               <button 
                 type="submit" 
                 disabled={isLoading}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 disabled:from-sky-800 disabled:to-indigo-800 disabled:cursor-not-allowed transition font-semibold flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-xl bg-red-600 hover:bg-red-500 disabled:bg-red-800 disabled:cursor-not-allowed transition font-semibold flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <>

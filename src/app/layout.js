@@ -123,7 +123,7 @@ export default function RootLayout({ children }) {
       availableLanguage: ["English", "Hindi"],
     },
     sameAs: [
-      "https://www.instagram.com/newtonbotics",
+      "https://www.instagram.com/newtonbotics_/",
       "https://www.linkedin.com/company/newtonbotics",
     ],
     memberOf: {

@@ -26,10 +26,10 @@ const Footer = () => {
           </p>
           <div className="flex space-x-4 mt-4">
             <a
-              href={`https://instagram.com/${clubData?.contactInfo?.socialMedia?.instagram.replace(
+              href={`https://www.instagram.com/${clubData?.contactInfo?.socialMedia?.instagram.replace(
                 "@",
                 ""
-              )}`}
+              )}/`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-pink-400 hover:text-pink-300"

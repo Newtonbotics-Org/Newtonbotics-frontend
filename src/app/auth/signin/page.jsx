@@ -112,7 +112,7 @@ export default function SignInPage() {
                              <button
                  type="submit"
                  disabled={isLoading}
-                 className="w-full py-3 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 disabled:from-sky-800 disabled:to-indigo-800 disabled:cursor-not-allowed transition font-semibold flex items-center justify-center gap-2"
+                 className="w-full py-3 rounded-xl bg-red-600 hover:bg-red-500 disabled:bg-red-800 disabled:cursor-not-allowed transition font-semibold flex items-center justify-center gap-2"
                >
                  {isLoading ? (
                    <>

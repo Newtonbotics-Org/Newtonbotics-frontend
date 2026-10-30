@@ -1,8 +1,8 @@
 "use client";
 
 export default function AuthPageShell({ children, withGrid = true, variant = "default" }) {
-  const blobOne = variant === "brand" ? "bg-red-500/10" : "bg-sky-500/15";
-  const blobTwo = variant === "brand" ? "bg-indigo-500/10" : "bg-indigo-500/15";
+  const blobOne = "bg-red-500/10";
+  const blobTwo = "bg-white/5";
 
   return (
     <div className="relative min-h-[calc(100svh-5rem)] flex items-center justify-center overflow-x-hidden bg-[#070b12] text-white nb-auth-shell">

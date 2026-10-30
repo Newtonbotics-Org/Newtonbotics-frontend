@@ -68,7 +68,7 @@ const AboutUs = () => {
   const coreMembers = clubData?.coreMemberCount || clubData?.coreMembers?.length || 0;
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-black text-white font-sans py-10 sm:py-14 px-4 sm:px-6 lg:px-8">
 
       {/* Header Section (simple like other pages) */}
       <motion.div
@@ -78,7 +78,8 @@ const AboutUs = () => {
         transition={{ duration: 1 }}
         viewport={{ once: true }}
       >
-        <h1 className="text-4xl md:text-5xl font-bold mb-2 font-display bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-red-600">
+        <p className="nb-page-eyebrow justify-center">NEWTONBOTICS / OUR STORY</p>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 leading-tight font-display bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-red-600">
           About NewtonBotics
         </h1>
         <p className="text-base text-white/70 mb-4 font-medium">
@@ -92,25 +93,25 @@ const AboutUs = () => {
       {/* Our Story */}
       <section className="max-w-7xl mx-auto mb-12">
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
+          <div className="nb-item-card bg-white/5 backdrop-blur-lg p-5 sm:p-6">
             <h3 className="text-xl font-bold mb-3 font-display flex items-center gap-2">
               <Calendar className="w-5 h-5 text-red-500" /> Established
             </h3>
             <p className="text-white/80">Founded in <span className="text-red-400 font-semibold">{establishedYear}</span> at Rishihood University.</p>
           </div>
-          <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
+          <div className="nb-item-card bg-white/5 backdrop-blur-lg p-5 sm:p-6">
             <h3 className="text-xl font-bold mb-3 font-display flex items-center gap-2">
               <Users className="w-5 h-5 text-red-500" /> Founded By
             </h3>
             <p className="text-white/80">{founders.join(", ")}</p>
           </div>
-          <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
+          <div className="nb-item-card bg-white/5 backdrop-blur-lg p-5 sm:p-6">
             <h3 className="text-xl font-bold mb-3 font-display flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-red-500" /> Mission
             </h3>
             <p className="text-white/80">{mission}</p>
           </div>
-          <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
+          <div className="nb-item-card bg-white/5 backdrop-blur-lg p-5 sm:p-6">
             <h3 className="text-xl font-bold mb-3 font-display flex items-center gap-2">
               <Star className="w-5 h-5 text-red-500" /> Vision
             </h3>
@@ -142,7 +143,7 @@ const AboutUs = () => {
         <h2 className="text-3xl font-bold mb-6 font-display">Founding Team (2024)</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {foundersData.map((f, idx) => (
-            <div key={idx} className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10 text-center hover:bg-white/10 transition-colors">
+            <div key={idx} className="nb-item-card bg-white/5 backdrop-blur-lg p-5 sm:p-6 text-center">
               <div className="relative w-28 h-28 mx-auto mb-4 rounded-full overflow-hidden bg-white/10">
                 {/* Using Next/Image would be ideal, but keep div for simplicity */}
                 <img src={f.image} alt={f.name} className="w-full h-full object-cover" />

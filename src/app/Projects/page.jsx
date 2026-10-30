@@ -81,6 +81,8 @@ const getProgressColor = (progress) => {
 const ProjectsPage = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [categoriesError, setCategoriesError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -107,6 +109,7 @@ const ProjectsPage = () => {
   const fetchProjects = async () => {
     try {
       setLoading(true);
+      setError("");
       
       // Build query parameters
       const params = new URLSearchParams();
@@ -127,18 +130,19 @@ const ProjectsPage = () => {
       const data = await res.json();
       console.log('API Response:', data);
       
-      if (data.success) {
+      if (data.success && Array.isArray(data.data?.projects)) {
         console.log('Projects data:', data.data);
         console.log('Projects items:', data.data.projects);
         console.log('Pagination:', data.data.pagination);
         setProjects(data.data.projects || []);
         setPagination(data.data.pagination || {});
       } else {
-        throw new Error(data.message || 'Failed to fetch projects');
+        throw new Error(data.message || 'The project list response is incomplete.');
       }
     } catch (err) {
       console.error('Error fetching projects:', err);
       setProjects([]);
+      setError(err.message || 'Projects could not be loaded.');
     } finally {
       setLoading(false);
     }
@@ -146,24 +150,21 @@ const ProjectsPage = () => {
 
   const fetchCategories = async () => {
     try {
+      setCategoriesError("");
       // Extract unique categories from projects
       const res = await fetch(`${API_BASE_URL}/projects?limit=100`, { cache: 'no-store' });
       console.log('Categories fetch response status:', res.status);
-      
-      if (res.ok) {
-        const data = await res.json();
-        console.log('Categories API Response:', data);
-        
-        if (data.success && data.data.projects) {
-          const uniqueCategories = [...new Set(data.data.projects.map(project => project.category).filter(Boolean))];
-          console.log('Extracted categories:', uniqueCategories);
-          setCategories(uniqueCategories);
-        }
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      const data = await res.json();
+      if (!data.success || !Array.isArray(data.data?.projects)) {
+        throw new Error(data.message || 'The project categories response is incomplete.');
       }
+      const uniqueCategories = [...new Set(data.data.projects.map(project => project.category).filter(Boolean))];
+      setCategories(uniqueCategories);
     } catch (err) {
       console.error('Error fetching categories:', err);
-      // Fallback categories
-      setCategories(['Robotics', 'AI/ML', 'Mechanics', 'Electronics', 'Software']);
+      setCategories([]);
+      setCategoriesError(err.message || 'Project categories could not be loaded.');
     }
   };
 
@@ -222,22 +223,23 @@ const ProjectsPage = () => {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-10 sm:py-14">
         {/* Header */}
-        <div className="text-center mb-12">
-          <motion.h1 
+        <div className="text-center mb-10 sm:mb-12">
+          <p className="nb-page-eyebrow justify-center">NEWTONBOTICS / INNOVATION</p>
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-red-600"
+            transition={{ duration: 0.6 }}
+            className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-red-400"
           >
             Robotics Club Projects
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.8 }}
-            className="text-lg text-white/60"
+            transition={{ delay: 0.15, duration: 0.6 }}
+            className="text-base sm:text-lg text-white/60 max-w-2xl mx-auto"
           >
             Showcasing our innovation, creativity, and technical expertise through impactful projects.
           </motion.p>
@@ -303,6 +305,7 @@ const ProjectsPage = () => {
                   </option>
                 ))}
               </select>
+              {categoriesError && <p className="mt-2 text-sm text-red-300" role="alert">{categoriesError}</p>}
             </div>
 
             {/* Featured Toggle */}
@@ -333,7 +336,13 @@ const ProjectsPage = () => {
         </motion.div>
 
         {/* Projects Display */}
-        {projects.length === 0 ? (
+        {error ? (
+          <div className="py-12 text-center" role="alert">
+            <h3 className="text-xl font-semibold text-white mb-2">Projects could not be loaded</h3>
+            <p className="text-white/60 mb-6">{error}</p>
+            <button onClick={fetchProjects} className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg">Try again</button>
+          </div>
+        ) : projects.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -486,12 +495,11 @@ const ProjectCard = ({ project, index }) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1, duration: 0.8 }}
-      whileHover={{ scale: 1.02, y: -5 }}
-      className="group"
+      transition={{ delay: index * 0.08, duration: 0.5 }}
+      className="group h-full"
     >
-      <Link href={`/Projects/${project._id}`}>
-        <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 hover:bg-white/10 cursor-pointer h-full">
+      <Link href={`/Projects/${project._id}`} className="block h-full">
+        <div className="nb-item-card bg-white/5 backdrop-blur-lg rounded-2xl p-5 sm:p-6 border border-white/10 cursor-pointer h-full flex flex-col">
           {/* Project Header */}
           <div className="flex items-start justify-between mb-4">
             <div className="flex gap-2 flex-wrap">
@@ -575,8 +583,8 @@ const ProjectCard = ({ project, index }) => {
             </div>
           )}
 
-          {/* View Details Button */}
-          <div className="flex items-center justify-between">
+          {/* View Details */}
+          <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/6">
             <span className="text-red-400 text-sm font-medium group-hover:text-red-300 transition-colors">
               View Details
             </span>

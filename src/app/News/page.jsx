@@ -238,7 +238,7 @@ const NewsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black text-white font-sans py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-black text-white font-sans py-10 sm:py-14 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-12 text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-red-600">
@@ -271,7 +271,7 @@ const NewsPage = () => {
 
   if (error && allNews.length === 0) {
     return (
-      <div className="min-h-screen bg-black text-white font-sans py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-black text-white font-sans py-10 sm:py-14 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <h2 className="text-2xl font-bold text-white mb-4">Error Loading News</h2>
@@ -288,7 +288,7 @@ const NewsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-black text-white font-sans py-10 sm:py-14 px-4 sm:px-6 lg:px-8">
       {/* Header Section */}
       <motion.div
         initial={{ opacity: 0, y: -50 }}
@@ -297,6 +297,7 @@ const NewsPage = () => {
         viewport={{ once: true }}
         className="max-w-7xl mx-auto mb-12 text-center"
       >
+        <p className="nb-page-eyebrow justify-center">NEWTONBOTICS / BULLETIN</p>
         <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-red-600">
           Latest News & Updates
         </h1>
@@ -322,6 +323,7 @@ const NewsPage = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 w-5 h-5" />
               <input
                 type="text"
+                aria-label="Search news articles"
                 placeholder="Search by title, content, or tags..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -332,6 +334,7 @@ const NewsPage = () => {
             {/* Category Filter */}
             <div className="relative">
               <select
+                aria-label="Filter news by category"
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="w-full pl-4 pr-10 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500 appearance-none cursor-pointer"
@@ -434,8 +437,7 @@ const NewsPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.2, duration: 0.8 }}
                 viewport={{ once: true }}
-                whileHover={{ scale: 1.02, y: -5 }}
-                className="bg-white/5 backdrop-blur-lg rounded-2xl overflow-hidden border border-white/10 shadow-lg shadow-red-500/10 group hover:bg-white/10 transition-all"
+                className="nb-item-card bg-white/5 backdrop-blur-lg shadow-lg shadow-red-500/10 group flex h-full flex-col"
               >
                 <div className="relative h-64 overflow-hidden">
                   <Image
@@ -455,7 +457,7 @@ const NewsPage = () => {
                     </span>
                   </div>
                 </div>
-                <div className="p-6">
+                <div className="p-5 sm:p-6 flex flex-1 flex-col">
                   <div className="flex items-center gap-2 text-sm text-white/60 mb-2">
                     <Calendar className="w-4 h-4" />
                     <span>{formatDate(news.publishedAt || news.createdAt)}</span>
@@ -466,7 +468,7 @@ const NewsPage = () => {
                   <h3 className="text-xl font-bold mb-3 text-white group-hover:text-red-400 transition-colors">
                     {news.title}
                   </h3>
-                  <p className="text-white/80 mb-4 leading-relaxed">
+                  <p className="text-white/80 mb-4 leading-relaxed line-clamp-4">
                     {news.excerpt}
                   </p>
                   <div className="flex flex-wrap gap-2 mb-4">
@@ -476,7 +478,7 @@ const NewsPage = () => {
                       </span>
                     ))}
                   </div>
-                  <Link href={`/News/${news._id || news.id}`}>
+                  <Link href={`/News/${news._id || news.id}`} className="mt-auto self-start">
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -543,8 +545,7 @@ const NewsPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1, duration: 0.8 }}
                 viewport={{ once: true }}
-                whileHover={{ scale: 1.05, y: -5 }}
-                className="bg-white/5 backdrop-blur-lg rounded-xl overflow-hidden border border-white/10 shadow-lg shadow-red-500/10 group hover:bg-white/10 transition-all"
+                className="nb-item-card bg-white/5 shadow-lg shadow-red-500/10 group flex h-full flex-col"
               >
                 <div className="relative h-48 overflow-hidden">
                   <Image
@@ -566,7 +567,7 @@ const NewsPage = () => {
                     </div>
                   )}
                 </div>
-                <div className="p-4">
+                <div className="p-4 flex flex-1 flex-col">
                   <div className="flex items-center gap-2 text-xs text-white/60 mb-2">
                     <Calendar className="w-3 h-3" />
                     <span>{formatDate(news.publishedAt || news.createdAt)}</span>
@@ -587,7 +588,7 @@ const NewsPage = () => {
                       </span>
                     ))}
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="mt-auto flex items-center justify-between gap-3 pt-3">
                     <span className="text-xs text-white/60 flex items-center gap-1">
                       <User className="w-3 h-3" />
                       {getAuthor(news)}

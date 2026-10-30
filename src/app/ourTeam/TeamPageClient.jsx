@@ -76,8 +76,9 @@ export default function TeamPageClient({
     filteredResearchers.length;
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-black text-white font-sans py-10 sm:py-14 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto mb-12 text-center">
+        <p className="nb-page-eyebrow justify-center">NEWTONBOTICS / PEOPLE</p>
         <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-red-600">
           Our Robotics Team
         </h1>
@@ -372,7 +373,7 @@ function PersonCard({ person, compact = false, onImageClick }) {
 
   return (
     <div
-      className={`bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10 hover:border-white/20 hover:-translate-y-1 transition-all duration-300 cursor-pointer ${
+      className={`nb-item-card bg-white/5 backdrop-blur-lg p-5 sm:p-6 cursor-pointer ${
         compact ? "text-center" : ""
       }`}
     >

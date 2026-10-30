@@ -214,22 +214,23 @@ const EventsPage = () => {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-10 sm:py-14">
         {/* Header */}
-        <div className="text-center mb-12">
-          <motion.h1 
+        <div className="text-center mb-10 sm:mb-12">
+          <p className="nb-page-eyebrow justify-center">NEWTONBOTICS / COMMUNITY</p>
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.6 }}
             className="text-4xl md:text-5xl font-bold mb-4"
           >
             Events
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.8 }}
-            className="text-xl text-white/60"
+            transition={{ delay: 0.15, duration: 0.6 }}
+            className="text-base sm:text-lg text-white/60 max-w-xl mx-auto"
           >
             Discover exciting robotics events and workshops
           </motion.p>
@@ -366,17 +367,17 @@ const EventsPage = () => {
               )}
             </motion.div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
               {filteredEvents.map((event, index) => (
                 <motion.div
                   key={event._id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1, duration: 0.8 }}
-                  className="group"
+                  transition={{ delay: index * 0.07, duration: 0.5 }}
+                  className="group h-full"
                 >
-                  <Link href={`/Events/${event._id}`}>
-                    <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 hover:bg-white/10 cursor-pointer h-full">
+                  <Link href={`/Events/${event._id}`} className="block h-full">
+                    <div className="nb-item-card bg-white/5 backdrop-blur-lg rounded-2xl p-5 sm:p-6 border border-white/10 cursor-pointer h-full flex flex-col">
                       {/* Event Header */}
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex gap-2 flex-wrap">
@@ -400,7 +401,7 @@ const EventsPage = () => {
                       </h3>
 
                       {/* Event Description */}
-                      <p className="text-white/70 text-sm mb-4 line-clamp-3">
+                      <p className="text-white/70 text-sm mb-4 line-clamp-3 flex-1">
                         {event.description}
                       </p>
 
@@ -428,8 +429,8 @@ const EventsPage = () => {
                         )}
                       </div>
 
-                      {/* View Details Button */}
-                      <div className="flex items-center justify-between">
+                      {/* View Details */}
+                      <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/6">
                         <span className="text-red-400 text-sm font-medium group-hover:text-red-300 transition-colors">
                           View Details
                         </span>

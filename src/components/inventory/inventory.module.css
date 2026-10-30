@@ -1,0 +1,1602 @@
+/* =========================================================
+   inventory.module.css
+   NewtonBotics Inventory Workspace — scoped design system
+   All tokens match the global dark-first theme (globals.css).
+   ========================================================= */
+
+/* ── Layout wrapper ── */
+.scope {
+  min-height: 100svh;
+  background-color: #000;
+  color: #f9fafb;
+  padding-bottom: 4rem;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+/* ── Hero ── */
+.hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 4rem 0 3rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hero h1 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.1;
+  color: #f9fafb;
+  margin: 0.5rem 0;
+}
+
+.hero h1 span {
+  color: rgba(249, 250, 251, 0.55);
+}
+
+.heroMark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.15);
+  font-size: 0.625rem;
+  letter-spacing: 0.15em;
+  font-family: 'Neuropol X', sans-serif;
+  flex-shrink: 0;
+  padding-top: 0.25rem;
+  user-select: none;
+}
+
+@media (max-width: 640px) {
+  .hero {
+    padding: 2.5rem 0 2rem;
+  }
+
+  .heroMark {
+    display: none;
+  }
+}
+
+/* ── Eyebrow text ── */
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.45);
+  font-family: 'Neuropol X', sans-serif;
+  text-transform: uppercase;
+  margin: 0 0 0.5rem;
+}
+
+.signal {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background-color: #dc2626;
+  box-shadow: 0 0 6px #dc2626;
+  flex-shrink: 0;
+}
+
+.intro {
+  color: rgba(249, 250, 251, 0.6);
+  font-size: 1rem;
+  line-height: 1.65;
+  max-width: 46ch;
+  margin: 0.75rem 0 0;
+}
+
+.desktopBreak {
+  display: block;
+}
+
+@media (max-width: 640px) {
+  .desktopBreak {
+    display: none;
+  }
+}
+
+/* ── Scope navigation (General Lab / Projects) ── */
+.scopeNav {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1.5rem 0;
+  flex-wrap: wrap;
+}
+
+.scopeNav a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.04);
+  color: rgba(249, 250, 251, 0.7);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+  position: relative;
+}
+
+.scopeNav a:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #f9fafb;
+}
+
+.scopeNav a span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  line-height: 1.3;
+}
+
+.scopeNav a strong {
+  color: #f9fafb;
+  font-weight: 600;
+  font-family: 'Neuropol X', sans-serif;
+  font-size: 0.8125rem;
+}
+
+.scopeNav a small {
+  font-size: 0.7rem;
+  color: rgba(249, 250, 251, 0.5);
+  letter-spacing: 0.01em;
+}
+
+.activeScope {
+  background-color: rgba(220, 38, 38, 0.12) !important;
+  border-color: rgba(220, 38, 38, 0.35) !important;
+  color: #f9fafb !important;
+}
+
+.activeScope strong {
+  color: #fca5a5 !important;
+}
+
+.scopeIndex {
+  font-family: 'Neuropol X', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.25) !important;
+  margin-left: auto;
+}
+
+/* ── Section heading ── */
+.sectionHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 2rem 0 1.5rem;
+  flex-wrap: wrap;
+}
+
+.sectionHeading h2 {
+  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+  color: #f9fafb;
+  margin: 0.25rem 0 0.5rem;
+  line-height: 1.2;
+}
+
+.sectionHeading p {
+  color: rgba(249, 250, 251, 0.6);
+  font-size: 0.9375rem;
+  margin: 0;
+}
+
+.headingActions {
+  display: flex;
+  gap: 0.625rem;
+  align-items: center;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  padding-top: 0.25rem;
+}
+
+/* ── Stats row ── */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 1.25rem 1.5rem;
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.stats > div span {
+  font-size: 0.6875rem;
+  color: rgba(249, 250, 251, 0.45);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: 'Neuropol X', sans-serif;
+}
+
+.stats > div strong {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #f9fafb;
+  line-height: 1.1;
+  font-family: 'Ethnocentric', sans-serif;
+}
+
+.stats > div small {
+  font-size: 0.7rem;
+  color: rgba(249, 250, 251, 0.35);
+}
+
+@media (max-width: 640px) {
+  .stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Catalogue layout: sidebar + main ── */
+.catalogueLayout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .catalogueLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Category sidebar ── */
+.categorySidebar {
+  position: sticky;
+  top: calc(4.5rem + 1rem);
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.875rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.categoryButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.categoryButtons button {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  color: rgba(249, 250, 251, 0.65);
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+  width: 100%;
+  font-family: 'Neuropol X', sans-serif;
+}
+
+.categoryButtons button:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #f9fafb;
+}
+
+.selectedCategory {
+  background-color: rgba(220, 38, 38, 0.15) !important;
+  color: #fca5a5 !important;
+}
+
+.categoryDot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.sidebarNote {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 0.875rem;
+  font-size: 0.75rem;
+  color: rgba(249, 250, 251, 0.4);
+  line-height: 1.55;
+}
+
+.sidebarNote strong {
+  display: block;
+  color: rgba(249, 250, 251, 0.6);
+  margin-bottom: 0.25rem;
+}
+
+/* ── Toolbar ── */
+.toolbar {
+  display: flex;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 180px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.625rem;
+  padding: 0 0.875rem;
+  color: rgba(249, 250, 251, 0.5);
+  transition: border-color 0.2s;
+}
+
+.search:focus-within {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.search input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0.6875rem 0;
+  color: #f9fafb;
+  font-size: 0.875rem;
+  font-family: inherit;
+  min-width: 0;
+}
+
+.search input::placeholder {
+  color: rgba(249, 250, 251, 0.35);
+}
+
+.statusSelect {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.statusSelect select {
+  appearance: none;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.625rem;
+  padding: 0.6875rem 2rem 0.6875rem 0.875rem;
+  color: #f9fafb;
+  font-size: 0.8125rem;
+  font-family: 'Neuropol X', sans-serif;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.statusSelect select:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.viewToggle {
+  display: flex;
+  gap: 0.25rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.625rem;
+  padding: 0.25rem;
+}
+
+.viewToggle button {
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.375rem;
+  border: none;
+  background: transparent;
+  color: rgba(249, 250, 251, 0.5);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.viewToggle button:hover,
+.viewToggle button[aria-pressed="true"] {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #f9fafb;
+}
+
+/* ── Results bar ── */
+.resultsBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  font-size: 0.8125rem;
+  color: rgba(249, 250, 251, 0.5);
+}
+
+.resultsBar button {
+  font-size: 0.8125rem;
+  color: #fca5a5;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Neuropol X', sans-serif;
+  letter-spacing: 0.04em;
+}
+
+.resultsBar button:hover {
+  color: #f87171;
+}
+
+/* ── Category groups ── */
+.categoryGroup {
+  margin-bottom: 2rem;
+}
+
+.groupHeading {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding-bottom: 0.625rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 1rem;
+}
+
+.groupHeading h3 {
+  font-size: 0.875rem;
+  color: rgba(249, 250, 251, 0.7);
+  font-family: 'Neuropol X', sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.groupHeading span {
+  font-size: 0.75rem;
+  color: rgba(249, 250, 251, 0.35);
+}
+
+/* ── Item grids ── */
+.itemGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.itemList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ── Equipment card ── */
+.itemCard {
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.875rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.itemCard:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.itemList .itemCard {
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.itemList .itemImage {
+  width: 120px;
+  flex-shrink: 0;
+  height: auto;
+  min-height: 100px;
+  border-radius: 0;
+}
+
+.itemImage {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.18);
+  overflow: hidden;
+}
+
+.itemImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.itemBody {
+  padding: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0.25rem;
+}
+
+.itemMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.categoryLabel {
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  color: rgba(249, 250, 251, 0.4);
+  font-family: 'Neuropol X', sans-serif;
+  text-transform: uppercase;
+}
+
+.stockBadge {
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  font-family: 'Neuropol X', sans-serif;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  margin-left: auto;
+}
+
+.stockBadge.success {
+  background-color: rgba(22, 163, 74, 0.18);
+  color: #86efac;
+  border: 1px solid rgba(22, 163, 74, 0.3);
+}
+
+.stockBadge.warning {
+  background-color: rgba(202, 138, 4, 0.18);
+  color: #fde047;
+  border: 1px solid rgba(202, 138, 4, 0.3);
+}
+
+.stockBadge.danger {
+  background-color: rgba(220, 38, 38, 0.18);
+  color: #fca5a5;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+.stockBadge.neutral {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: rgba(249, 250, 251, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.itemCard h4 {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-family: 'Neuropol X', sans-serif;
+  color: #f9fafb;
+  letter-spacing: 0.02em;
+}
+
+.itemCard h4 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.itemCard h4 a:hover {
+  color: #fca5a5;
+}
+
+.itemDescription {
+  font-size: 0.8125rem;
+  color: rgba(249, 250, 251, 0.5);
+  margin: 0.125rem 0 0.5rem;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.itemFacts {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.8125rem;
+  color: rgba(249, 250, 251, 0.5);
+  margin-top: auto;
+}
+
+.itemFacts div {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.itemFacts strong {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #f9fafb;
+  font-family: 'Ethnocentric', sans-serif;
+}
+
+.itemFacts span:last-of-type {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+.itemActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.625rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 0.75rem;
+}
+
+.itemActions > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: #fca5a5;
+  text-decoration: none;
+  font-family: 'Neuropol X', sans-serif;
+  letter-spacing: 0.04em;
+}
+
+.itemActions > a:hover {
+  color: #f87171;
+}
+
+.itemActions > div {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.itemActions button {
+  font-size: 0.75rem;
+  padding: 0.3rem 0.625rem;
+  border-radius: 0.375rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.06);
+  color: rgba(249, 250, 251, 0.7);
+  cursor: pointer;
+  font-family: 'Neuropol X', sans-serif;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.itemActions button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #f9fafb;
+}
+
+.deleteAction {
+  background-color: rgba(220, 38, 38, 0.1) !important;
+  border-color: rgba(220, 38, 38, 0.25) !important;
+  color: #fca5a5 !important;
+}
+
+.deleteAction:hover {
+  background-color: rgba(220, 38, 38, 0.2) !important;
+}
+
+/* ── Pagination ── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.25rem 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  flex-wrap: wrap;
+}
+
+.pagination span {
+  font-size: 0.8125rem;
+  color: rgba(249, 250, 251, 0.45);
+  font-family: 'Neuropol X', sans-serif;
+  letter-spacing: 0.04em;
+}
+
+.pagination > div {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagination select {
+  appearance: none;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  color: #f9fafb;
+  font-size: 0.8125rem;
+  font-family: 'Neuropol X', sans-serif;
+  cursor: pointer;
+}
+
+.pagination button {
+  padding: 0.4rem 0.875rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: rgba(249, 250, 251, 0.7);
+  font-size: 0.8125rem;
+  font-family: 'Neuropol X', sans-serif;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.pagination button:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #f9fafb;
+}
+
+.pagination button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Empty / error states ── */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 5rem 2rem;
+  text-align: center;
+  color: rgba(249, 250, 251, 0.45);
+}
+
+.empty h3 {
+  font-size: 1.125rem;
+  color: rgba(249, 250, 251, 0.7);
+  margin: 0;
+}
+
+.empty p {
+  font-size: 0.875rem;
+  margin: 0;
+  max-width: 36ch;
+}
+
+.inlineError {
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  background-color: rgba(220, 38, 38, 0.08);
+  border-radius: 0.625rem;
+  padding: 0.75rem;
+  font-size: 0.8125rem;
+  color: #fca5a5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.inlineError button {
+  font-size: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #f87171;
+  font-family: 'Neuropol X', sans-serif;
+  text-align: left;
+}
+
+/* ── Buttons ── */
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.125rem;
+  border-radius: 0.625rem;
+  background-color: #dc2626;
+  border: 1px solid #b91c1c;
+  color: #fff;
+  font-size: 0.8125rem;
+  font-family: 'Neuropol X', sans-serif;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background-color 0.15s, transform 0.1s;
+}
+
+.primaryButton:hover:not(:disabled) {
+  background-color: #ef4444;
+}
+
+.primaryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.125rem;
+  border-radius: 0.625rem;
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(249, 250, 251, 0.8);
+  font-size: 0.8125rem;
+  font-family: 'Neuropol X', sans-serif;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.secondaryButton:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f9fafb;
+}
+
+.secondaryButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── Modal backdrop + dialog ── */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.dialog {
+  background-color: #0a0a0a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90svh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+  outline: none;
+}
+
+.dialogPanel {
+  padding: 1.75rem;
+}
+
+.dialogPanel h3 {
+  font-size: 1.125rem;
+  color: #f9fafb;
+  margin: 0 0 1rem;
+}
+
+/* ── Notice bar ── */
+.notice {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.875rem 1rem;
+  background-color: rgba(202, 138, 4, 0.08);
+  border: 1px solid rgba(202, 138, 4, 0.2);
+  border-radius: 0.75rem;
+  color: #fde047;
+  font-size: 0.8125rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.55;
+}
+
+.notice svg {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: #facc15;
+}
+
+.notice > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.notice strong {
+  color: #fef08a;
+  font-family: 'Neuropol X', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.notice p {
+  color: rgba(253, 224, 71, 0.75);
+  margin: 0;
+}
+
+/* ── Project grid ── */
+.projectGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.projectCard {
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.875rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.projectCard:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.projectCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.projectIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.625rem;
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(249, 250, 251, 0.7);
+}
+
+.projectCard h3 {
+  font-size: 1rem;
+  color: #f9fafb;
+  margin: 0.25rem 0 0;
+  font-family: 'Neuropol X', sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.projectDescription {
+  font-size: 0.8125rem;
+  color: rgba(249, 250, 251, 0.5);
+  margin: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  flex: 1;
+}
+
+.projectStock {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: rgba(249, 250, 251, 0.4);
+  font-family: 'Neuropol X', sans-serif;
+  letter-spacing: 0.04em;
+}
+
+.projectLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: #fca5a5;
+  text-decoration: none;
+  font-family: 'Neuropol X', sans-serif;
+  letter-spacing: 0.04em;
+  margin-top: 0.5rem;
+}
+
+.projectLink:hover {
+  color: #f87171;
+}
+
+/* ── Badges ── */
+.neutralBadge {
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  font-family: 'Neuropol X', sans-serif;
+  text-transform: uppercase;
+  padding: 0.175rem 0.55rem;
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.08);
+  color: rgba(249, 250, 251, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ── Project detail page ── */
+.projectHeader {
+  padding: 2.5rem 0 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 1.5rem;
+}
+
+.projectHeader h1 {
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  color: #f9fafb;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.projectHeader p {
+  color: rgba(249, 250, 251, 0.6);
+  font-size: 0.9375rem;
+  max-width: 56ch;
+  margin: 0 0 1rem;
+}
+
+/* ── Unavailable block ── */
+.unavailable {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 4rem 2rem;
+  text-align: center;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  color: rgba(249, 250, 251, 0.5);
+  margin-top: 1rem;
+}
+
+.unavailable h2 {
+  font-size: 1.25rem;
+  color: rgba(249, 250, 251, 0.75);
+  margin: 0.25rem 0 0.5rem;
+}
+
+.unavailable p {
+  font-size: 0.875rem;
+  max-width: 44ch;
+  line-height: 1.65;
+  margin: 0;
+}
+
+.largeIcon {
+  color: rgba(255, 255, 255, 0.15);
+  display: flex;
+}
+
+/* ── Misc helpers ── */
+.help {
+  font-size: 0.75rem;
+  color: rgba(249, 250, 251, 0.4);
+  margin: 0.25rem 0 0.5rem;
+}
+
+.resultCount {
+  font-size: 0.8125rem;
+  color: rgba(249, 250, 251, 0.4);
+  margin: 0 0 1rem;
+  font-family: 'Neuropol X', sans-serif;
+  letter-spacing: 0.03em;
+}
+
+/* ── Detail page breadcrumb nav (two back-links side by side) ── */
+.detailNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-top: 1.5rem;
+  padding-bottom: 0.25rem;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  color: rgba(249, 250, 251, 0.6);
+  text-decoration: none;
+  font-family: 'Neuropol X', sans-serif;
+  letter-spacing: 0.04em;
+  padding: 0.5rem 0;
+  transition: color 0.15s;
+}
+
+.backLink:hover {
+  color: #f9fafb;
+}
+
+/* ── Footer ── */
+.workspaceFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 4rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  color: rgba(249, 250, 251, 0.3);
+  font-family: 'Neuropol X', sans-serif;
+  text-transform: uppercase;
+  flex-wrap: wrap;
+}
+
+.workspaceFooter a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: rgba(249, 250, 251, 0.4);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.workspaceFooter a:hover {
+  color: rgba(249, 250, 251, 0.7);
+}
+
+/* ── Accessibility ── */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ── Demo Mode Banner ── */
+.demoBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background-color: rgba(220, 38, 38, 0.07);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  border-radius: 0.75rem;
+  color: rgba(249, 250, 251, 0.75);
+  font-size: 0.8125rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.55;
+  flex-wrap: wrap;
+}
+
+.demoBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.6rem;
+  background-color: rgba(220, 38, 38, 0.25);
+  border: 1px solid rgba(220, 38, 38, 0.5);
+  border-radius: 9999px;
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  font-family: 'Neuropol X', sans-serif;
+  text-transform: uppercase;
+  color: #fca5a5;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* ── Dialog overlay (used by demo modals without InventoryDialog wrapper) ── */
+.dialogOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+/* ── Component requests ── */
+.heroActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.requestCta {
+  white-space: nowrap;
+  text-decoration: none;
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.18);
+}
+
+.requestPageHeader {
+  padding: 2.5rem 0 1.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 1.5rem;
+}
+
+.requestPageHeader h1 {
+  color: #f9fafb;
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.12;
+  margin: 0.5rem 0;
+}
+
+.requestPageHeader > p:last-child {
+  color: rgba(249, 250, 251, 0.6);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  max-width: 58ch;
+  margin: 0;
+}
+
+.requestNotice {
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  border-left: 3px solid #dc2626;
+  background: rgba(220, 38, 38, 0.06);
+  border-radius: 0.75rem;
+  color: rgba(249, 250, 251, 0.75);
+  padding: 1rem 1.125rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.55;
+}
+
+.requestNotice strong,
+.requestNotice h2 {
+  color: #f9fafb;
+  font-size: 0.9375rem;
+  margin: 0;
+}
+
+.requestNotice p {
+  font-size: 0.8125rem;
+  margin: 0.375rem 0 0;
+  max-width: 75ch;
+}
+
+.requestGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.requestPanel {
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 0.875rem;
+  background: rgba(255, 255, 255, 0.025);
+  padding: 1.25rem;
+}
+
+.requestSectionHeading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.requestIcon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  border: 1px solid rgba(220, 38, 38, 0.35);
+  border-radius: 0.625rem;
+  background: rgba(220, 38, 38, 0.12);
+  color: #fca5a5;
+}
+
+.requestSectionHeading h2 {
+  color: #f9fafb;
+  font-size: 1.0625rem;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.requestSectionHeading p {
+  color: rgba(249, 250, 251, 0.5);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  margin: 0.25rem 0 0;
+}
+
+.requestForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.requestField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+  color: rgba(249, 250, 251, 0.82);
+  font-size: 0.8125rem;
+}
+
+.requestField > span {
+  font-weight: 600;
+}
+
+.requestField b {
+  color: #f87171;
+}
+
+.requestField input,
+.requestField select,
+.requestField textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.5rem;
+  background: #111;
+  color: #f9fafb;
+  padding: 0.75rem 0.875rem;
+  font: inherit;
+}
+
+.requestField textarea {
+  resize: vertical;
+  min-height: 7rem;
+  line-height: 1.55;
+}
+
+.requestField input:focus,
+.requestField select:focus,
+.requestField textarea:focus {
+  outline: 2px solid rgba(220, 38, 38, 0.65);
+  outline-offset: 2px;
+}
+
+.requestField small {
+  color: rgba(249, 250, 251, 0.42);
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.requestForm > .primaryButton {
+  justify-content: center;
+  min-height: 2.875rem;
+}
+
+.requestFootnote,
+.requestError,
+.requestSuccess {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.requestFootnote {
+  color: rgba(249, 250, 251, 0.45);
+}
+
+.requestError {
+  color: #fca5a5;
+}
+
+.requestSuccess {
+  color: #86efac;
+}
+
+.requestEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  border-radius: 0.625rem;
+  color: rgba(249, 250, 251, 0.48);
+  padding: 1.25rem;
+}
+
+.requestEmpty h3 {
+  color: rgba(249, 250, 251, 0.85);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.requestEmpty p {
+  font-size: 0.75rem;
+  line-height: 1.55;
+  margin: 0;
+  max-width: 42ch;
+}
+
+.requestHistoryLabel {
+  color: rgba(252, 165, 165, 0.75);
+  font-family: 'Neuropol X', sans-serif;
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  margin: 0 0 0.75rem;
+}
+
+.requestList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.requestCard {
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.625rem;
+  background: rgba(255, 255, 255, 0.025);
+  padding: 1rem;
+}
+
+.requestCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.requestCardTop time {
+  color: rgba(249, 250, 251, 0.38);
+  font-size: 0.6875rem;
+}
+
+.requestStatus {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid;
+  border-radius: 9999px;
+  padding: 0.2rem 0.6rem;
+  font-family: 'Neuropol X', sans-serif;
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.requestStatus_pending {
+  color: #fde68a;
+  border-color: rgba(234, 179, 8, 0.3);
+  background: rgba(234, 179, 8, 0.1);
+}
+
+.requestStatus_approved {
+  color: #86efac;
+  border-color: rgba(34, 197, 94, 0.3);
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.requestStatus_rejected {
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.requestCard h3 {
+  color: #f9fafb;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.requestCard h3 span {
+  color: rgba(249, 250, 251, 0.65);
+  white-space: nowrap;
+}
+
+.requestProject {
+  color: #fca5a5;
+  font-size: 0.7rem;
+  margin: 0.3rem 0 0;
+}
+
+.requestPurpose {
+  color: rgba(249, 250, 251, 0.57);
+  font-size: 0.75rem;
+  line-height: 1.55;
+  margin: 0.75rem 0;
+}
+
+.requestFulfillmentNote {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(249, 250, 251, 0.38);
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  margin: 0;
+  padding-top: 0.65rem;
+}
+
+.simulateButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.4rem;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(249, 250, 251, 0.65);
+  padding: 0.4rem 0.6rem;
+  font-size: 0.6875rem;
+  cursor: pointer;
+}
+
+.simulateButton:hover {
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #fca5a5;
+}
+
+@media (max-width: 900px) {
+  .requestGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero {
+    flex-direction: column;
+  }
+
+  .heroActions {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .requestCta {
+    width: 100%;
+    min-height: 2.75rem;
+    justify-content: center;
+    white-space: normal;
+  }
+
+  .headingActions {
+    width: 100%;
+    flex: 1 1 100%;
+    flex-shrink: 1;
+  }
+
+  .requestPageHeader {
+    padding-top: 1.75rem;
+  }
+
+  .requestPanel {
+    padding: 1rem;
+  }
+
+  .requestCard {
+    padding: 0.875rem;
+  }
+}

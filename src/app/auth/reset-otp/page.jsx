@@ -114,7 +114,7 @@ function ResetPasswordOtpContent() {
               <p className="text-white/70 mb-6">Your password has been updated successfully.</p>
               <button
                 onClick={() => router.push("/auth/signin")}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 transition font-semibold"
+                className="w-full py-3 rounded-xl bg-red-600 hover:bg-red-500 transition font-semibold"
               >
                 Continue to sign in
               </button>
@@ -141,7 +141,7 @@ function ResetPasswordOtpContent() {
               <p className="text-white/70 mb-6">{error}</p>
               <a
                 href="/auth/forgot"
-                className="inline-block w-full py-3 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 transition font-semibold"
+                className="inline-block w-full py-3 rounded-xl bg-red-600 hover:bg-red-500 transition font-semibold"
               >
                 Request new reset link
               </a>
@@ -192,7 +192,7 @@ function ResetPasswordOtpContent() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 disabled:from-sky-800 disabled:to-indigo-800 disabled:cursor-not-allowed transition font-semibold"
+                className="w-full py-3 rounded-xl bg-red-600 hover:bg-red-500 disabled:bg-red-800 disabled:cursor-not-allowed transition font-semibold"
               >
                 {isSubmitting ? "Updating..." : "Update password"}
               </button>
@@ -211,7 +211,7 @@ export default function ResetPasswordOtpPage() {
     <Suspense fallback={
       <div className="min-h-screen bg-[#070b12] text-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-400 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-400 mx-auto mb-4"></div>
           <p className="text-white/70">Loading...</p>
         </div>
       </div>
