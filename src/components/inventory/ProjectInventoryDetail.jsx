@@ -11,9 +11,7 @@ import styles from "./inventory.module.css";
 
 function stockTone(item) {
   const quantity = Number(item.quantity ?? 0);
-  const minimum = Number(item.minimumQuantity ?? 0);
   if (quantity <= 0) return { label: "Out of stock", tone: "danger" };
-  if (quantity <= minimum) return { label: "Low stock", tone: "warning" };
   return { label: "Available", tone: "success" };
 }
 
@@ -143,7 +141,6 @@ export default function ProjectInventoryDetail() {
                 <select value={availability} onChange={(event) => setAvailability(event.target.value)}>
                   <option value="">All availability</option>
                   <option value="success">Available</option>
-                  <option value="warning">Low stock</option>
                   <option value="danger">Out of stock</option>
                 </select>
               </label>

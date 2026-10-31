@@ -941,6 +941,42 @@
 }
 
 /* ── Project grid ── */
+.projectTabs {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.projectTabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+  padding: 0.7rem 0.75rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: rgba(249, 250, 251, 0.6);
+  font: inherit;
+  cursor: pointer;
+}
+
+.projectTabs button[aria-selected="true"] {
+  border-bottom-color: #f87171;
+  color: #f9fafb;
+}
+
+.projectTabs button span {
+  min-width: 1.25rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
 .projectGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
