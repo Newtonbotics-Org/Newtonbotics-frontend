@@ -7,8 +7,20 @@ import { listInventoryProjects } from "@/lib/inventoryProjects";
 import { CardSkeletonGrid } from "@/components/PageSkeletons";
 import styles from "./inventory.module.css";
 
+const projectGroups = [
+  { key: "ongoing", label: "Ongoing" },
+  { key: "completed", label: "Completed" },
+  { key: "other", label: "Other" },
+];
+
+function projectGroupForStatus(status) {
+  if (status === "ongoing" || status === "completed") return status;
+  return "other";
+}
+
 export default function ProjectInventories() {
   const [query, setQuery] = useState("");
+  const [selectedGroup, setSelectedGroup] = useState("ongoing");
   const [projects, setProjects] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -32,6 +44,8 @@ export default function ProjectInventories() {
     return () => { clearTimeout(timer); controller.abort(); };
   }, [query, retry]);
 
+  const groupedProjects = projects.filter((project) => projectGroupForStatus(project.status) === selectedGroup);
+
   return (
     <section aria-labelledby="projects-title">
       <div className={styles.sectionHeading}><div><p className={styles.eyebrow}>02 / PROJECT WORKSPACES</p><h2 id="projects-title">Every project. Its own space.</h2><p>Browse projects from the club directory and open their inventory workspace.</p></div></div>
@@ -39,8 +53,16 @@ export default function ProjectInventories() {
         <label className={styles.search}><Search size={18} /><span className={styles.srOnly}>Search projects</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search projects…" /></label>
       </div>
       {loading ? <CardSkeletonGrid count={3} variant="project" /> : error ? <div className={styles.empty} role="alert"><h3>Projects couldn&apos;t be loaded</h3><p>{error}</p><button className={styles.secondaryButton} onClick={() => setRetry((n) => n + 1)}>Try again</button></div> : projects.length === 0 ? <div className={styles.empty}><FolderKanban size={36} /><h3>{query ? "No matching projects" : "No projects available"}</h3><p>{query ? "Try a different project name." : "Projects will appear here when they are available in the club directory."}</p>{query && <button className={styles.secondaryButton} onClick={() => setQuery("")}>Clear search</button>}</div> : <>
-        <p className={styles.resultCount}>{projects.length} projects loaded{pagination?.hasMore || pagination?.total > projects.length ? " · Showing up to 100 matches. Refine your search to find another project." : ""}</p>
-        <div className={styles.projectGrid}>{projects.map((project) => {
+        <div className={styles.projectTabs} role="tablist" aria-label="Project inventory status">
+          {projectGroups.map((group) => {
+            const count = projects.filter((project) => projectGroupForStatus(project.status) === group.key).length;
+            return <button key={group.key} type="button" role="tab" aria-selected={selectedGroup === group.key} onClick={() => setSelectedGroup(group.key)}>
+              {group.label}<span>{count}</span>
+            </button>;
+          })}
+        </div>
+        <p className={styles.resultCount}>{groupedProjects.length} {selectedGroup} projects{pagination?.hasMore || pagination?.total > projects.length ? " · Showing up to 100 matches. Refine your search to find another project." : ""}</p>
+        {groupedProjects.length === 0 ? <div className={styles.empty}><FolderKanban size={36} /><h3>No {selectedGroup} projects</h3><p>{query ? "Try a different project name." : "Projects in this status will appear here when available."}</p>{query && <button className={styles.secondaryButton} onClick={() => setQuery("")}>Clear search</button>}</div> : <div className={styles.projectGrid}>{groupedProjects.map((project) => {
           const id = project._id || project.id;
           return <article key={id} className={styles.projectCard}>
             <div className={styles.projectCardTop}><span className={styles.projectIcon}><FolderKanban size={24} /></span><span className={styles.neutralBadge}>{(project.status || "Project").replace(/_/g, " ")}</span></div>
@@ -51,7 +73,7 @@ export default function ProjectInventories() {
             </div>
             {id && <Link className={styles.projectLink} href={`/Inventory/projects/${encodeURIComponent(id)}`}>Open workspace <ArrowUpRight size={18} /></Link>}
           </article>;
-        })}</div>
+        })}</div>}
       </>}
     </section>
   );

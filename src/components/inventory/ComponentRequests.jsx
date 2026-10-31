@@ -26,6 +26,17 @@ function normalizedStatus(status) {
   return ["approved", "rejected"].includes(status) ? status : "pending";
 }
 
+const projectGroups = [
+  { key: "ongoing", label: "Ongoing" },
+  { key: "completed", label: "Completed" },
+  { key: "other", label: "Other" },
+];
+
+function projectGroupForStatus(status) {
+  if (status === "ongoing" || status === "completed") return status;
+  return "other";
+}
+
 export default function ComponentRequests() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const userId = user?.id || user?._id || "";
@@ -40,6 +51,7 @@ export default function ComponentRequests() {
   const [quantity, setQuantity] = useState("1");
   const [purpose, setPurpose] = useState("");
   const [projectId, setProjectId] = useState("");
+  const [projectGroup, setProjectGroup] = useState("ongoing");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -47,6 +59,10 @@ export default function ComponentRequests() {
   const eligibleProjects = useMemo(
     () => getProjectsLedByUser(projects, userId ? { id: userId } : null),
     [projects, userId]
+  );
+  const groupedProjects = useMemo(
+    () => eligibleProjects.filter((project) => projectGroupForStatus(project.status) === projectGroup),
+    [eligibleProjects, projectGroup]
   );
   const selectedEquipment = equipment.find((item) => String(item._id || item.id) === componentChoice);
   const componentName = componentChoice === "other" ? customComponent.trim() : (selectedEquipment?.name || "");
@@ -175,14 +191,26 @@ export default function ComponentRequests() {
               ) : null}
 
               {!projectsLoading && !projectsError && eligibleProjects.length > 0 && (
+                <>
+                <div className={styles.projectTabs} role="tablist" aria-label="Eligible project status">
+                  {projectGroups.map((group) => {
+                    const count = eligibleProjects.filter((project) => projectGroupForStatus(project.status) === group.key).length;
+                    return <button key={group.key} type="button" role="tab" aria-selected={projectGroup === group.key} onClick={() => {
+                      setProjectGroup(group.key);
+                      setProjectId((current) => eligibleProjects.some((project) => String(project._id || project.id) === current && projectGroupForStatus(project.status) === group.key) ? current : "");
+                    }}>
+                      {group.label}<span>{count}</span>
+                    </button>;
+                  })}
+                </div>
                 <form className={styles.requestForm} onSubmit={handleSubmit}>
                   <label className={styles.requestField} htmlFor="component-request-project">
                     <span>Project <b aria-hidden="true">*</b></span>
                     <select id="component-request-project" required value={projectId} onChange={(event) => setProjectId(event.target.value)}>
-                      <option value="">Select your project</option>
-                      {eligibleProjects.map((project) => {
+                      <option value="">{groupedProjects.length ? "Select your project" : `No ${projectGroup} projects`}</option>
+                      {groupedProjects.map((project) => {
                         const id = String(project._id || project.id);
-                        return <option key={id} value={id}>{displayName(project)}</option>;
+                        return <option key={id} value={id}>{displayName(project)} · {project.status || "status unavailable"}</option>;
                       })}
                     </select>
                     <small>Only projects where your account is the designated team leader are listed.</small>
@@ -221,6 +249,7 @@ export default function ComponentRequests() {
                     <PackagePlus size={17} /> {submitting ? "Submitting…" : "Submit request"}
                   </button>
                 </form>
+                </>
               )}
             </section>
 
