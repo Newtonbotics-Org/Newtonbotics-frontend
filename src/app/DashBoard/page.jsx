@@ -8,6 +8,7 @@ import HomeStats from "@/components/home/HomeStats";
 import HomeResearch from "@/components/home/HomeResearch";
 import HomeProjects from "@/components/home/HomeProjects";
 import HomeEvents from "@/components/home/HomeEvents";
+import HomeFunWall from "@/components/home/HomeFunWall";
 import HeroRobot3D, { cueRobot } from "@/components/home/HeroRobot3D";
 import ScrambleWord from "@/components/home/ScrambleWord";
 import LabPhotoMosaic from "@/components/lab/LabPhotoMosaic";
@@ -245,6 +246,8 @@ const HomePage = () => {
           ))}
         </ol>
       </section>
+
+      <HomeFunWall />
 
       {/* Calls to action */}
       <section className="nb-container py-24 sm:py-28">
