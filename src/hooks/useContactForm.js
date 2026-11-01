@@ -103,7 +103,6 @@ export const useContactForm = () => {
     setIsSubmitting(true);
     try {
       const response = await submitContactForm(formData);
-      console.log("Contact form submitted successfully:", response);
       setSubmitted(true);
       
       // Reset form

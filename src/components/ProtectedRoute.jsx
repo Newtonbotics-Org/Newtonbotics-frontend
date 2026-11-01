@@ -30,10 +30,13 @@ const ProtectedRoute = ({ children, requiredRole = null, requiredPermission = nu
   // Show loading state while checking authentication
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#070b12] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
-          <p className="text-white/70">Loading...</p>
+      <div className="flex min-h-[60vh] items-center justify-center bg-paper text-ink" role="status">
+        <div className="flex flex-col items-center gap-4">
+          <span
+            className="h-10 w-10 animate-spin rounded-full border-2 border-line-strong border-t-signal"
+            aria-hidden="true"
+          />
+          <p className="m-0 font-mono text-xs uppercase tracking-[0.06em] text-ink-muted">Loading…</p>
         </div>
       </div>
     );

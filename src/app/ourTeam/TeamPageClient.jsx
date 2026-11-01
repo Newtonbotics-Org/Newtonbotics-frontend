@@ -2,24 +2,43 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
-import {
-  Users,
-  Award,
-  Star,
-  Filter,
-  Search,
-  User,
-  GraduationCap,
-  Linkedin,
-  Github,
-  Globe,
-  MapPin,
-  Clock,
-  Zap,
-  Mail,
-  X,
-  Building2,
-} from "lucide-react";
+import Link from "next/link";
+import { Search, X, Mail, Linkedin, Github, Globe, ArrowRight } from "lucide-react";
+import RemoteImage from "@/components/RemoteImage";
+import clubData from "../AllDatas/data.json";
+import { sortLeadershipTeam } from "@/lib/publicTeam";
+
+const AVATAR_FILLS = [
+  "bg-ink text-paper",
+  "bg-signal text-ink",
+  "bg-[#E6E7E1] text-ink",
+  "bg-ink-muted text-white",
+];
+
+function getInitials(person) {
+  const first = person.firstName?.charAt(0) || "";
+  const last = person.lastName?.charAt(0) || "";
+  const fromParts = (first + last).toUpperCase();
+  if (fromParts) return fromParts;
+  const words = (person.fullName || "").trim().split(/\s+/).filter(Boolean);
+  return words.map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "?";
+}
+
+function avatarFill(person) {
+  return AVATAR_FILLS[(person.firstName?.charCodeAt(0) || 0) % AVATAR_FILLS.length];
+}
+
+function formatSubroles(subroles) {
+  if (!subroles || subroles.length === 0) return null;
+  return subroles
+    .map((subrole) => subrole.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()))
+    .join(", ");
+}
+
+function getDisplayRole(person) {
+  if (person.subroles && person.subroles.length > 0) return formatSubroles(person.subroles);
+  return person.role?.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase());
+}
 
 export default function TeamPageClient({
   leadershipTeam = [],
@@ -62,7 +81,8 @@ export default function TeamPageClient({
     });
   };
 
-  const filteredLeadership = getFilteredPeople(leadershipTeam);
+  const sortedLeadership = useMemo(() => sortLeadershipTeam(leadershipTeam), [leadershipTeam]);
+  const filteredLeadership = getFilteredPeople(sortedLeadership);
   const filteredTeamMembers = getFilteredPeople(teamMembers);
   const filteredMentors = getFilteredPeople(mentors);
   const filteredResearchers = getFilteredPeople(researchers);
@@ -75,441 +95,460 @@ export default function TeamPageClient({
     filteredMentors.length +
     filteredResearchers.length;
 
-  return (
-    <div className="min-h-screen bg-black text-white font-sans py-10 sm:py-14 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto mb-12 text-center">
-        <p className="nb-page-eyebrow justify-center">NEWTONBOTICS / PEOPLE</p>
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-red-600">
-          Our Robotics Team
-        </h1>
-        <p className="text-lg text-white/80">
-          Innovators, creators, and problem solvers powering NewtonBotics.
-        </p>
-        <div className="mt-4 text-white/60">
-          <span className="text-2xl font-bold text-red-500">{teamMembers.length}</span> team
-          members
-        </div>
-      </div>
+  const hasActiveFilters = searchTerm || filterRole !== "all" || filterDepartment !== "all";
+  const clearFilters = () => {
+    setSearchQuery("");
+    setFilterRole("all");
+    setFilterDepartment("all");
+  };
 
-      <section className="py-8 bg-white/5 backdrop-blur-lg rounded-2xl max-w-7xl mx-auto mb-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="relative">
+  const founders = clubData?.founders || [];
+  const foundedYear = clubData?.clubInfo?.founded;
+
+  const counts = [
+    { value: leadershipTeam.length, label: "leadership" },
+    { value: researchers.length, label: "researchers" },
+    { value: mentors.length, label: mentors.length === 1 ? "mentor" : "mentors" },
+    { value: teamMembers.length, label: "team members" },
+  ].filter((c) => c.value > 0);
+
+  // Number the visible sections in order: [01], [02], ...
+  let sectionNo = 0;
+  const nextIndex = () => String(++sectionNo).padStart(2, "0");
+
+  return (
+    <main className="nb-dark bg-paper text-ink">
+      <header className="nb-blueprint border-b border-line">
+        <div className="nb-container flex flex-col gap-5 pb-14 pt-16 sm:pt-20">
+          <span className="nb-eyebrow">
+            <span className="nb-eyebrow-num">[06]</span> Team
+          </span>
+          <h1 className="nb-h1 m-0 max-w-[860px]">The people behind the robots.</h1>
+          <p className="m-0 max-w-[640px] text-lg leading-relaxed text-ink-muted">
+            Innovators, creators and problem solvers powering NewtonBotics.
+          </p>
+          {counts.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-x-8 gap-y-2 font-mono text-[13px] text-ink-muted">
+              {counts.map((c) => (
+                <span key={c.label}>
+                  <strong className="font-medium text-ink">{c.value}</strong> {c.label}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </header>
+
+      <div className="nb-container flex flex-col gap-20 pb-28 pt-10">
+        {/* Filters */}
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap gap-2">
+            <div className="relative min-w-0 flex-[1_1_280px]">
+              <label htmlFor="team-search" className="nb-sr-only">
+                Search team
+              </label>
+              <Search
+                size={16}
+                aria-hidden="true"
+                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-subtle"
+              />
               <input
-                type="text"
-                placeholder="Search by name, skills, or specialization..."
+                id="team-search"
+                type="search"
+                placeholder="Search by name, skills or specialization…"
                 value={searchTerm}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full p-3 pl-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white/10 text-white placeholder:text-white/80"
+                className="nb-input h-11 pl-10 text-sm"
               />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/80 w-5 h-5" />
             </div>
-
-            <div className="relative">
-              <select
-                value={filterRole}
-                onChange={(e) => setFilterRole(e.target.value)}
-                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white/10 text-white"
-              >
-                <option value="all">All Roles</option>
-                <option value="team_member">Team Members</option>
-                <option value="mentor">Mentors</option>
-                <option value="researcher">Researchers</option>
-              </select>
-              <Filter className="absolute right-3 top-1/2 -translate-y-1/2 text-white/80 w-5 h-5" />
-            </div>
-
-            <div className="relative">
-              <select
-                value={filterDepartment}
-                onChange={(e) => setFilterDepartment(e.target.value)}
-                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white/10 text-white"
-              >
-                <option value="all">All Departments</option>
-                {departments.map((dept) => (
-                  <option key={dept} value={dept}>
-                    {dept}
-                  </option>
-                ))}
-              </select>
-              <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 text-white/80 w-5 h-5" />
-            </div>
+            <label htmlFor="team-role" className="nb-sr-only">
+              Role
+            </label>
+            <select
+              id="team-role"
+              value={filterRole}
+              onChange={(e) => setFilterRole(e.target.value)}
+              className="nb-input h-11 w-[180px] shrink-0 truncate pr-8 text-sm"
+            >
+              <option value="all">All roles</option>
+              <option value="team_member">Team members</option>
+              <option value="mentor">Mentors</option>
+              <option value="researcher">Researchers</option>
+            </select>
+            <label htmlFor="team-department" className="nb-sr-only">
+              Department
+            </label>
+            <select
+              id="team-department"
+              value={filterDepartment}
+              onChange={(e) => setFilterDepartment(e.target.value)}
+              className="nb-input h-11 w-[200px] shrink-0 truncate pr-8 text-sm"
+            >
+              <option value="all">All departments</option>
+              {departments.map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
+              ))}
+            </select>
           </div>
-
-          <div className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="text-white/60">
+          <div className="flex flex-wrap items-center gap-4 font-mono text-xs uppercase tracking-[0.06em] text-ink-muted">
+            <span aria-live="polite">
               Showing {filteredTotal} of {totalMembers} members
-            </div>
-
-            {(searchTerm || filterRole !== "all" || filterDepartment !== "all") && (
+            </span>
+            {hasActiveFilters && (
               <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setFilterRole("all");
-                  setFilterDepartment("all");
-                }}
-                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors duration-200 flex items-center gap-2"
+                type="button"
+                onClick={clearFilters}
+                className="inline-flex min-h-[44px] items-center gap-1 font-mono text-xs uppercase tracking-[0.06em] text-signal-text hover:text-signal-hover"
               >
-                <Filter className="w-4 h-4" />
-                Clear All Filters
+                <X size={14} aria-hidden="true" /> Clear filters
               </button>
             )}
           </div>
         </div>
-      </section>
 
-      {filteredLeadership.length > 0 && (
-        <section className="py-16 relative max-w-7xl mx-auto">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center mb-8">
-              <Award className="w-12 h-12 text-red-500 mr-4" />
-              <h2 className="text-3xl font-bold text-white font-display">Leadership Team</h2>
-              <span className="ml-4 text-white/60">({filteredLeadership.length})</span>
-            </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredLeadership.map((leader) => (
-                <PersonCard
-                  key={leader.id || leader._id}
-                  person={leader}
-                  onImageClick={setSelectedImage}
-                />
+        {/* Mentors: the one dark section on this page */}
+        {filteredMentors.length > 0 && (
+          <section aria-labelledby="team-mentors" className="flex flex-col gap-4">
+            <h2 id="team-mentors" className="nb-sr-only">
+              Mentors and advisors
+            </h2>
+            {filteredMentors.map((mentor) => (
+              <MentorPanel
+                key={mentor.id || mentor._id}
+                person={mentor}
+                onImageClick={setSelectedImage}
+              />
+            ))}
+          </section>
+        )}
+
+        {filteredLeadership.length > 0 && (
+          <PeopleSection index={nextIndex()} title="Leadership" count={filteredLeadership.length}>
+            {filteredLeadership.map((leader) => (
+              <PersonCard
+                key={leader.id || leader._id}
+                person={leader}
+                onImageClick={setSelectedImage}
+              />
+            ))}
+          </PeopleSection>
+        )}
+
+        {filteredResearchers.length > 0 && (
+          <PeopleSection index={nextIndex()} title="Research team" count={filteredResearchers.length}>
+            {filteredResearchers.map((researcher) => (
+              <PersonCard
+                key={researcher.id || researcher._id}
+                person={researcher}
+                onImageClick={setSelectedImage}
+              />
+            ))}
+          </PeopleSection>
+        )}
+
+        {filteredTeamMembers.length > 0 && (
+          <PeopleSection
+            index={nextIndex()}
+            title="Team members"
+            count={filteredTeamMembers.length}
+            gridClass="grid-cols-[repeat(auto-fill,minmax(220px,1fr))]"
+          >
+            {filteredTeamMembers.map((member) => (
+              <PersonCard
+                key={member.id || member._id}
+                person={member}
+                compact
+                onImageClick={setSelectedImage}
+              />
+            ))}
+          </PeopleSection>
+        )}
+
+        {filteredTotal === 0 && (
+          <div className="nb-card flex flex-col items-start gap-4 p-10">
+            <h2 className="m-0 font-display text-2xl font-semibold">
+              {totalMembers === 0 ? "Team list unavailable" : "No one matches"}
+            </h2>
+            <p className="m-0 text-ink-muted">
+              {totalMembers === 0
+                ? "The team roster couldn't be loaded right now. Please check back soon."
+                : "Try a different name, role or department."}
+            </p>
+            {hasActiveFilters && (
+              <button type="button" onClick={clearFilters} className="nb-btn nb-btn-secondary">
+                Clear filters
+              </button>
+            )}
+          </div>
+        )}
+
+        {founders.length > 0 && (
+          <section className="flex flex-col gap-7">
+            <SectionHeading index={nextIndex()}>
+              Founding team{foundedYear ? ` · ${foundedYear}` : ""}
+            </SectionHeading>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4">
+              {founders.map((f) => (
+                <article key={f.name} className="nb-card flex flex-col overflow-hidden">
+                  <Image
+                    src={f.image}
+                    alt={`Portrait of ${f.name}`}
+                    width={400}
+                    height={300}
+                    sizes="(max-width: 640px) 100vw, 300px"
+                    className="block h-[300px] w-full object-cover grayscale contrast-[1.05]"
+                  />
+                  <div className="flex flex-col gap-2 px-6 pb-6 pt-5">
+                    <h3 className="m-0 font-display text-xl font-semibold">{f.name}</h3>
+                    <span className="font-mono text-xs uppercase tracking-[0.04em] text-ink-muted">
+                      {[f.role?.trim(), f.batch?.replace(/^Batch,\s*/i, "Batch ")].filter(Boolean).join(" · ")}
+                    </span>
+                    {f.bio && <p className="m-0 text-sm leading-relaxed text-ink-muted">{f.bio}</p>}
+                  </div>
+                </article>
               ))}
             </div>
+          </section>
+        )}
+
+        <section className="flex flex-wrap items-center justify-between gap-8 rounded-lg border border-dashed border-line-strong p-8 sm:p-10">
+          <div className="flex min-w-0 flex-[1_1_400px] flex-col gap-2">
+            <h2 className="m-0 font-display text-[28px] font-semibold tracking-[-0.02em]">Want your name here?</h2>
+            <p className="m-0 text-base text-ink-muted">
+              Builders, coders and organisers across every batch. No experience needed to start.
+            </p>
           </div>
+          <Link href="/auth?tab=signup" className="nb-btn nb-btn-primary">
+            Apply to join <ArrowRight size={16} aria-hidden="true" />
+          </Link>
         </section>
-      )}
-
-      {filteredResearchers.length > 0 && (
-        <section className="py-16 relative max-w-7xl mx-auto">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center mb-8">
-              <GraduationCap className="w-12 h-12 text-red-500 mr-4" />
-              <h2 className="text-3xl font-bold text-white font-display">Research Team</h2>
-              <span className="ml-4 text-white/60">({filteredResearchers.length})</span>
-            </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredResearchers.map((researcher) => (
-                <PersonCard
-                  key={researcher.id || researcher._id}
-                  person={researcher}
-                  onImageClick={setSelectedImage}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {filteredMentors.length > 0 && (
-        <section className="py-16 relative max-w-7xl mx-auto">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center mb-8">
-              <Star className="w-12 h-12 text-red-500 mr-4" />
-              <h2 className="text-3xl font-bold text-white font-display">Mentors & Advisors</h2>
-              <span className="ml-4 text-white/60">({filteredMentors.length})</span>
-            </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredMentors.map((mentor) => (
-                <PersonCard
-                  key={mentor.id || mentor._id}
-                  person={mentor}
-                  onImageClick={setSelectedImage}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {filteredTeamMembers.length > 0 && (
-        <section className="py-16 relative max-w-7xl mx-auto">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center mb-8">
-              <Users className="w-12 h-12 text-red-500 mr-4" />
-              <h2 className="text-3xl font-bold text-white font-display">Team Members</h2>
-              <span className="ml-4 text-white/60">({filteredTeamMembers.length})</span>
-            </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredTeamMembers.map((member) => (
-                <PersonCard
-                  key={member.id || member._id}
-                  person={member}
-                  compact
-                  onImageClick={setSelectedImage}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      <section className="py-16 relative max-w-7xl mx-auto">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center mb-8">
-            <Zap className="w-12 h-12 text-red-500 mr-4" />
-            <h2 className="text-3xl font-bold text-white font-display">Team Overview</h2>
-          </div>
-
-          <div className="grid md:grid-cols-4 gap-6">
-            <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 text-center border border-white/10">
-              <h3 className="text-4xl font-bold text-red-500 font-display">
-                {leadershipTeam.length}
-              </h3>
-              <p className="text-white/80">Leadership</p>
-            </div>
-            <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 text-center border border-white/10">
-              <h3 className="text-4xl font-bold text-red-500 font-display">{researchers.length}</h3>
-              <p className="text-white/80">Researchers</p>
-            </div>
-            <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 text-center border border-white/10">
-              <h3 className="text-4xl font-bold text-red-500 font-display">{mentors.length}</h3>
-              <p className="text-white/80">Mentors</p>
-            </div>
-            <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 text-center border border-white/10">
-              <h3 className="text-4xl font-bold text-red-500 font-display">{teamMembers.length}</h3>
-              <p className="text-white/80">Team Members</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      </div>
 
       {selectedImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Profile photo"
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-ink/85 p-4 backdrop-blur-sm"
           onClick={() => setSelectedImage(null)}
         >
           <button
+            type="button"
             onClick={() => setSelectedImage(null)}
-            className="absolute top-4 right-4 text-white hover:text-red-500 transition-colors z-10"
-            aria-label="Close modal"
+            className="absolute right-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-md bg-surface text-ink hover:bg-paper"
+            aria-label="Close photo"
+            autoFocus
           >
-            <X className="w-8 h-8" />
+            <X size={18} aria-hidden="true" />
           </button>
           <div
-            className="relative max-w-2xl max-h-[80vh] mx-4"
+            className="max-h-[80vh] max-w-2xl rounded-lg border border-line bg-surface p-3"
             onClick={(e) => e.stopPropagation()}
           >
-            <Image
+            <RemoteImage
               src={selectedImage}
+              displayWidth={720}
+              priority
               alt="Team member profile"
-              width={600}
-              height={600}
-              className="w-full h-auto rounded-lg object-contain max-h-[80vh]"
-              unoptimized
+              className="block max-h-[calc(80vh-24px)] w-auto rounded object-contain"
             />
           </div>
         </div>
       )}
+    </main>
+  );
+}
+
+/** Mono section marker rendered as a real heading: "[01] Leadership ———". */
+function SectionHeading({ index, children }) {
+  return (
+    <h2 className="m-0 flex items-center gap-3 font-mono text-xs font-normal uppercase tracking-[0.08em] text-ink-muted">
+      <span className="text-signal-text">[{index}]</span>
+      <span>{children}</span>
+      <span aria-hidden="true" className="h-px flex-1 bg-line" />
+    </h2>
+  );
+}
+
+function PeopleSection({
+  index,
+  title,
+  count,
+  gridClass = "grid-cols-[repeat(auto-fill,minmax(260px,1fr))]",
+  children,
+}) {
+  return (
+    <section className="flex flex-col gap-7">
+      <SectionHeading index={index}>
+        {title} · {count}
+      </SectionHeading>
+      <div className={`grid ${gridClass} gap-4`}>{children}</div>
+    </section>
+  );
+}
+
+function Avatar({ person, size = "md", onImageClick, tone = "light" }) {
+  const [imageError, setImageError] = useState(false);
+  const dims = {
+    sm: "h-14 w-14 text-[17px]",
+    md: "h-16 w-16 text-lg",
+    lg: "h-[120px] w-[120px] text-[40px]",
+  }[size];
+  const shape = size === "lg" ? "rounded-lg" : "rounded-full";
+  const px = { sm: 56, md: 64, lg: 120 }[size];
+  const hasImage = person.profileImageUrl && !imageError;
+
+  if (!hasImage) {
+    const fill = tone === "dark" ? "bg-signal text-ink" : avatarFill(person);
+    return (
+      <span
+        aria-hidden="true"
+        className={`inline-flex flex-none items-center justify-center font-display font-semibold ${shape} ${dims} ${fill}`}
+      >
+        {getInitials(person)}
+      </span>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => onImageClick?.(person.profileImageUrl)}
+      aria-label={`View photo of ${person.fullName}`}
+      className={`flex-none overflow-hidden ${shape} ${dims} min-h-[44px] min-w-[44px] focus:outline-none focus-visible:ring-[3px] focus-visible:ring-signal/50`}
+    >
+      <RemoteImage
+        src={person.profileImageUrl}
+        alt=""
+        displayWidth={px}
+        displayHeight={px}
+        className="h-full w-full object-cover"
+        onError={() => setImageError(true)}
+      />
+    </button>
+  );
+}
+
+function SocialLinks({ person, tone = "light" }) {
+  const links = person.socialLinks || {};
+  const items = [
+    links.linkedin && { href: links.linkedin, label: "LinkedIn", Icon: Linkedin },
+    links.github && { href: links.github, label: "GitHub", Icon: Github },
+    links.portfolio && { href: links.portfolio, label: "Portfolio", Icon: Globe },
+  ].filter(Boolean);
+  if (items.length === 0) return null;
+  const color =
+    tone === "dark" ? "text-night-muted hover:text-night-text" : "text-ink-muted hover:text-ink";
+  return (
+    <div className="flex gap-1">
+      {items.map(({ href, label, Icon }) => (
+        <a
+          key={label}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${person.fullName} on ${label}`}
+          className={`inline-flex h-11 w-11 items-center justify-center rounded-md ${color}`}
+        >
+          <Icon size={18} aria-hidden="true" />
+        </a>
+      ))}
+    </div>
+  );
+}
+
+function MentorPanel({ person, onImageClick }) {
+  const roleLabel = person.role === "mentor" ? "Club mentor" : getDisplayRole(person);
+  return (
+    <div className="nb-blueprint-dark flex flex-wrap items-center gap-8 rounded-lg p-8 text-night-text sm:p-10">
+      <Avatar person={person} size="lg" tone="dark" onImageClick={onImageClick} />
+      <div className="flex min-w-0 flex-[1_1_320px] flex-col gap-2">
+        <span className="font-mono text-xs uppercase tracking-[0.08em] text-signal-light">{roleLabel}</span>
+        <span className="font-display text-[32px] font-semibold leading-tight tracking-[-0.02em]">
+          {person.fullName}
+        </span>
+        {(person.specialization || person.department) && (
+          <span className="text-base text-night-muted">
+            {[person.specialization, person.department].filter(Boolean).join(" · ")}
+          </span>
+        )}
+        {person.experienceYears && (
+          <span className="font-mono text-xs text-night-muted">
+            {person.experienceYears} years experience
+          </span>
+        )}
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <SocialLinks person={person} tone="dark" />
+        {person.email && (
+          <a href={`mailto:${person.email}`} className="nb-btn nb-btn-dark-outline nb-btn-sm h-11">
+            <Mail size={16} aria-hidden="true" /> Email mentor
+          </a>
+        )}
+      </div>
     </div>
   );
 }
 
 function PersonCard({ person, compact = false, onImageClick }) {
-  const [imageError, setImageError] = useState(false);
-
-  const getRoleColor = (role) => {
-    switch (role) {
-      case "researcher":
-        return "text-blue-400";
-      case "mentor":
-        return "text-green-400";
-      case "team_member":
-        return "text-yellow-400";
-      default:
-        return "text-white/80";
-    }
-  };
-
-  const getRoleIcon = (role) => {
-    switch (role) {
-      case "researcher":
-        return <GraduationCap className="w-4 h-4" />;
-      case "mentor":
-        return <Star className="w-4 h-4" />;
-      case "team_member":
-        return <User className="w-4 h-4" />;
-      default:
-        return <User className="w-4 h-4" />;
-    }
-  };
-
-  const getInitials = () => {
-    if (!person.firstName && !person.lastName) return "?";
-    const first = person.firstName ? person.firstName.charAt(0) : "";
-    const last = person.lastName ? person.lastName.charAt(0) : "";
-    return (first + last).toUpperCase();
-  };
-
-  const getAvatarColor = () => {
-    const colors = [
-      "from-red-500 to-red-600",
-      "from-blue-500 to-blue-600",
-      "from-green-500 to-green-600",
-      "from-purple-500 to-purple-600",
-      "from-yellow-500 to-yellow-600",
-      "from-pink-500 to-pink-600",
-      "from-indigo-500 to-indigo-600",
-      "from-teal-500 to-teal-600",
-    ];
-    const colorIndex = (person.firstName?.charCodeAt(0) || 0) % colors.length;
-    return colors[colorIndex];
-  };
-
-  const formatSubroles = (subroles) => {
-    if (!subroles || subroles.length === 0) return null;
-    return subroles
-      .map((subrole) =>
-        subrole.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
-      )
-      .join(", ");
-  };
-
-  const getDisplayRole = () => {
-    if (person.subroles && person.subroles.length > 0) {
-      return formatSubroles(person.subroles);
-    }
-    return person.role?.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase());
-  };
+  const role = getDisplayRole(person);
+  const skills = person.skills || [];
 
   return (
-    <div
-      className={`nb-item-card bg-white/5 backdrop-blur-lg p-5 sm:p-6 cursor-pointer ${
-        compact ? "text-center" : ""
-      }`}
-    >
-      <div
-        className={`mx-auto mb-4 rounded-full overflow-hidden cursor-pointer transition-transform hover:scale-105 ${
-          compact ? "w-24 h-24" : "w-32 h-32"
-        }`}
-        onClick={() => {
-          if (onImageClick && !imageError && person.profileImageUrl) {
-            onImageClick(person.profileImageUrl);
-          }
-        }}
-      >
-        {imageError || !person.profileImageUrl ? (
-          <div
-            className={`w-full h-full bg-gradient-to-br ${getAvatarColor()} flex items-center justify-center text-white font-bold ${
-              compact ? "text-2xl" : "text-3xl"
-            }`}
-          >
-            {getInitials()}
-          </div>
-        ) : (
-          <Image
-            src={person.profileImageUrl}
-            alt={person.fullName}
-            width={compact ? 96 : 128}
-            height={compact ? 96 : 128}
-            className="w-full h-full object-cover"
-            onError={() => setImageError(true)}
-            onLoad={() => setImageError(false)}
-          />
-        )}
-      </div>
-
-      <div className={compact ? "text-center" : ""}>
-        <h3 className={`font-semibold text-white font-display ${compact ? "text-lg" : "text-xl"}`}>
-          {person.fullName}
-        </h3>
-
-        <div className="flex items-center justify-center gap-2 mt-2">
-          {getRoleIcon(person.role)}
-          <span className={`text-sm font-medium ${getRoleColor(person.role)}`}>
-            {getDisplayRole()}
-          </span>
+    <article className={`nb-card flex flex-col gap-4 ${compact ? "p-5" : "p-6"}`}>
+      <div className="flex items-center gap-4">
+        <Avatar person={person} size={compact ? "sm" : "md"} onImageClick={onImageClick} />
+        <div className="flex min-w-0 flex-col gap-1">
+          <h3 className={`m-0 font-display font-semibold leading-snug ${compact ? "text-lg" : "text-xl"}`}>
+            {person.fullName}
+          </h3>
+          {role && (
+            <span className="font-mono text-xs uppercase tracking-[0.04em] text-signal-text">{role}</span>
+          )}
         </div>
-
-        {person.specialization && (
-          <p className="text-white/70 text-sm mt-2 line-clamp-2">{person.specialization}</p>
-        )}
-
-        {(person.department || person.email) && (
-          <div className="flex items-center justify-between mt-3">
-            {person.department ? (
-              <div className="flex items-center gap-2 text-white/60 text-sm">
-                <Building2 className="w-4 h-4" />
-                <span>{person.department}</span>
-              </div>
-            ) : (
-              <div />
-            )}
-
-            {person.email && (
-              <a
-                href={`mailto:${person.email}`}
-                className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/10 transition-colors text-red-400 hover:text-red-300"
-                title={`Email ${person.fullName}: ${person.email}`}
-              >
-                <Mail className="w-5 h-5" />
-              </a>
-            )}
-          </div>
-        )}
-
-        {person.experienceYears && (
-          <div className="flex items-center gap-2 mt-2 text-white/60 text-sm">
-            <Clock className="w-4 h-4" />
-            <span>{person.experienceYears} years experience</span>
-          </div>
-        )}
-
-        {!compact && person.skills && person.skills.length > 0 && (
-          <div className="mt-4">
-            <p className="text-white/60 text-sm mb-2">Skills:</p>
-            <div className="flex flex-wrap gap-2">
-              {person.skills.slice(0, 4).map((skill, idx) => (
-                <span
-                  key={idx}
-                  className="px-2 py-1 bg-white/10 text-white/80 text-xs rounded-full"
-                >
-                  {skill}
-                </span>
-              ))}
-              {person.skills.length > 4 && (
-                <span className="px-2 py-1 bg-white/10 text-white/60 text-xs rounded-full">
-                  +{person.skills.length - 4} more
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-
-        {person.socialLinks && Object.keys(person.socialLinks).length > 0 && (
-          <div className="flex justify-center gap-3 mt-4">
-            {person.socialLinks.linkedin && (
-              <a
-                href={person.socialLinks.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-400 hover:text-blue-300 transition-colors"
-              >
-                <Linkedin className="w-5 h-5" />
-              </a>
-            )}
-            {person.socialLinks.github && (
-              <a
-                href={person.socialLinks.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white/80 hover:text-white transition-colors"
-              >
-                <Github className="w-5 h-5" />
-              </a>
-            )}
-            {person.socialLinks.portfolio && (
-              <a
-                href={person.socialLinks.portfolio}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-green-400 hover:text-green-300 transition-colors"
-              >
-                <Globe className="w-5 h-5" />
-              </a>
-            )}
-          </div>
-        )}
       </div>
-    </div>
+
+      {person.specialization && (
+        <p className="m-0 line-clamp-2 text-sm leading-relaxed text-ink-muted">{person.specialization}</p>
+      )}
+
+      {(person.department || person.experienceYears) && (
+        <div className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs text-ink-muted">
+          {person.department && <span>{person.department}</span>}
+          {person.experienceYears && <span>{person.experienceYears} yrs experience</span>}
+        </div>
+      )}
+
+      {!compact && skills.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {skills.slice(0, 4).map((skill, idx) => (
+            <span key={idx} className="nb-chip nb-chip-outline">
+              {skill}
+            </span>
+          ))}
+          {skills.length > 4 && <span className="nb-chip nb-chip-outline">+{skills.length - 4} more</span>}
+        </div>
+      )}
+
+      {(person.email || Object.keys(person.socialLinks || {}).length > 0) && (
+        <div className="mt-auto flex items-center justify-between gap-3 border-t border-line-soft pt-2">
+          {person.email ? (
+            <a
+              href={`mailto:${person.email}`}
+              className="nb-link inline-flex min-h-[44px] items-center gap-1.5 text-sm"
+              title={person.email}
+            >
+              Contact <span aria-hidden="true">→</span>
+              <span className="nb-sr-only"> {person.fullName}</span>
+            </a>
+          ) : (
+            <span />
+          )}
+          <SocialLinks person={person} />
+        </div>
+      )}
+    </article>
   );
 }

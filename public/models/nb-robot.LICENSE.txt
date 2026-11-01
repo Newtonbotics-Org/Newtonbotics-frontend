@@ -1,0 +1,3 @@
+nb-robot.glb — "Robot" (rigged version) by Grab3D (https://grab3d.com/models/sci-fi/robot/)
+License: CC0 1.0 Universal (public domain). No attribution required.
+AI-assisted asset per the source's disclosure. Optimised for web (animations removed, simplified, meshopt, WebP textures).

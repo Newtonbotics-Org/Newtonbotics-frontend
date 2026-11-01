@@ -24,9 +24,9 @@ export function isValidObjectId(id) {
 
 export const newsService = {
   // GET /api/news
-  async listNews({ isPublished = true, isFeatured, categoryId, q, limit = 20, skip = 0 } = {}) {
+  async listNews({ isPublished = true, isFeatured, showInNav, categoryId, q, limit = 20, skip = 0 } = {}) {
     try {
-      const query = toQuery({ isPublished, isFeatured, categoryId, q, limit, skip });
+      const query = toQuery({ isPublished, isFeatured, showInNav, categoryId, q, limit, skip });
       const res = await fetch(`${API_BASE_URL}/news${query}`, { cache: 'no-store' });
       
       if (!res.ok) {

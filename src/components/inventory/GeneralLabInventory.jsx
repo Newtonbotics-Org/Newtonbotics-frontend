@@ -12,6 +12,7 @@ import {
 } from "@/lib/demoStore";
 import InventoryCatalogue from "./InventoryCatalogue";
 import InventoryDialog from "./InventoryDialog";
+import { Alert, DemoBanner, Toast } from "./InventoryUi";
 import styles from "./inventory.module.css";
 
 const DEMO = isDemoMode();
@@ -82,7 +83,7 @@ const GeneralLabInventory = () => {
   const [catSubmitting, setCatSubmitting] = useState(false);
   const [catEditingId, setCatEditingId] = useState("");
   const [catEditValues, setCatEditValues] = useState({ name: "", description: "", parentCategoryId: "" });
-  const [viewMode, setViewMode] = useState("grid");
+  const [viewMode, setViewMode] = useState("list");
 
   useEffect(() => {
     if (DEMO) {
@@ -383,10 +384,7 @@ const GeneralLabInventory = () => {
   return (
     <>
     {DEMO && (
-      <div className={styles.demoBanner} role="status">
-        <span className={styles.demoBadge}>DEMO MODE</span>
-        <span>General Lab is using local sample data. Browse and search are available; component management is handled in the admin dashboard.</span>
-      </div>
+      <DemoBanner>General Lab is using local sample data. Browse and search are available; component management is handled in the admin dashboard.</DemoBanner>
     )}
     <InventoryCatalogue
       items={items} categories={categories} pagination={pagination}
@@ -405,13 +403,13 @@ const GeneralLabInventory = () => {
     {isCreateOpen && (
       <InventoryDialog label="Add equipment" onClose={() => { if (!isSubmitting) setIsCreateOpen(false); }}>
         <div className={styles.dialogPanel} onClick={(e) => e.stopPropagation()}>
-          <h3 className="text-xl font-semibold mb-4">Add Equipment</h3>
-          {createError && <div className="mb-3 text-sm text-red-400">{createError}</div>}
+          <h2 className="m-0 mb-5 font-display text-2xl font-semibold tracking-[-0.02em]">Add equipment</h2>
+          {createError && <Alert className="mb-4">{createError}</Alert>}
           <form onSubmit={handleSubmitCreate} className="space-y-4">
             <div>
-              <label htmlFor="inventory-field-1" className="block mb-1 text-sm text-white/80">Name</label>
+              <label htmlFor="inventory-field-1" className="nb-label mb-1.5 block">Name</label>
               <input id="inventory-field-1"
-                className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white"
+                className="nb-input"
                 value={createForm.name}
                 onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
                 placeholder="e.g., Arduino Uno"
@@ -420,9 +418,9 @@ const GeneralLabInventory = () => {
             </div>
             {showAdvancedFields && (
               <div>
-                <label htmlFor="inventory-field-2" className="block mb-1 text-sm text-white/80">Description</label>
+                <label htmlFor="inventory-field-2" className="nb-label mb-1.5 block">Description</label>
                 <textarea id="inventory-field-2"
-                  className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white"
+                  className="nb-textarea"
                   rows={3}
                   value={createForm.description}
                   onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
@@ -431,10 +429,10 @@ const GeneralLabInventory = () => {
               </div>
             )}
             <div>
-              <label htmlFor="inventory-field-3" className="block mb-1 text-sm text-white/80">Image URL</label>
+              <label htmlFor="inventory-field-3" className="nb-label mb-1.5 block">Image URL</label>
               <input id="inventory-field-3"
                 type="url"
-                className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white"
+                className="nb-input"
                 value={createForm.imageUrl}
                 onChange={(e) => setCreateForm({ ...createForm, imageUrl: e.target.value })}
                 onPaste={(e) => {
@@ -456,7 +454,7 @@ const GeneralLabInventory = () => {
                   multiple={false}
                   showPreview={false}
                   renderTrigger={({ open }) => (
-                    <button type="button" onClick={open} className="px-3 py-2 rounded-md bg-white/10 hover:bg-white/15 border border-white/10 text-sm text-white">Upload Image</button>
+                    <button type="button" onClick={open} className="nb-btn nb-btn-secondary nb-btn-sm">Upload Image</button>
                   )}
                   onUploadComplete={(file)=>{
                     if(file?.secureUrl){ setCreateForm(prev=>({ ...prev, imageUrl: file.secureUrl })); }
@@ -464,7 +462,7 @@ const GeneralLabInventory = () => {
                 />
               </div>
               {createForm.imageUrl ? (
-                <div className="mt-2 w-[160px] h-[120px] overflow-hidden rounded-md border border-white/10 bg-white/5">
+                <div className="mt-2 h-[120px] w-[160px] overflow-hidden rounded-md border border-line bg-surface">
                   {/* preview uses native img to avoid next/image domain limits during entry */}
                   <img
                     src={createForm.imageUrl}
@@ -476,9 +474,9 @@ const GeneralLabInventory = () => {
               ) : null}
             </div>
             <div>
-              <label htmlFor="inventory-field-4" className="block mb-1 text-sm text-white/80">Category</label>
+              <label htmlFor="inventory-field-4" className="nb-label mb-1.5 block">Category</label>
               <select id="inventory-field-4"
-                className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white"
+                className="nb-input"
                 value={createForm.categoryId}
                 onChange={(e) => setCreateForm({ ...createForm, categoryId: e.target.value })}
               >
@@ -488,23 +486,23 @@ const GeneralLabInventory = () => {
                 ))}
               </select>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
-                <label htmlFor="inventory-field-5" className="block mb-1 text-sm text-white/80">Available Quantity</label>
+                <label htmlFor="inventory-field-5" className="nb-label mb-1.5 block">Available Quantity</label>
                 <input id="inventory-field-5"
                   type="number"
                   min={0}
-                  className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white"
+                  className="nb-input"
                   value={createForm.currentQuantity}
                   onChange={(e) => setCreateForm({ ...createForm, currentQuantity: e.target.value })}
                 />
               </div>
               <div>
-                <label htmlFor="inventory-field-6" className="block mb-1 text-sm text-white/80">Min. Quantity</label>
+                <label htmlFor="inventory-field-6" className="nb-label mb-1.5 block">Min. Quantity</label>
                 <input id="inventory-field-6"
                   type="number"
                   min={0}
-                  className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white"
+                  className="nb-input"
                   value={createForm.minQuantity}
                   onChange={(e) => setCreateForm({ ...createForm, minQuantity: e.target.value })}
                 />
@@ -512,47 +510,47 @@ const GeneralLabInventory = () => {
               {/* Status is computed by backend; not editable here */}
             </div>
             {showAdvancedFields && (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="inventory-field-7" className="block mb-1 text-sm text-white/80">Max Quantity</label>
-                  <input id="inventory-field-7" type="number" min={0} className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white" value={createForm.maxQuantity} onChange={(e) => setCreateForm({ ...createForm, maxQuantity: e.target.value })} />
+                  <label htmlFor="inventory-field-7" className="nb-label mb-1.5 block">Max Quantity</label>
+                  <input id="inventory-field-7" type="number" min={0} className="nb-input" value={createForm.maxQuantity} onChange={(e) => setCreateForm({ ...createForm, maxQuantity: e.target.value })} />
                 </div>
                 <div>
-                  <label htmlFor="inventory-field-8" className="block mb-1 text-sm text-white/80">Location</label>
-                  <input id="inventory-field-8" className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white" value={createForm.location} onChange={(e) => setCreateForm({ ...createForm, location: e.target.value })} />
+                  <label htmlFor="inventory-field-8" className="nb-label mb-1.5 block">Location</label>
+                  <input id="inventory-field-8" className="nb-input" value={createForm.location} onChange={(e) => setCreateForm({ ...createForm, location: e.target.value })} />
                 </div>
                 <div>
-                  <label htmlFor="inventory-field-9" className="block mb-1 text-sm text-white/80">Model Number</label>
-                  <input id="inventory-field-9" className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white" value={createForm.modelNumber} onChange={(e) => setCreateForm({ ...createForm, modelNumber: e.target.value })} />
+                  <label htmlFor="inventory-field-9" className="nb-label mb-1.5 block">Model Number</label>
+                  <input id="inventory-field-9" className="nb-input" value={createForm.modelNumber} onChange={(e) => setCreateForm({ ...createForm, modelNumber: e.target.value })} />
                 </div>
                 <div>
-                  <label htmlFor="inventory-field-10" className="block mb-1 text-sm text-white/80">Serial Number</label>
-                  <input id="inventory-field-10" className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white" value={createForm.serialNumber} onChange={(e) => setCreateForm({ ...createForm, serialNumber: e.target.value })} />
+                  <label htmlFor="inventory-field-10" className="nb-label mb-1.5 block">Serial Number</label>
+                  <input id="inventory-field-10" className="nb-input" value={createForm.serialNumber} onChange={(e) => setCreateForm({ ...createForm, serialNumber: e.target.value })} />
                 </div>
                 <div>
-                  <label htmlFor="inventory-field-11" className="block mb-1 text-sm text-white/80">Manufacturer</label>
-                  <input id="inventory-field-11" className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white" value={createForm.manufacturer} onChange={(e) => setCreateForm({ ...createForm, manufacturer: e.target.value })} />
+                  <label htmlFor="inventory-field-11" className="nb-label mb-1.5 block">Manufacturer</label>
+                  <input id="inventory-field-11" className="nb-input" value={createForm.manufacturer} onChange={(e) => setCreateForm({ ...createForm, manufacturer: e.target.value })} />
                 </div>
                 <div>
-                  <label htmlFor="inventory-field-12" className="block mb-1 text-sm text-white/80">Purchase Date</label>
-                  <input id="inventory-field-12" type="date" className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white" value={createForm.purchaseDate} onChange={(e) => setCreateForm({ ...createForm, purchaseDate: e.target.value })} />
+                  <label htmlFor="inventory-field-12" className="nb-label mb-1.5 block">Purchase Date</label>
+                  <input id="inventory-field-12" type="date" className="nb-input" value={createForm.purchaseDate} onChange={(e) => setCreateForm({ ...createForm, purchaseDate: e.target.value })} />
                 </div>
                 <div>
-                  <label htmlFor="inventory-field-13" className="block mb-1 text-sm text-white/80">Purchase Price</label>
-                  <input id="inventory-field-13" type="number" min={0} step="0.01" className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white" value={createForm.purchasePrice} onChange={(e) => setCreateForm({ ...createForm, purchasePrice: e.target.value })} />
+                  <label htmlFor="inventory-field-13" className="nb-label mb-1.5 block">Purchase Price</label>
+                  <input id="inventory-field-13" type="number" min={0} step="0.01" className="nb-input" value={createForm.purchasePrice} onChange={(e) => setCreateForm({ ...createForm, purchasePrice: e.target.value })} />
                 </div>
               </div>
             )}
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 type="button"
-                className="px-4 py-2 rounded-md bg-white/10 hover:bg-white/15 border border-white/10"
+                className="nb-btn nb-btn-secondary nb-btn-sm"
                 onClick={() => setIsCreateOpen(false)}
                 disabled={isSubmitting}
               >Cancel</button>
               <button
                 type="submit"
-                className="px-4 py-2 rounded-md bg-red-600 hover:bg-red-500 text-white disabled:opacity-50"
+                className="nb-btn nb-btn-primary nb-btn-sm"
                 disabled={isSubmitting}
               >{isSubmitting ? "Creating..." : "Create"}</button>
             </div>
@@ -565,22 +563,22 @@ const GeneralLabInventory = () => {
     {isEditOpen && (
       <InventoryDialog label="Edit equipment" onClose={() => { if (!isSubmitting) setIsEditOpen(false); }}>
         <div className={styles.dialogPanel} onClick={(e) => e.stopPropagation()}>
-          <h3 className="text-xl font-semibold mb-4">Edit Equipment</h3>
-          {editError && <div className="mb-3 text-sm text-red-400">{editError}</div>}
+          <h2 className="m-0 mb-5 font-display text-2xl font-semibold tracking-[-0.02em]">Edit equipment</h2>
+          {editError && <Alert className="mb-4">{editError}</Alert>}
           <form onSubmit={handleSubmitEdit} className="space-y-4">
             <div>
-              <label htmlFor="inventory-field-14" className="block mb-1 text-sm text-white/80">Name</label>
+              <label htmlFor="inventory-field-14" className="nb-label mb-1.5 block">Name</label>
               <input id="inventory-field-14"
-                className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white"
+                className="nb-input"
                 value={editForm.name}
                 onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
               />
             </div>
             {showAdvancedFields && (
               <div>
-                <label htmlFor="inventory-field-15" className="block mb-1 text-sm text-white/80">Description</label>
+                <label htmlFor="inventory-field-15" className="nb-label mb-1.5 block">Description</label>
                 <textarea id="inventory-field-15"
-                  className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white"
+                  className="nb-textarea"
                   rows={3}
                   value={editForm.description}
                   onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
@@ -588,10 +586,10 @@ const GeneralLabInventory = () => {
               </div>
             )}
             <div>
-              <label htmlFor="inventory-field-16" className="block mb-1 text-sm text-white/80">Image URL</label>
+              <label htmlFor="inventory-field-16" className="nb-label mb-1.5 block">Image URL</label>
               <input id="inventory-field-16"
                 type="url"
-                className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white"
+                className="nb-input"
                 value={editForm.imageUrl}
                 onChange={(e) => setEditForm({ ...editForm, imageUrl: e.target.value })}
               />
@@ -603,7 +601,7 @@ const GeneralLabInventory = () => {
                   multiple={false}
                   showPreview={false}
                   renderTrigger={({ open }) => (
-                    <button type="button" onClick={open} className="px-3 py-2 rounded-md bg-white/10 hover:bg-white/15 border border-white/10 text-sm text-white">Upload Image</button>
+                    <button type="button" onClick={open} className="nb-btn nb-btn-secondary nb-btn-sm">Upload Image</button>
                   )}
                   onUploadComplete={(file)=>{
                     if(file?.secureUrl){ setEditForm(prev=>({ ...prev, imageUrl: file.secureUrl })); }
@@ -612,9 +610,9 @@ const GeneralLabInventory = () => {
               </div>
             </div>
             <div>
-              <label htmlFor="inventory-field-17" className="block mb-1 text-sm text-white/80">Category</label>
+              <label htmlFor="inventory-field-17" className="nb-label mb-1.5 block">Category</label>
               <select id="inventory-field-17"
-                className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white"
+                className="nb-input"
                 value={editForm.categoryId}
                 onChange={(e) => setEditForm({ ...editForm, categoryId: e.target.value })}
               >
@@ -624,23 +622,23 @@ const GeneralLabInventory = () => {
                 ))}
               </select>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
-                <label htmlFor="inventory-field-18" className="block mb-1 text-sm text-white/80">Available Quantity</label>
+                <label htmlFor="inventory-field-18" className="nb-label mb-1.5 block">Available Quantity</label>
                 <input id="inventory-field-18"
                   type="number"
                   min={0}
-                  className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white"
+                  className="nb-input"
                   value={editForm.currentQuantity}
                   onChange={(e) => setEditForm({ ...editForm, currentQuantity: e.target.value })}
                 />
               </div>
               <div>
-                <label htmlFor="inventory-field-19" className="block mb-1 text-sm text-white/80">Min. Quantity</label>
+                <label htmlFor="inventory-field-19" className="nb-label mb-1.5 block">Min. Quantity</label>
                 <input id="inventory-field-19"
                   type="number"
                   min={0}
-                  className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white"
+                  className="nb-input"
                   value={editForm.minQuantity}
                   onChange={(e) => setEditForm({ ...editForm, minQuantity: e.target.value })}
                 />
@@ -648,47 +646,47 @@ const GeneralLabInventory = () => {
               {/* Status is computed by backend; not editable here */}
             </div>
             {showAdvancedFields && (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="inventory-field-20" className="block mb-1 text-sm text-white/80">Max Quantity</label>
-                  <input id="inventory-field-20" type="number" min={0} className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white" value={editForm.maxQuantity} onChange={(e) => setEditForm({ ...editForm, maxQuantity: e.target.value })} />
+                  <label htmlFor="inventory-field-20" className="nb-label mb-1.5 block">Max Quantity</label>
+                  <input id="inventory-field-20" type="number" min={0} className="nb-input" value={editForm.maxQuantity} onChange={(e) => setEditForm({ ...editForm, maxQuantity: e.target.value })} />
                 </div>
                 <div>
-                  <label htmlFor="inventory-field-21" className="block mb-1 text-sm text-white/80">Location</label>
-                  <input id="inventory-field-21" className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white" value={editForm.location} onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} />
+                  <label htmlFor="inventory-field-21" className="nb-label mb-1.5 block">Location</label>
+                  <input id="inventory-field-21" className="nb-input" value={editForm.location} onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} />
                 </div>
                 <div>
-                  <label htmlFor="inventory-field-22" className="block mb-1 text-sm text-white/80">Model Number</label>
-                  <input id="inventory-field-22" className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white" value={editForm.modelNumber} onChange={(e) => setEditForm({ ...editForm, modelNumber: e.target.value })} />
+                  <label htmlFor="inventory-field-22" className="nb-label mb-1.5 block">Model Number</label>
+                  <input id="inventory-field-22" className="nb-input" value={editForm.modelNumber} onChange={(e) => setEditForm({ ...editForm, modelNumber: e.target.value })} />
                 </div>
                 <div>
-                  <label htmlFor="inventory-field-23" className="block mb-1 text-sm text-white/80">Serial Number</label>
-                  <input id="inventory-field-23" className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white" value={editForm.serialNumber} onChange={(e) => setEditForm({ ...editForm, serialNumber: e.target.value })} />
+                  <label htmlFor="inventory-field-23" className="nb-label mb-1.5 block">Serial Number</label>
+                  <input id="inventory-field-23" className="nb-input" value={editForm.serialNumber} onChange={(e) => setEditForm({ ...editForm, serialNumber: e.target.value })} />
                 </div>
                 <div>
-                  <label htmlFor="inventory-field-24" className="block mb-1 text-sm text-white/80">Manufacturer</label>
-                  <input id="inventory-field-24" className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white" value={editForm.manufacturer} onChange={(e) => setEditForm({ ...editForm, manufacturer: e.target.value })} />
+                  <label htmlFor="inventory-field-24" className="nb-label mb-1.5 block">Manufacturer</label>
+                  <input id="inventory-field-24" className="nb-input" value={editForm.manufacturer} onChange={(e) => setEditForm({ ...editForm, manufacturer: e.target.value })} />
                 </div>
                 <div>
-                  <label htmlFor="inventory-field-25" className="block mb-1 text-sm text-white/80">Purchase Date</label>
-                  <input id="inventory-field-25" type="date" className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white" value={editForm.purchaseDate} onChange={(e) => setEditForm({ ...editForm, purchaseDate: e.target.value })} />
+                  <label htmlFor="inventory-field-25" className="nb-label mb-1.5 block">Purchase Date</label>
+                  <input id="inventory-field-25" type="date" className="nb-input" value={editForm.purchaseDate} onChange={(e) => setEditForm({ ...editForm, purchaseDate: e.target.value })} />
                 </div>
                 <div>
-                  <label htmlFor="inventory-field-26" className="block mb-1 text-sm text-white/80">Purchase Price</label>
-                  <input id="inventory-field-26" type="number" min={0} step="0.01" className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white" value={editForm.purchasePrice} onChange={(e) => setEditForm({ ...editForm, purchasePrice: e.target.value })} />
+                  <label htmlFor="inventory-field-26" className="nb-label mb-1.5 block">Purchase Price</label>
+                  <input id="inventory-field-26" type="number" min={0} step="0.01" className="nb-input" value={editForm.purchasePrice} onChange={(e) => setEditForm({ ...editForm, purchasePrice: e.target.value })} />
                 </div>
               </div>
             )}
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 type="button"
-                className="px-4 py-2 rounded-md bg-white/10 hover:bg-white/15 border border-white/10"
+                className="nb-btn nb-btn-secondary nb-btn-sm"
                 onClick={() => setIsEditOpen(false)}
                 disabled={isSubmitting}
               >Cancel</button>
               <button
                 type="submit"
-                className="px-4 py-2 rounded-md bg-red-600 hover:bg-red-500 text-white disabled:opacity-50"
+                className="nb-btn nb-btn-primary nb-btn-sm"
                 disabled={isSubmitting}
               >{isSubmitting ? "Saving..." : "Save"}</button>
             </div>
@@ -701,33 +699,28 @@ const GeneralLabInventory = () => {
     {confirmDeleteId && (
       <InventoryDialog label="Delete equipment" onClose={() => setConfirmDeleteId("")}>
         <div className={styles.dialogPanel} onClick={(e) => e.stopPropagation()}>
-          <h3 className="text-lg font-semibold mb-2 text-white">Delete equipment?</h3>
-          <p className="text-white/70 mb-4">This action cannot be undone.</p>
+          <h2 className="m-0 mb-2 font-display text-xl font-semibold">Delete equipment?</h2>
+          <p className="m-0 mb-5 text-ink-muted">This action cannot be undone.</p>
           <div className="flex items-center justify-end gap-3">
-            <button className="px-4 py-2 rounded-md bg-white/10 hover:bg-white/15 border border-white/10" onClick={() => setConfirmDeleteId("")}>Cancel</button>
-            <button className="px-4 py-2 rounded-md bg-red-600 hover:bg-red-500 text-white" onClick={performDelete}>Delete</button>
+            <button className="nb-btn nb-btn-secondary nb-btn-sm" onClick={() => setConfirmDeleteId("")}>Cancel</button>
+            <button className="nb-btn nb-btn-sm bg-[#991B1B] text-paper hover:bg-[#7F1D1D]" onClick={performDelete}>Delete</button>
           </div>
         </div>
       </InventoryDialog>
     )}
 
-    {/* Toast */}
-    {toast.visible && (
-      <div role="status" aria-live="polite" className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[160] px-4 py-3 rounded-lg shadow-lg border ${toast.kind === 'success' ? 'bg-green-600/90 border-green-500 text-white' : 'bg-red-600/90 border-red-500 text-white'}`}>
-        {toast.message}
-      </div>
-    )}
+    <Toast toast={toast} />
 
     {/* Categories Manager Modal */}
     {isCategoriesOpen && (
       <InventoryDialog label="Manage equipment categories" onClose={() => setIsCategoriesOpen(false)}>
         <div className={styles.dialogPanel} onClick={(e) => e.stopPropagation()}>
-          <h3 className="text-xl font-semibold mb-4 text-white">Equipment Categories</h3>
-          {catError && <div className="mb-3 text-sm text-red-400">{catError}</div>}
+          <h2 className="m-0 mb-5 font-display text-2xl font-semibold tracking-[-0.02em]">Equipment categories</h2>
+          {catError && <Alert className="mb-4">{catError}</Alert>}
           {/* Create new category */}
           <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-3">
-            <input className="p-3 rounded-lg border border-white/10 bg-white/5 text-white" placeholder="Name" value={catForm.name} onChange={(e)=>setCatForm({...catForm,name:e.target.value})} />
-            <input className="p-3 rounded-lg border border-white/10 bg-white/5 text-white md:col-span-2" placeholder="Description (optional)" value={catForm.description} onChange={(e)=>setCatForm({...catForm,description:e.target.value})} />
+            <input aria-label="Category name" className="nb-input" placeholder="Name" value={catForm.name} onChange={(e)=>setCatForm({...catForm,name:e.target.value})} />
+            <input aria-label="Category description" className="nb-input md:col-span-2" placeholder="Description (optional)" value={catForm.description} onChange={(e)=>setCatForm({...catForm,description:e.target.value})} />
             <div className="flex md:col-span-3 justify-end">
               <button disabled={catSubmitting} onClick={async ()=>{
                 try{
@@ -751,30 +744,30 @@ const GeneralLabInventory = () => {
                   setTimeout(()=>setToast({ visible:false, message:'', kind:'success' }), 2000);
                 }catch(err){ setCatError(err.message||'Create failed'); }
                 finally{ setCatSubmitting(false); }
-              }} className="px-4 py-2 rounded-md bg-red-600 hover:bg-red-500 text-white disabled:opacity-50">{catSubmitting? 'Creating...':'Create Category'}</button>
+              }} className="nb-btn nb-btn-primary nb-btn-sm">{catSubmitting? 'Creating...':'Create Category'}</button>
             </div>
           </div>
 
           {/* List categories */}
           <div className="space-y-3">
             {categories.map(cat => (
-              <div key={cat._id} className="flex items-start justify-between gap-3 p-3 rounded-lg border border-white/10 bg-white/5">
+              <div key={cat._id} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-line bg-surface p-3">
                 {catEditingId === cat._id ? (
-                  <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-2">
-                    <input className="p-2 rounded bg-black/30 border border-white/10 text-white" value={catEditValues.name} onChange={(e)=>setCatEditValues({...catEditValues,name:e.target.value})} />
-                    <input className="p-2 rounded bg-black/30 border border-white/10 text-white md:col-span-2" value={catEditValues.description} onChange={(e)=>setCatEditValues({...catEditValues,description:e.target.value})} />
+                  <div className="grid min-w-0 flex-[1_1_240px] grid-cols-1 md:grid-cols-3 gap-2">
+                    <input aria-label="Category name" className="nb-input h-11" value={catEditValues.name} onChange={(e)=>setCatEditValues({...catEditValues,name:e.target.value})} />
+                    <input aria-label="Category description" className="nb-input h-11 md:col-span-2" value={catEditValues.description} onChange={(e)=>setCatEditValues({...catEditValues,description:e.target.value})} />
                   </div>
                 ) : (
-                  <div className="flex-1">
-                    <div className="font-medium text-white">{cat.name}</div>
-                    {cat.description && <div className="text-white/70 text-sm">{cat.description}</div>}
+                  <div className="min-w-0 flex-[1_1_200px]">
+                    <div className="font-semibold text-ink">{cat.name}</div>
+                    {cat.description && <div className="text-sm text-ink-muted">{cat.description}</div>}
                   </div>
                 )}
                 <div className="flex items-center gap-2">
                   {catEditingId === cat._id ? (
                     <>
-                      <button className="px-3 py-2 rounded-md bg-white/10 hover:bg-white/15 border border-white/10" onClick={()=>setCatEditingId("")}>Cancel</button>
-                      <button className="px-3 py-2 rounded-md bg-red-600 hover:bg-red-500 text-white" onClick={async()=>{
+                      <button className="nb-btn nb-btn-secondary nb-btn-sm" onClick={()=>setCatEditingId("")}>Cancel</button>
+                      <button className="nb-btn nb-btn-primary nb-btn-sm" onClick={async()=>{
                         try{
                           if(!catEditValues.name || catEditValues.name.trim().length<2){ setCatError('Name must be at least 2 characters'); return; }
                           if (DEMO) {
@@ -797,9 +790,9 @@ const GeneralLabInventory = () => {
                     </>
                   ) : (
                     <>
-                      <button className="px-3 py-2 rounded-md bg-white/10 hover:bg-white/15 border border-white/10" onClick={()=>{ setCatEditingId(cat._id); setCatEditValues({ name: cat.name||'', description: cat.description||'', parentCategoryId: cat.parentCategoryId||'' }); }}>Edit</button>
+                      <button className="nb-btn nb-btn-secondary nb-btn-sm" onClick={()=>{ setCatEditingId(cat._id); setCatEditValues({ name: cat.name||'', description: cat.description||'', parentCategoryId: cat.parentCategoryId||'' }); }}>Edit</button>
                       {(DEMO || isAdvancedRole) && (
-                        <button className="px-3 py-2 rounded-md bg-red-600/80 hover:bg-red-600 text-white" onClick={async()=>{
+                        <button className="nb-btn nb-btn-sm border border-[#F3C4C4] bg-surface text-[#991B1B] hover:border-[#991B1B]" onClick={async()=>{
                           try{
                             if (DEMO) {
                               const next = categories.filter((c) => c._id !== cat._id);
@@ -824,8 +817,8 @@ const GeneralLabInventory = () => {
             ))}
           </div>
 
-          <div className="flex items-center justify-end mt-6">
-            <button className="px-4 py-2 rounded-md bg-white/10 hover:bg-white/15 border border-white/10" onClick={()=>setIsCategoriesOpen(false)}>Close</button>
+          <div className="mt-6 flex items-center justify-end">
+            <button className="nb-btn nb-btn-secondary nb-btn-sm" onClick={()=>setIsCategoriesOpen(false)}>Close</button>
           </div>
         </div>
       </InventoryDialog>

@@ -3,10 +3,21 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "../../contexts/AuthContext";
-import { motion } from "framer-motion";
-import { User2, Mail, Phone, Building, Calendar, Lock, Eye, EyeOff, Save, AlertCircle, CheckCircle } from "lucide-react";
+import { Pencil, X } from "lucide-react";
 import ProtectedRoute from "../../components/ProtectedRoute";
 import CloudinaryUploader from "../../components/CloudinaryUploader";
+import RemoteImage from "@/components/RemoteImage";
+import {
+  Alert,
+  Field,
+  PasswordChecklist,
+  PasswordField,
+  SelectField,
+  SubmitButton,
+  TextField,
+  passwordRules,
+} from "../auth/components/AuthFields";
+import { titleCase } from "@/lib/labUi";
 import {
   OTHER_ACADEMIC_YEAR,
   PASSING_YEARS,
@@ -14,45 +25,6 @@ import {
   passingYearToYearOfStudy,
   yearOfStudyToPassingYear,
 } from "@/lib/academicYear";
-
-function Input({ label, icon: Icon, rightElement, disabled: isDisabled, ...props }) {
-  return (
-    <label className="block">
-      {label && <span className="mb-2 block text-sm text-white/80">{label}</span>}
-      <div className="relative">
-        {Icon && <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60 pointer-events-none" />}
-        <input 
-          {...props} 
-          disabled={isDisabled}
-          className={`w-full ${Icon ? "pl-10" : "pl-4"} ${rightElement ? "pr-10" : "pr-4"} py-2.5 rounded-xl bg-white/10 border border-white/15 focus:outline-none focus:ring-2 focus:ring-red-500/40 text-sm leading-normal text-white placeholder-white/50 [font-family:system-ui,Segoe_UI,Roboto,sans-serif] ${isDisabled ? "opacity-60 cursor-not-allowed" : ""}`} 
-        />
-        {rightElement && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
-            {rightElement}
-          </div>
-        )}
-      </div>
-    </label>
-  );
-}
-
-function Select({ label, icon: Icon, disabled: isDisabled, children, ...props }) {
-  return (
-    <label className="block">
-      {label && <span className="mb-2 block text-sm text-white/80">{label}</span>}
-      <div className="relative">
-        {Icon && <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60 pointer-events-none" />}
-        <select
-          {...props}
-          disabled={isDisabled}
-          className={`w-full ${Icon ? "pl-10" : "pl-4"} pr-4 py-2.5 rounded-xl bg-white/10 border border-white/15 focus:outline-none focus:ring-2 focus:ring-red-500/40 text-sm leading-normal text-white [font-family:system-ui,Segoe_UI,Roboto,sans-serif] ${isDisabled ? "opacity-60 cursor-not-allowed" : ""}`}
-        >
-          {children}
-        </select>
-      </div>
-    </label>
-  );
-}
 
 const departments = [
   "Computer Science",
@@ -64,10 +36,40 @@ const departments = [
   "Other"
 ];
 
+// Mirrors the server's User.profileCompletion virtual (used when the user object lacks it).
+const COMPLETION_FIELDS = [
+  { key: "firstName", label: "first name" },
+  { key: "lastName", label: "last name" },
+  { key: "email", label: "email" },
+  { key: "department", label: "department" },
+  { key: "yearOfStudy", label: "academic year" },
+  { key: "bio", label: "bio" },
+  { key: "skills", label: "skills" },
+];
+
+const isFilled = (v) => (Array.isArray(v) ? v.length > 0 : Boolean(v));
+
+const initials = (name = "") =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join("") || "?";
+
+function AccountRow({ label, children }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-[13px] text-ink-muted">{label}</span>
+      <span className="break-all text-sm font-semibold">{children}</span>
+    </div>
+  );
+}
+
 export default function ProfileCompletionPage() {
   const { user, updateProfile, changePassword, refreshUser } = useAuth();
   const [refreshingUser, setRefreshingUser] = useState(false);
-  
+
   // Refresh user profile on mount to get latest data including subroles
   useEffect(() => {
     let cancelled = false;
@@ -91,7 +93,7 @@ export default function ProfileCompletionPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run once on mount
-  
+
   const [profileData, setProfileData] = useState({
     firstName: "",
     lastName: "",
@@ -103,17 +105,13 @@ export default function ProfileCompletionPage() {
     bio: "",
     skills: []
   });
-  
+
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: ""
   });
-  
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [profileMessage, setProfileMessage] = useState("");
@@ -121,12 +119,10 @@ export default function ProfileCompletionPage() {
   const [profileError, setProfileError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [avatarFailed, setAvatarFailed] = useState(false);
 
   useEffect(() => {
     if (user) {
-      console.log('User object in ProfileCompletion:', user);
-      console.log('User role:', user.role);
-      console.log('User subroles:', user.subroles);
       setProfileData({
         firstName: user.firstName || "",
         lastName: user.lastName || "",
@@ -140,6 +136,10 @@ export default function ProfileCompletionPage() {
       });
     }
   }, [user]);
+
+  useEffect(() => {
+    setAvatarFailed(false);
+  }, [profileData.profileImageUrl]);
 
   const handleProfileInputChange = (field, value) => {
     setProfileData(prev => ({ ...prev, [field]: value }));
@@ -175,10 +175,10 @@ export default function ProfileCompletionPage() {
   };
 
   const isValidPassword = (password) => {
-    return password.length >= 8 && 
-           /[A-Z]/.test(password) && 
-           /[a-z]/.test(password) && 
-           /[0-9]/.test(password) && 
+    return password.length >= 8 &&
+           /[A-Z]/.test(password) &&
+           /[a-z]/.test(password) &&
+           /[0-9]/.test(password) &&
            /[!@#$%^&*()_\-.,?":{}|<>]/.test(password);
   };
 
@@ -229,12 +229,12 @@ export default function ProfileCompletionPage() {
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
-    
+
     if (!isValidPassword(passwordData.newPassword)) {
       setPasswordError("Password must be at least 8 characters with uppercase, lowercase, number, and special character");
       return;
     }
-    
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setPasswordError("New passwords do not match");
       return;
@@ -246,7 +246,7 @@ export default function ProfileCompletionPage() {
 
     try {
       const result = await changePassword(passwordData.currentPassword, passwordData.newPassword);
-      
+
       if (result.success) {
         setPasswordMessage("Password changed successfully!");
         setPasswordData({
@@ -264,419 +264,362 @@ export default function ProfileCompletionPage() {
     }
   };
 
+  const cancelEditing = () => {
+    setIsEditing(false);
+    if (user) {
+      setProfileData({ firstName: user.firstName || "", lastName: user.lastName || "", phone: user.phone || "", department: user.department || "", yearOfStudy: yearOfStudyToPassingYear(user.yearOfStudy) || "", studentId: user.studentId || "", profileImageUrl: user.profileImageUrl || "", bio: user.bio || "", skills: user.skills || [] });
+    }
+  };
+
   if (!user) {
     return null;
   }
 
   const displayName = `${profileData.firstName || ''} ${profileData.lastName || ''}`.trim() || user.email;
+  const missing = COMPLETION_FIELDS.filter((f) => !isFilled(user[f.key]));
+  const completion =
+    typeof user.profileCompletion === "number"
+      ? user.profileCompletion
+      : Math.round(((COMPLETION_FIELDS.length - missing.length) / COMPLETION_FIELDS.length) * 100);
+  const subroles = Array.isArray(user.subroles) ? user.subroles : [];
+  const roleLabel = titleCase(user.role) || "Member";
+  const metaLine = [roleLabel, user.department, user.studentId].filter(Boolean).join(" · ");
+  const showAvatarImage = profileData.profileImageUrl && !avatarFailed;
+  const disabledCls = "disabled:cursor-not-allowed disabled:bg-paper disabled:text-ink-muted";
+  const newPasswordRules = passwordRules(passwordData.newPassword);
 
   return (
     <ProtectedRoute>
-      <div className="relative min-h-screen bg-black text-white">
-        <div className="container mx-auto px-4 sm:px-6 py-10 sm:py-14">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-4xl mx-auto"
-          >
-            {/* Header */}
-            <div className="text-center mb-8">
-              <p className="nb-page-eyebrow justify-center">NEWTONBOTICS / ACCOUNT</p>
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">Profile Settings</h1>
-              <p className="text-white/70">Manage your account information and preferences</p>
+      <main className="bg-paper text-ink">
+        <div className="nb-container flex flex-col gap-6 pb-24 pt-10 sm:pt-12">
+          <section className="nb-card overflow-hidden">
+            <div className="nb-blueprint-dark h-[120px]" aria-hidden="true" />
+            <div className="flex flex-wrap items-end justify-between gap-6 px-5 pb-7 sm:px-8">
+              <div className="flex min-w-0 flex-wrap items-end gap-5">
+                <div className="relative -mt-14 h-28 w-28 shrink-0">
+                  {showAvatarImage ? (
+                    <RemoteImage
+                      src={profileData.profileImageUrl}
+                      alt="Profile photo"
+                      width={112}
+                      height={112}
+                      className="h-28 w-28 rounded-lg border-4 border-surface bg-surface object-cover"
+                      onError={() => setAvatarFailed(true)}
+                    />
+                  ) : (
+                    <span className="grid h-28 w-28 place-items-center rounded-lg border-4 border-surface bg-signal font-display text-4xl font-semibold text-ink">
+                      {initials(displayName)}
+                    </span>
+                  )}
+                  {isEditing && (
+                    <div className="absolute -bottom-2 -right-2">
+                      <CloudinaryUploader
+                        folder="newtonbotics/profile"
+                        showPreview={false}
+                        maxFileSizeBytes={5 * 1024 * 1024}
+                        renderTrigger={({ open }) => (
+                          <button
+                            type="button"
+                            onClick={open}
+                            aria-label="Change profile photo"
+                            className="grid h-11 w-11 place-items-center rounded-full border-2 border-surface bg-ink text-paper hover:bg-[#23272E]"
+                          >
+                            <Pencil size={16} aria-hidden="true" />
+                          </button>
+                        )}
+                        onUploadComplete={(file) => handleProfileInputChange('profileImageUrl', file.secureUrl)}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="flex min-w-0 flex-col gap-1">
+                  <h1 className="m-0 break-words font-display text-[30px] font-semibold leading-tight tracking-[-0.02em]">
+                    {displayName}
+                  </h1>
+                  <span className="font-mono text-xs uppercase tracking-[0.04em] text-ink-muted">{metaLine}</span>
+                </div>
+              </div>
+              <div className="flex min-w-[240px] flex-[0_1_320px] flex-col gap-2">
+                <span className="flex justify-between gap-3 text-[13px]">
+                  <span className="font-semibold">Profile {completion}% complete</span>
+                  <span className="font-mono text-ink-muted">
+                    {COMPLETION_FIELDS.length - missing.length} / {COMPLETION_FIELDS.length}
+                  </span>
+                </span>
+                <span
+                  className="h-1.5 overflow-hidden rounded-[3px] bg-[#E6E7E1]"
+                  role="progressbar"
+                  aria-label="Profile completion"
+                  aria-valuenow={completion}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
+                  <span className="block h-full bg-signal" style={{ width: `${completion}%` }} />
+                </span>
+                {missing.length > 0 && (
+                  <span className="text-[13px] text-ink-muted">
+                    Add your {missing.map((f) => f.label).join(", ")} to complete your profile.
+                  </span>
+                )}
+              </div>
             </div>
+          </section>
 
-            <div className="grid lg:grid-cols-2 gap-8">
-              {/* Profile Information */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="bg-white/[0.04] rounded-2xl border border-white/10 p-5 sm:p-6"
-              >
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold flex items-center gap-2">
-                    <User2 className="w-5 h-5" />
-                    Profile Information
-                  </h2>
+          <div className="flex flex-wrap items-start gap-6">
+            <form
+              onSubmit={handleProfileUpdate}
+              className="nb-card flex min-w-0 flex-[999_1_480px] flex-col gap-[22px] p-5 sm:p-8"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="m-0 font-display text-xl font-semibold">Personal details</h2>
+                {!isEditing && (
                   <button
                     type="button"
-                    onClick={() => setIsEditing((e) => !e)}
-                    className="px-3 py-1.5 rounded-lg bg-white/10 border border-white/20 hover:bg-white/15 text-sm"
+                    onClick={() => setIsEditing(true)}
+                    className="nb-btn nb-btn-secondary nb-btn-sm h-11"
                   >
-                    {isEditing ? "Cancel" : "Edit"}
+                    <Pencil size={16} aria-hidden="true" /> Edit
                   </button>
-                </div>
+                )}
+              </div>
 
-                {/* Avatar + Name row */}
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="relative h-16 w-16 shrink-0">
-                    <img
-                      src={profileData.profileImageUrl || '/white logo.png'}
-                      alt="Profile"
-                      className="h-16 w-16 rounded-full object-cover border border-white/20"
-                    />
-                    {isEditing && (
-                      <div className="absolute -bottom-1 -right-1">
-                        <CloudinaryUploader
-                          folder="newtonbotics/profile"
-                          showPreview={false}
-                          maxFileSizeBytes={5 * 1024 * 1024}
-                          renderTrigger={({ open }) => (
-                            <button
-                              type="button"
-                              onClick={open}
-                              aria-label="Edit profile image"
-                              className="h-7 w-7 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-lg"
-                            >
-                              ✎
-                            </button>
-                          )}
-                          onUploadComplete={(file) => handleProfileInputChange('profileImageUrl', file.secureUrl)}
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-lg font-semibold truncate">{displayName}</div>
-                    <div className="text-white/60 text-sm truncate">{user.email}</div>
-                  </div>
-                </div>
-
-                {/* Role and Subroles Section */}
-                <div className="mb-4 pb-4 border-b border-white/10">
-                  <div className="mb-2">
-                    <label className="block text-sm text-white/80 mb-2">Role & Responsibilities</label>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="px-3 py-1.5 bg-red-500/15 text-red-200 rounded-lg text-sm font-medium border border-red-500/30 capitalize">
-                        {user.role?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Member'}
-                      </span>
-                      {(() => {
-                        // Debug: Log what we're checking
-                        console.log('Checking subroles:', {
-                          hasSubroles: !!user.subroles,
-                          isArray: Array.isArray(user.subroles),
-                          length: user.subroles?.length,
-                          subroles: user.subroles
-                        });
-                        
-                        const subroles = user.subroles;
-                        if (subroles && Array.isArray(subroles) && subroles.length > 0) {
-                          return subroles.map((subrole, idx) => (
-                            <span
-                              key={idx}
-                              className="px-3 py-1.5 bg-red-500/20 text-red-300 rounded-lg text-sm font-medium border border-red-500/30 capitalize"
-                            >
-                              {subrole.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                            </span>
-                          ));
-                        }
-                        return (
-                          <span className="text-white/40 text-sm italic">
-                            No subroles assigned
-                            {refreshingUser && ' (Refreshing...)'}
-                          </span>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                </div>
-
-                <form onSubmit={handleProfileUpdate} className="space-y-4">
-                  {isEditing ? (
-                    <div className="grid grid-cols-2 gap-4">
-                      <Input 
-                        label="First Name"
-                        icon={User2}
-                        type="text"
-                        placeholder="First name"
-                        value={profileData.firstName}
-                        onChange={(e) => handleProfileInputChange('firstName', e.target.value)}
-                      />
-                      <Input 
-                        label="Last Name"
-                        icon={User2}
-                        type="text"
-                        placeholder="Last name"
-                        value={profileData.lastName}
-                        onChange={(e) => handleProfileInputChange('lastName', e.target.value)}
-                      />
-                    </div>
-                  ) : null}
-
-                  {isEditing ? (
-                    <Input 
-                      label="Email"
-                      icon={Mail}
-                      type="email"
-                      value={user.email}
-                      disabled
-                      className="opacity-60 cursor-not-allowed"
-                    />
-                  ) : null}
-
-                  <Input 
-                    label="Phone Number"
-                    icon={Phone}
-                    type="tel"
-                    placeholder="Phone number"
-                    value={profileData.phone}
-                    disabled={!isEditing}
-                    onChange={(e) => handleProfileInputChange('phone', e.target.value)}
-                  />
-
-                  {/* Optional: Student-specific identifiers */}
-                  <Input
-                    label="Student ID"
-                    icon={User2}
+              {isEditing && (
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
+                  <TextField
+                    id="pf-first"
+                    label="First name"
                     type="text"
-                    placeholder="Student ID (optional)"
-                    value={profileData.studentId}
-                    disabled={!isEditing}
-                    onChange={(e) => handleProfileInputChange('studentId', e.target.value)}
+                    placeholder="First name"
+                    value={profileData.firstName}
+                    onChange={(e) => handleProfileInputChange('firstName', e.target.value)}
                   />
+                  <TextField
+                    id="pf-last"
+                    label="Last name"
+                    type="text"
+                    placeholder="Last name"
+                    value={profileData.lastName}
+                    onChange={(e) => handleProfileInputChange('lastName', e.target.value)}
+                  />
+                </div>
+              )}
 
-                  {user.role === "student" && (
-                    <>
-                      <Select 
-                        label="Department"
-                        icon={Building}
-                        value={profileData.department}
-                        disabled={!isEditing}
-                        onChange={(e) => handleProfileInputChange('department', e.target.value)}
-                      >
-                        <option value="">Select Department</option>
-                        {departments.map(dept => (
-                          <option key={dept} value={dept}>{dept}</option>
-                        ))}
-                      </Select>
+              {isEditing && (
+                <TextField
+                  id="pf-email"
+                  label="Email"
+                  type="email"
+                  value={user.email}
+                  disabled
+                  hint="Email can't be changed."
+                  className={`nb-input ${disabledCls}`}
+                />
+              )}
 
-                      <Select 
-                        label="Academic Year"
-                        icon={Calendar}
-                        value={profileData.yearOfStudy}
-                        disabled={!isEditing}
-                        onChange={(e) => handleProfileInputChange('yearOfStudy', e.target.value)}
-                      >
-                        <option value="">Select passing year</option>
-                        {PASSING_YEARS.map(year => (
-                          <option key={year} value={year}>{passingYearOptionLabel(year)}</option>
-                        ))}
-                        {profileData.yearOfStudy &&
-                          profileData.yearOfStudy !== OTHER_ACADEMIC_YEAR &&
-                          !PASSING_YEARS.includes(Number(profileData.yearOfStudy)) && (
-                          <option value={profileData.yearOfStudy}>{profileData.yearOfStudy}</option>
-                        )}
-                        <option value={OTHER_ACADEMIC_YEAR}>Other (other branch / programme)</option>
-                      </Select>
-                    </>
-                  )}
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
+                <TextField
+                  id="pf-phone"
+                  label="Phone number"
+                  type="tel"
+                  placeholder="Phone number"
+                  value={profileData.phone}
+                  disabled={!isEditing}
+                  className={`nb-input ${disabledCls}`}
+                  onChange={(e) => handleProfileInputChange('phone', e.target.value)}
+                />
+                <TextField
+                  id="pf-student-id"
+                  label="Student ID"
+                  optional
+                  type="text"
+                  placeholder="Student ID"
+                  value={profileData.studentId}
+                  disabled={!isEditing}
+                  className={`nb-input ${disabledCls}`}
+                  onChange={(e) => handleProfileInputChange('studentId', e.target.value)}
+                />
 
-                  <div>
-                    <label className="block mb-2 text-sm text-white/80">Bio</label>
-                    <textarea
-                      placeholder="Tell us about yourself..."
-                      value={profileData.bio}
+                {user.role === "student" && (
+                  <>
+                    <SelectField
+                      id="pf-dept"
+                      label="Department"
+                      value={profileData.department}
                       disabled={!isEditing}
-                      onChange={(e) => handleProfileInputChange('bio', e.target.value)}
-                      className={`w-full pl-4 pr-4 py-2.5 rounded-xl bg-white/10 border border-white/15 focus:outline-none focus:ring-2 focus:ring-red-500/40 text-sm leading-normal text-white placeholder-white/50 resize-none [font-family:system-ui,Segoe_UI,Roboto,sans-serif] ${!isEditing ? "opacity-60 cursor-not-allowed" : ""}`}
-                      rows={3}
-                    />
-                  </div>
+                      className={`nb-input pr-8 ${disabledCls}`}
+                      onChange={(e) => handleProfileInputChange('department', e.target.value)}
+                    >
+                      <option value="">Select department</option>
+                      {departments.map(dept => (
+                        <option key={dept} value={dept}>{dept}</option>
+                      ))}
+                    </SelectField>
 
-                  <div>
-                    <label className="block mb-2 text-sm text-white/80">Skills</label>
-                    <input
-                      type="text"
-                      placeholder="Press Enter to add a skill"
-                      onKeyDown={isEditing ? handleSkillInput : undefined}
+                    <SelectField
+                      id="pf-year"
+                      label="Academic year"
+                      value={profileData.yearOfStudy}
                       disabled={!isEditing}
-                      className={`w-full pl-4 pr-4 py-2.5 rounded-xl bg-white/10 border border-white/15 focus:outline-none focus:ring-2 focus:ring-red-500/40 text-sm leading-normal text-white placeholder-white/50 [font-family:system-ui,Segoe_UI,Roboto,sans-serif] ${!isEditing ? "opacity-60 cursor-not-allowed" : ""}`}
-                    />
-                    {profileData.skills.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {profileData.skills.map((skill, index) => (
-                          <span
-                            key={index}
-                            className="inline-flex items-center gap-1 px-3 py-1 bg-red-500/20 text-red-300 rounded-full text-sm border border-red-500/30"
-                          >
-                            {skill}
-                            {isEditing && (
-                              <button
-                                type="button"
-                                onClick={() => removeSkill(skill)}
-                                className="ml-1 hover:text-red-100 transition"
-                              >
-                                ×
-                              </button>
-                            )}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                      className={`nb-input pr-8 ${disabledCls}`}
+                      onChange={(e) => handleProfileInputChange('yearOfStudy', e.target.value)}
+                    >
+                      <option value="">Select passing year</option>
+                      {PASSING_YEARS.map(year => (
+                        <option key={year} value={year}>{passingYearOptionLabel(year)}</option>
+                      ))}
+                      {profileData.yearOfStudy &&
+                        profileData.yearOfStudy !== OTHER_ACADEMIC_YEAR &&
+                        !PASSING_YEARS.includes(Number(profileData.yearOfStudy)) && (
+                        <option value={profileData.yearOfStudy}>{profileData.yearOfStudy}</option>
+                      )}
+                      <option value={OTHER_ACADEMIC_YEAR}>Other (other branch / programme)</option>
+                    </SelectField>
+                  </>
+                )}
+              </div>
 
-                  {profileError && (
-                    <div className="flex items-center gap-2 text-red-400 text-sm">
-                      <AlertCircle className="w-4 h-4" />
-                      {profileError}
-                    </div>
-                  )}
+              <Field id="pf-bio" label="Short bio">
+                <textarea
+                  id="pf-bio"
+                  placeholder="Tell us about yourself…"
+                  value={profileData.bio}
+                  disabled={!isEditing}
+                  onChange={(e) => handleProfileInputChange('bio', e.target.value)}
+                  className={`nb-textarea resize-y ${disabledCls}`}
+                  rows={3}
+                />
+              </Field>
 
-                  {profileMessage && (
-                    <div className="flex items-center gap-2 text-green-400 text-sm">
-                      <CheckCircle className="w-4 h-4" />
-                      {profileMessage}
-                    </div>
-                  )}
-
-                  {isEditing && (
-                    <div className="flex gap-3">
-                      <button
-                        type="button"
-                        onClick={() => { setIsEditing(false); if (user) { setProfileData({ firstName: user.firstName || "", lastName: user.lastName || "", phone: user.phone || "", department: user.department || "", yearOfStudy: yearOfStudyToPassingYear(user.yearOfStudy) || "", studentId: user.studentId || "", profileImageUrl: user.profileImageUrl || "", bio: user.bio || "", skills: user.skills || [] }); } }}
-                        className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/15 transition font-semibold"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={isUpdatingProfile}
-                        className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:cursor-not-allowed transition font-semibold flex items-center justify-center gap-2"
-                      >
-                        {isUpdatingProfile ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            Saving...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="w-4 h-4" />
-                            Save Changes
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  )}
-                </form>
-              </motion.div>
-
-              {/* Change Password */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="bg-white/[0.04] rounded-2xl border border-white/10 p-5 sm:p-6"
+              <div
+                className={`flex flex-col gap-2.5 rounded-lg p-4 ${
+                  profileData.skills.length === 0
+                    ? "border border-dashed border-signal bg-[#FFF7F3]"
+                    : "border border-line"
+                }`}
               >
-                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                  <Lock className="w-5 h-5" />
-                  Change Password
-                </h2>
-
-                <form onSubmit={handlePasswordChange} className="space-y-4">
-                  <Input 
-                    label="Current Password"
-                    icon={Lock}
-                    type={showCurrentPassword ? "text" : "password"}
-                    placeholder="Current password"
-                    value={passwordData.currentPassword}
-                    onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
-                    rightElement={
-                      <button
-                        type="button"
-                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                        className="text-white/60 hover:text-white/80 transition"
-                        aria-label={showCurrentPassword ? "Hide password" : "Show password"}
-                      >
-                        {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    }
-                  />
-
-                  <Input 
-                    label="New Password"
-                    icon={Lock}
-                    type={showNewPassword ? "text" : "password"}
-                    placeholder="New password"
-                    value={passwordData.newPassword}
-                    onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
-                    rightElement={
-                      <button
-                        type="button"
-                        onClick={() => setShowNewPassword(!showNewPassword)}
-                        className="text-white/60 hover:text-white/80 transition"
-                        aria-label={showNewPassword ? "Hide password" : "Show password"}
-                      >
-                        {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    }
-                  />
-
-                  <Input 
-                    label="Confirm New Password"
-                    icon={Lock}
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirm new password"
-                    value={passwordData.confirmPassword}
-                    onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
-                    rightElement={
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="text-white/60 hover:text-white/80 transition"
-                        aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                      >
-                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    }
-                  />
-
-                  <div className="text-xs text-white/60">
-                    Password must contain at least 8 characters with uppercase, lowercase, number, and special character.
-                  </div>
-
-                  {passwordError && (
-                    <div className="flex items-center gap-2 text-red-400 text-sm">
-                      <AlertCircle className="w-4 h-4" />
-                      {passwordError}
-                    </div>
+                <label htmlFor="pf-skill" className="nb-label">
+                  Skills
+                  {profileData.skills.length === 0 && (
+                    <span className="ml-1 font-mono text-[11px] font-medium uppercase text-signal-hover">· Missing</span>
                   )}
+                </label>
+                <input
+                  id="pf-skill"
+                  type="text"
+                  placeholder={isEditing ? "e.g. Arduino, ROS 2, CAD — press Enter to add" : "Click Edit to add skills"}
+                  onKeyDown={isEditing ? handleSkillInput : undefined}
+                  disabled={!isEditing}
+                  className={`nb-input h-11 ${disabledCls}`}
+                />
+                {profileData.skills.length > 0 && (
+                  <ul className="m-0 flex list-none flex-wrap gap-1.5 p-0">
+                    {profileData.skills.map((skill, index) => (
+                      <li
+                        key={index}
+                        className="inline-flex items-center gap-1 rounded border border-line bg-surface py-1 pl-2.5 pr-1 font-mono text-xs"
+                      >
+                        <span className={isEditing ? "" : "pr-1.5"}>{skill}</span>
+                        {isEditing && (
+                          <button
+                            type="button"
+                            onClick={() => removeSkill(skill)}
+                            aria-label={`Remove ${skill}`}
+                            className="grid h-7 w-7 place-items-center rounded text-ink-muted hover:bg-paper hover:text-ink"
+                          >
+                            <X size={14} aria-hidden="true" />
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
 
-                  {passwordMessage && (
-                    <div className="flex items-center gap-2 text-green-400 text-sm">
-                      <CheckCircle className="w-4 h-4" />
-                      {passwordMessage}
-                    </div>
-                  )}
+              <Alert tone="error">{profileError}</Alert>
+              <Alert tone="success">{profileMessage}</Alert>
 
-                  <button
-                    type="submit"
-                    disabled={isChangingPassword}
-                    className="w-full py-3 rounded-xl bg-red-600 hover:bg-red-500 disabled:bg-red-800 disabled:cursor-not-allowed transition font-semibold flex items-center justify-center gap-2"
-                  >
-                    {isChangingPassword ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Changing...
-                      </>
-                    ) : (
-                      <>
-                        <Lock className="w-4 h-4" />
-                        Change Password
-                      </>
-                    )}
+              {isEditing && (
+                <div className="flex flex-wrap justify-end gap-2 border-t border-line-soft pt-5">
+                  <button type="button" onClick={cancelEditing} className="nb-btn nb-btn-ghost">
+                    Cancel
                   </button>
+                  <SubmitButton loading={isUpdatingProfile} loadingText="Saving…" className="h-12 w-auto">
+                    Save changes
+                  </SubmitButton>
+                </div>
+              )}
+            </form>
 
-                  <Link
-                    href="/auth/forgot"
-                    className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 transition font-semibold flex items-center justify-center gap-2 text-sm"
-                  >
-                    Forgot Password?
-                  </Link>
-                </form>
-              </motion.div>
-            </div>
-          </motion.div>
+            <aside className="flex min-w-0 flex-[1_1_300px] flex-col gap-4">
+              <div className="nb-card flex flex-col gap-3.5 p-6">
+                <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">Account</span>
+                <AccountRow label="Email">{user.email}</AccountRow>
+                <AccountRow label="Role">{roleLabel}</AccountRow>
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[13px] text-ink-muted">Responsibilities</span>
+                  {subroles.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {subroles.map((subrole, idx) => (
+                        <span key={idx} className="nb-chip nb-chip-outline">
+                          {titleCase(subrole)}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-sm text-ink-muted">
+                      No subroles assigned
+                      {refreshingUser && " (refreshing…)"}
+                    </span>
+                  )}
+                </div>
+                <Link href="/my-activity" className="nb-link text-sm">
+                  View my activity →
+                </Link>
+              </div>
+
+              <form onSubmit={handlePasswordChange} className="nb-card flex flex-col gap-4 p-6">
+                <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">Change password</span>
+                <PasswordField
+                  id="pw-current"
+                  label="Current password"
+                  placeholder="Current password"
+                  autoComplete="current-password"
+                  value={passwordData.currentPassword}
+                  onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
+                />
+                <PasswordField
+                  id="pw-new"
+                  label="New password"
+                  placeholder="New password"
+                  autoComplete="new-password"
+                  aria-describedby="pw-rules"
+                  value={passwordData.newPassword}
+                  onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
+                />
+                <PasswordChecklist id="pw-rules" rules={newPasswordRules} />
+                <PasswordField
+                  id="pw-confirm"
+                  label="Confirm new password"
+                  placeholder="Confirm new password"
+                  autoComplete="new-password"
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
+                />
+
+                <Alert tone="error">{passwordError}</Alert>
+                <Alert tone="success">{passwordMessage}</Alert>
+
+                <SubmitButton loading={isChangingPassword} loadingText="Changing…" className="h-12">
+                  Change password
+                </SubmitButton>
+                <Link href="/auth/forgot" className="nb-link self-start text-sm">
+                  Forgot your password?
+                </Link>
+              </form>
+            </aside>
+          </div>
         </div>
-      </div>
+      </main>
     </ProtectedRoute>
   );
 }

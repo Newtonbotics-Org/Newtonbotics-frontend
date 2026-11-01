@@ -5,7 +5,8 @@ import Link from "next/link";
 import { ArrowUpRight, FolderKanban, Search } from "lucide-react";
 import { listInventoryProjects } from "@/lib/inventoryProjects";
 import { CardSkeletonGrid } from "@/components/PageSkeletons";
-import styles from "./inventory.module.css";
+import { projectStatus } from "@/lib/labUi";
+import { EmptyState, MONO_META } from "./InventoryUi";
 
 const projectGroups = [
   { key: "ongoing", label: "Ongoing" },
@@ -47,34 +48,112 @@ export default function ProjectInventories() {
   const groupedProjects = projects.filter((project) => projectGroupForStatus(project.status) === selectedGroup);
 
   return (
-    <section aria-labelledby="projects-title">
-      <div className={styles.sectionHeading}><div><p className={styles.eyebrow}>02 / PROJECT WORKSPACES</p><h2 id="projects-title">Every project. Its own space.</h2><p>Browse projects from the club directory and open their inventory workspace.</p></div></div>
-      <div className={styles.toolbar}>
-        <label className={styles.search}><Search size={18} /><span className={styles.srOnly}>Search projects</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search projects…" /></label>
+    <section aria-labelledby="projects-title" className="flex flex-col gap-6">
+      <div className="flex flex-col gap-2">
+        <h2 id="projects-title" className="m-0 font-display text-[28px] font-semibold tracking-[-0.02em]">Project inventories</h2>
+        <p className="m-0 text-ink-muted">Every project gets its own stock. Browse projects from the club directory and open their inventory workspace.</p>
       </div>
-      {loading ? <CardSkeletonGrid count={3} variant="project" /> : error ? <div className={styles.empty} role="alert"><h3>Projects couldn&apos;t be loaded</h3><p>{error}</p><button className={styles.secondaryButton} onClick={() => setRetry((n) => n + 1)}>Try again</button></div> : projects.length === 0 ? <div className={styles.empty}><FolderKanban size={36} /><h3>{query ? "No matching projects" : "No projects available"}</h3><p>{query ? "Try a different project name." : "Projects will appear here when they are available in the club directory."}</p>{query && <button className={styles.secondaryButton} onClick={() => setQuery("")}>Clear search</button>}</div> : <>
-        <div className={styles.projectTabs} role="tablist" aria-label="Project inventory status">
-          {projectGroups.map((group) => {
-            const count = projects.filter((project) => projectGroupForStatus(project.status) === group.key).length;
-            return <button key={group.key} type="button" role="tab" aria-selected={selectedGroup === group.key} onClick={() => setSelectedGroup(group.key)}>
-              {group.label}<span>{count}</span>
-            </button>;
-          })}
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {!loading && !error && projects.length > 0 ? (
+          <div role="group" aria-label="Project status" className="flex flex-wrap gap-2">
+            {projectGroups.map((group) => {
+              const count = projects.filter((project) => projectGroupForStatus(project.status) === group.key).length;
+              const active = selectedGroup === group.key;
+              return (
+                <button
+                  key={group.key}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setSelectedGroup(group.key)}
+                  className={`nb-pill h-10 px-4 text-sm ${active ? "nb-pill-active" : ""}`}
+                >
+                  {group.label} <span className="font-mono text-[11px] opacity-70">{count}</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : <span />}
+        <div className="relative min-w-0 flex-[0_1_360px]">
+          <label htmlFor="project-inventory-search" className="nb-sr-only">Search projects</label>
+          <Search size={16} aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-subtle" />
+          <input
+            id="project-inventory-search"
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search projects…"
+            className="nb-input h-11 pl-10 text-sm"
+          />
         </div>
-        <p className={styles.resultCount}>{groupedProjects.length} {selectedGroup} projects{pagination?.hasMore || pagination?.total > projects.length ? " · Showing up to 100 matches. Refine your search to find another project." : ""}</p>
-        {groupedProjects.length === 0 ? <div className={styles.empty}><FolderKanban size={36} /><h3>No {selectedGroup} projects</h3><p>{query ? "Try a different project name." : "Projects in this status will appear here when available."}</p>{query && <button className={styles.secondaryButton} onClick={() => setQuery("")}>Clear search</button>}</div> : <div className={styles.projectGrid}>{groupedProjects.map((project) => {
-          const id = project._id || project.id;
-          return <article key={id} className={styles.projectCard}>
-            <div className={styles.projectCardTop}><span className={styles.projectIcon}><FolderKanban size={24} /></span><span className={styles.neutralBadge}>{(project.status || "Project").replace(/_/g, " ")}</span></div>
-            <p className={styles.eyebrow}>{project.category || "ROBOTICS PROJECT"}</p><h3>{project.title || "Untitled project"}</h3>
-            <p className={styles.projectDescription}>{project.description || "Open this project's workspace to view inventory availability."}</p>
-            <div className={styles.projectStock}>
-              <span>Project-owned stock</span>
+      </div>
+
+      {loading ? (
+        <CardSkeletonGrid count={3} variant="project" />
+      ) : error ? (
+        <EmptyState
+          role="alert"
+          title="Projects couldn't be loaded"
+          action={<button type="button" className="nb-btn nb-btn-primary" onClick={() => setRetry((n) => n + 1)}>Try again</button>}
+        >
+          {error}
+        </EmptyState>
+      ) : projects.length === 0 ? (
+        <EmptyState
+          icon={FolderKanban}
+          title={query ? "No matching projects" : "No projects available"}
+          action={query && <button type="button" className="nb-btn nb-btn-secondary" onClick={() => setQuery("")}>Clear search</button>}
+        >
+          {query ? "Try a different project name." : "Projects will appear here when they are available in the club directory."}
+        </EmptyState>
+      ) : (
+        <>
+          <p className={`m-0 ${MONO_META}`} aria-live="polite">
+            {groupedProjects.length} {selectedGroup} projects
+            {pagination?.hasMore || pagination?.total > projects.length ? " · Showing up to 100 matches. Refine your search to find another project." : ""}
+          </p>
+          {groupedProjects.length === 0 ? (
+            <EmptyState
+              icon={FolderKanban}
+              title={`No ${selectedGroup} projects`}
+              action={query && <button type="button" className="nb-btn nb-btn-secondary" onClick={() => setQuery("")}>Clear search</button>}
+            >
+              {query ? "Try a different project name." : "Projects in this status will appear here when available."}
+            </EmptyState>
+          ) : (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-5">
+              {groupedProjects.map((project) => {
+                const id = project._id || project.id;
+                const status = projectStatus(project.status);
+                return (
+                  <article key={id} className="nb-card nb-card-hover flex flex-col gap-4 p-6">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className={MONO_META}>{project.category || "Robotics project"}</span>
+                      <span className={`nb-chip ${status.chip}`}>{status.label}</span>
+                    </div>
+                    <h3 className="m-0 font-display text-xl font-semibold tracking-[-0.01em]">{project.title || "Untitled project"}</h3>
+                    <p className="m-0 line-clamp-3 text-sm text-ink-muted">
+                      {project.description || "Open this project's workspace to view inventory availability."}
+                    </p>
+                    <div className="mt-auto flex items-center justify-between gap-3 border-t border-line pt-4">
+                      <span className={MONO_META}>Project-owned stock</span>
+                      {id && (
+                        <Link
+                          className="nb-link inline-flex min-h-[44px] items-center gap-1 text-sm"
+                          href={`/Inventory/projects/${encodeURIComponent(id)}`}
+                          aria-label={`Open inventory workspace: ${project.title || "Untitled project"}`}
+                        >
+                          Open workspace <ArrowUpRight size={16} aria-hidden="true" />
+                        </Link>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
-            {id && <Link className={styles.projectLink} href={`/Inventory/projects/${encodeURIComponent(id)}`}>Open workspace <ArrowUpRight size={18} /></Link>}
-          </article>;
-        })}</div>}
-      </>}
+          )}
+        </>
+      )}
     </section>
   );
 }

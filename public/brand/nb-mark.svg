@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="512" height="512">
+  <title>NewtonBotics</title>
+  <rect width="64" height="64" rx="14" fill="#0E1013"/>
+  <path d="M9 16h6.5L25 37.5V16h6v32h-6.5L15 26.5V48H9z" fill="#F4F4F0"/>
+  <path fill="#FF5A1F" fill-rule="evenodd" d="M35 16h10a8 8 0 0 1 0 16h1a8 8 0 0 1 0 16H35zM41 22v4h4a2 2 0 0 0 0-4zM41 38v4h5a2 2 0 0 0 0-4z"/>
+</svg>
