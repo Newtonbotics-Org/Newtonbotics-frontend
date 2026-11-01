@@ -1,8 +1,8 @@
-import { Orbitron } from "next/font/google";
+import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/navbar";
 import Footer from "./components/footer";
-import CustomCursor from "./components/CustomCursor";
+import BreakingNews from "@/components/BreakingNews";
 import { AuthProvider } from "../contexts/AuthContext";
 import { ThemeProvider } from "../contexts/ThemeContext";
 import {
@@ -12,10 +12,23 @@ import {
   DEFAULT_OG_IMAGE,
 } from "../lib/site";
 
-const orbitron = Orbitron({
-  variable: "--font-orbitron",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
+  display: "swap",
+});
+
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
+  weight: ["400", "500"],
   display: "swap",
 });
 
@@ -81,20 +94,22 @@ export const metadata = {
     images: [DEFAULT_OG_IMAGE],
   },
   category: "Education",
+  // `?v=` busts browsers' favicon cache; bump it whenever the icons change
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon.ico?v=3", sizes: "any" },
+      { url: "/favicon-32x32.png?v=3", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png?v=3", sizes: "16x16", type: "image/png" },
+      { url: "/brand/logo-mark-512.png?v=3", sizes: "512x512", type: "image/png" },
     ],
-    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+    apple: [{ url: "/apple-icon.png?v=3", sizes: "180x180", type: "image/png" }],
   },
 };
 
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#000000",
+  themeColor: "#F4F4F0",
 };
 
 export default function RootLayout({ children }) {
@@ -104,7 +119,7 @@ export default function RootLayout({ children }) {
     name: SITE_NAME,
     alternateName: ["NewtonBotics", "Newton Botics"],
     url: SITE_URL,
-    logo: `${SITE_URL}/white-logo.webp`,
+    logo: `${SITE_URL}/brand/logo-mark-512.png`,
     image: DEFAULT_OG_IMAGE,
     description:
       "NewtonBotics Robotics Lab at Rishihood University - Advancing robotics and AI research through innovation, collaboration, and hands-on learning.",
@@ -146,7 +161,7 @@ export default function RootLayout({ children }) {
       name: SITE_NAME,
       logo: {
         "@type": "ImageObject",
-        url: `${SITE_URL}/white-logo.webp`,
+        url: `${SITE_URL}/brand/logo-mark-512.png`,
       },
     },
     inLanguage: "en-IN",
@@ -173,30 +188,8 @@ export default function RootLayout({ children }) {
   };
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning style={{ backgroundColor: "#0E1013", colorScheme: "dark" }}>
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html:
-              "(function(){try{if(localStorage.getItem('nb_theme')==='light'){document.documentElement.classList.add('theme-light');}}catch(e){}})();",
-          }}
-        />
-        <link rel="preconnect" href="https://fonts.cdnfonts.com" crossOrigin="anonymous" />
-        <link
-          rel="preload"
-          as="image"
-          href="/heropagebg.webp"
-          type="image/webp"
-          imageSrcSet="/heropagebg-mobile.webp 560w, /heropagebg.webp 960w"
-          imageSizes="(max-width: 768px) 18rem, 30rem"
-          fetchPriority="high"
-        />
-        <link
-          rel="preload"
-          as="image"
-          href="/white-logo.webp"
-          type="image/webp"
-        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
@@ -210,13 +203,15 @@ export default function RootLayout({ children }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(educationalOrgSchema) }}
         />
       </head>
-      <body className={`${orbitron.variable} font-sans antialiased`}>
+      <body
+        className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} font-sans antialiased`}
+      >
         <ThemeProvider>
           <AuthProvider>
-            <CustomCursor />
             <Navbar />
             {children}
             <Footer />
+            <BreakingNews />
           </AuthProvider>
         </ThemeProvider>
       </body>

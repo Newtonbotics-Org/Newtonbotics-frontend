@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowUpRight, Boxes, ClipboardList, FlaskConical, FolderKanban } from "lucide-react";
+import { ArrowUpRight, ClipboardList } from "lucide-react";
 import GeneralLabInventory from "./GeneralLabInventory";
 import ProjectInventories from "./ProjectInventories";
 import styles from "./inventory.module.css";
@@ -11,31 +11,55 @@ export default function InventoryWorkspace() {
   const search = useSearchParams();
   const section = search.get("section") === "projects" ? "projects" : "general";
   return (
-    <main className={styles.scope}>
-      <div className={styles.container}>
-        <header className={styles.hero}>
-          <div>
-            <p className={styles.eyebrow}><span className={styles.signal} /> NEWTONBOTICS / LAB OPERATIONS</p>
-            <h1>Built to build.<br /><span>Inventory workspace.</span></h1>
-            <p className={styles.intro}>Find the right component. Know what’s available.<br className={styles.desktopBreak} /> Keep every build moving.</p>
+    <main className="nb-dark bg-paper text-ink">
+      <header className="nb-blueprint border-b border-line">
+        <div className="nb-container flex flex-wrap items-end justify-between gap-6 pb-12 pt-16 sm:pt-20">
+          <div className="flex min-w-0 flex-col gap-5">
+            <span className="nb-eyebrow">
+              <span className="nb-eyebrow-num">[INV]</span> Lab operations
+            </span>
+            <h1 className="nb-h1 m-0">Lab inventory</h1>
+            <p className="nb-lead m-0 max-w-[620px]">
+              Find the right component, check what&apos;s available, and keep every build moving.
+            </p>
           </div>
-          <div className={styles.heroActions}>
-            <Link href="/Inventory/requests" className={`${styles.primaryButton} ${styles.requestCta}`}>
-              <ClipboardList size={18} /> Request Components
-            </Link>
-            <div className={styles.heroMark} aria-hidden="true"><Boxes size={72} strokeWidth={1} /><span>PARTS → POSSIBILITIES</span></div>
-          </div>
-        </header>
-        <nav className={styles.scopeNav} aria-label="Inventory sections">
-          <Link href="/Inventory" scroll={false} aria-current={section === "general" ? "page" : undefined} className={section === "general" ? styles.activeScope : ""}>
-            <FlaskConical size={22} /><span><strong>General Lab</strong><small>Shared components & equipment</small></span><span className={styles.scopeIndex}>01</span>
+          <Link href="/Inventory/requests" className="nb-btn nb-btn-secondary">
+            <ClipboardList size={18} aria-hidden="true" /> Request components
           </Link>
-          <Link href="/Inventory?section=projects" scroll={false} aria-current={section === "projects" ? "page" : undefined} className={section === "projects" ? styles.activeScope : ""}>
-            <FolderKanban size={22} /><span><strong>Project inventories</strong><small>Explore individual project workspaces</small></span><span className={styles.scopeIndex}>02</span>
+        </div>
+      </header>
+
+      <div className="nb-container flex flex-col gap-8 pb-28 pt-8">
+        <nav className={styles.tabs} aria-label="Inventory sections">
+          <Link
+            href="/Inventory"
+            scroll={false}
+            aria-current={section === "general" ? "page" : undefined}
+            className={styles.tab}
+          >
+            General lab
+          </Link>
+          <Link
+            href="/Inventory?section=projects"
+            scroll={false}
+            aria-current={section === "projects" ? "page" : undefined}
+            className={styles.tab}
+          >
+            Project inventories
+          </Link>
+          <Link href="/Inventory/requests" className={styles.tab}>
+            Component requests
           </Link>
         </nav>
+
         {section === "general" ? <GeneralLabInventory /> : <ProjectInventories />}
-        <footer className={styles.workspaceFooter}><span>NEWTONBOTICS · MAKE SOMETHING THAT MOVES.</span><Link href="/Projects">Explore our projects <ArrowUpRight size={14} /></Link></footer>
+
+        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6 font-mono text-xs uppercase tracking-[0.06em] text-ink-muted">
+          <span>NewtonBotics · Make something that moves</span>
+          <Link href="/Projects" className="nb-link inline-flex items-center gap-1 font-mono text-xs uppercase tracking-[0.06em]">
+            Explore our projects <ArrowUpRight size={14} aria-hidden="true" />
+          </Link>
+        </footer>
       </div>
     </main>
   );

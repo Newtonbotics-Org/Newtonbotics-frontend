@@ -1,26 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Image from "next/image";
-import {
-  Search,
-  ExternalLink,
-  Link2,
-  ImageIcon,
-  Video,
-  FileText,
-  X,
-} from "lucide-react";
+import { Search, ExternalLink, ArrowUpRight, X } from "lucide-react";
 import ProtectedRoute from "../../components/ProtectedRoute";
+import RemoteImage from "@/components/RemoteImage";
+import EmptyLog from "@/components/lab/EmptyLog";
 import resourcesService, { RESOURCE_CATEGORIES, RESOURCE_TYPES } from "../../lib/resources";
-import { getResourceOpenUrl, getResourcePreviewUrl, isCloudinaryUrl } from "../../lib/cloudinaryMedia";
-import { CardSkeletonGrid } from "@/components/PageSkeletons";
+import { getResourceOpenUrl, getResourcePreviewUrl } from "../../lib/cloudinaryMedia";
+import NoMatchCard from "@/components/lab/NoMatchCard";
 
-const TYPE_ICONS = {
-  link: Link2,
-  image: ImageIcon,
-  video: Video,
-  document: FileText,
+const TYPE_BADGE = {
+  link: { label: "LINK", tone: "bg-[#E5ECFB] text-[#1E40AF]" },
+  image: { label: "IMG", tone: "bg-[#E3F1E7] text-[#166534]" },
+  video: { label: "VIDEO", tone: "bg-[#E6E7E1] text-ink" },
+  document: { label: "DOC", tone: "bg-signal-tint text-signal-hover" },
 };
 
 function categoryLabel(id) {
@@ -31,62 +24,88 @@ function typeLabel(id) {
   return RESOURCE_TYPES.find((t) => t.id === id)?.label || id;
 }
 
-function ResourceCard({ resource, onOpen }) {
-  const TypeIcon = TYPE_ICONS[resource.resourceType] || FileText;
+function ResourceThumb({ resource }) {
+  const [failed, setFailed] = useState(false);
   const previewUrl = getResourcePreviewUrl(resource);
+  const badge = TYPE_BADGE[resource.resourceType] || { label: "FILE", tone: "bg-ink text-paper" };
+
+  if (previewUrl && !failed) {
+    return (
+      <RemoteImage
+        src={previewUrl}
+        alt=""
+        className="block h-14 w-14 shrink-0 rounded-md border border-line object-cover"
+        onError={() => setFailed(true)}
+      />
+    );
+  }
+  return (
+    <span
+      aria-hidden="true"
+      className={`inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-md font-mono text-[11px] font-medium ${badge.tone}`}
+    >
+      {badge.label}
+    </span>
+  );
+}
+
+function ResourceRow({ resource, onOpen }) {
+  const isLink = resource.resourceType === "link";
+  const hasUrl = Boolean(getResourceOpenUrl(resource));
 
   return (
-    <article className="nb-item-card group bg-white/[0.05]">
-      <div className="relative aspect-[16/10] bg-black/40 overflow-hidden">
-        {previewUrl ? (
-          <Image
-            src={previewUrl}
-            alt={resource.title}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-            unoptimized={isCloudinaryUrl(previewUrl)}
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-white/30">
-            <TypeIcon className="w-12 h-12" />
-          </div>
-        )}
-        <div className="absolute top-3 left-3 flex gap-2">
-          <span className="rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-white/90 backdrop-blur-sm">
-            {categoryLabel(resource.category)}
-          </span>
-          <span className="rounded-full bg-red-600/80 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-white backdrop-blur-sm">
-            {typeLabel(resource.resourceType)}
-          </span>
-        </div>
-      </div>
-
-      <div className="p-5">
-        <h3 className="text-lg font-bold text-white mb-2 line-clamp-2">{resource.title}</h3>
+    <li className="flex flex-wrap items-center gap-5 border-b border-line-soft px-5 py-5 last:border-b-0 sm:px-6">
+      <ResourceThumb resource={resource} />
+      <div className="flex min-w-0 flex-[1_1_260px] flex-col gap-1">
+        <h3 className="m-0 text-base font-semibold leading-snug">{resource.title}</h3>
+        <p className="m-0 font-mono text-xs uppercase tracking-[0.06em] text-ink-muted">
+          {typeLabel(resource.resourceType)} · {categoryLabel(resource.category)}
+        </p>
         {resource.description && (
-          <p className="text-sm text-white/65 leading-relaxed mb-4 line-clamp-3">{resource.description}</p>
+          <p className="m-0 mt-1 line-clamp-2 text-sm leading-relaxed text-ink-muted">{resource.description}</p>
         )}
-
         {resource.tags?.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-4">
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
             {resource.tags.slice(0, 4).map((tag) => (
-              <span key={tag} className="rounded-md bg-white/10 px-2 py-0.5 text-[11px] text-white/70">
+              <span key={tag} className="rounded border border-line px-2 py-0.5 font-mono text-[11px] text-ink-muted">
                 #{tag}
               </span>
             ))}
           </div>
         )}
-
-        <button
-          type="button"
-          onClick={() => onOpen(resource)}
-          className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 hover:bg-red-500 px-4 py-2.5 text-sm font-semibold transition-colors"
-        >
-          {resource.resourceType === "link" ? "Open link" : "View resource"}
-          <ExternalLink className="w-4 h-4" />
-        </button>
       </div>
-    </article>
+      <button
+        type="button"
+        onClick={() => onOpen(resource)}
+        disabled={!hasUrl}
+        aria-label={`${isLink ? "Open link" : "View resource"}: ${resource.title}`}
+        className="nb-btn nb-btn-secondary h-11 shrink-0 px-4 text-sm"
+      >
+        {isLink ? "Open link" : "View"}
+        {isLink ? <ExternalLink size={16} aria-hidden="true" /> : <ArrowUpRight size={16} aria-hidden="true" />}
+      </button>
+    </li>
+  );
+}
+
+function FilterGroup({ legend, name, value, onChange, options, anyLabel }) {
+  return (
+    <fieldset className="m-0 flex flex-col gap-1 border-0 p-0">
+      <legend className="mb-2.5 font-mono text-xs uppercase tracking-[0.08em] text-ink-muted">{legend}</legend>
+      {[{ id: "", label: anyLabel }, ...options].map((opt) => (
+        <label key={opt.id || "any"} className="flex min-h-[36px] cursor-pointer items-center gap-2.5 text-[15px]">
+          <input
+            type="radio"
+            name={name}
+            value={opt.id}
+            checked={value === opt.id}
+            onChange={() => onChange(opt.id)}
+            className="h-[18px] w-[18px] accent-ink"
+          />
+          {opt.label}
+        </label>
+      ))}
+    </fieldset>
   );
 }
 
@@ -142,112 +161,166 @@ function ResourcesContent() {
   }, [viewer]);
 
   const filteredCount = useMemo(() => items.length, [items]);
+  const hasActiveFilters = Boolean(search || category || resourceType);
+
+  const clearFilters = () => {
+    setSearch("");
+    setCategory("");
+    setResourceType("");
+  };
 
   return (
-    <div className="min-h-screen bg-[#070b12] text-white">
-      <div className="container mx-auto px-4 sm:px-6 py-10 sm:py-14">
-        <div className="mb-10">
-          <p className="nb-page-eyebrow">MEMBER LIBRARY / RESOURCES</p>
-          <h1 className="text-3xl md:text-4xl font-bold mb-3">Lab Resources</h1>
-          <p className="text-white/70 max-w-2xl">
-            Shared robotics materials for signed-in members — drone guides, motor specs, reference links,
-            photos, and Cloudinary-hosted videos.
+    <main className="nb-dark bg-paper text-ink">
+      <header className="nb-blueprint border-b border-line">
+        <div className="nb-container flex flex-col gap-5 pb-12 pt-16 sm:pt-20">
+          <span className="nb-eyebrow">
+            <span className="nb-eyebrow-num">[09]</span> Resources
+          </span>
+          <h1 className="nb-h1 m-0">The lab&apos;s shared notebook.</h1>
+          <p className="m-0 max-w-[640px] text-lg leading-relaxed text-ink-muted">
+            Shared robotics materials for signed-in members — drone guides, motor specs, reference links, photos and
+            videos.
           </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-8">
-          <div className="md:col-span-2 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+          <div className="relative mt-2 w-full max-w-[720px]">
+            <label htmlFor="res-q" className="nb-sr-only">
+              Search resources
+            </label>
+            <Search
+              size={18}
+              aria-hidden="true"
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink-subtle"
+            />
             <input
-              aria-label="Search resources"
+              id="res-q"
+              type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search drones, motors, guides..."
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/10 border border-white/15 text-white placeholder-white/45 focus:outline-none focus:ring-2 focus:ring-red-500/40"
+              placeholder="Search drones, motors, guides…"
+              className="nb-input h-[52px] border-ink bg-surface pl-11 text-base"
             />
           </div>
-          <select
-            aria-label="Filter resources by category"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="px-4 py-3 rounded-xl bg-white/10 border border-white/15 text-white focus:outline-none focus:ring-2 focus:ring-red-500/40"
-          >
-            <option value="">All categories</option>
-            {RESOURCE_CATEGORIES.map((c) => (
-              <option key={c.id} value={c.id} className="bg-gray-900">
-                {c.label}
-              </option>
-            ))}
-          </select>
-          <select
-            aria-label="Filter resources by type"
-            value={resourceType}
-            onChange={(e) => setResourceType(e.target.value)}
-            className="px-4 py-3 rounded-xl bg-white/10 border border-white/15 text-white focus:outline-none focus:ring-2 focus:ring-red-500/40"
-          >
-            <option value="">All types</option>
-            {RESOURCE_TYPES.map((t) => (
-              <option key={t.id} value={t.id} className="bg-gray-900">
-                {t.label}
-              </option>
-            ))}
-          </select>
         </div>
+      </header>
 
-        {error && (
-          <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-            {error}
-          </div>
-        )}
+      <div className="nb-container flex flex-wrap items-start gap-12 pb-28 pt-12">
+        <aside aria-label="Filters" className="flex min-w-0 flex-[1_1_220px] flex-col gap-7">
+          <FilterGroup
+            legend="Type"
+            name="res-type"
+            value={resourceType}
+            onChange={setResourceType}
+            options={RESOURCE_TYPES.map((t) => ({ id: t.id, label: t.label }))}
+            anyLabel="All types"
+          />
+          <FilterGroup
+            legend="Category"
+            name="res-category"
+            value={category}
+            onChange={setCategory}
+            options={RESOURCE_CATEGORIES.map((c) => ({ id: c.id, label: c.label }))}
+            anyLabel="All categories"
+          />
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="inline-flex min-h-[44px] items-center gap-1 self-start font-mono text-xs uppercase tracking-[0.06em] text-signal-text hover:text-signal-hover"
+            >
+              <X size={14} aria-hidden="true" /> Clear filters
+            </button>
+          )}
+        </aside>
 
-        {loading ? (
-          <CardSkeletonGrid count={6} variant="resource" cols="grid-cols-1 sm:grid-cols-2 xl:grid-cols-3" />
-        ) : filteredCount === 0 ? (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-12 text-center">
-            <FileText className="w-12 h-12 text-white/30 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">No resources yet</h2>
-            <p className="text-white/60 max-w-md mx-auto">
-              Check back soon — admins will publish shared lab materials from the admin panel.
-            </p>
+        <section aria-label="Resources" className="flex min-w-0 flex-[999_1_600px] flex-col gap-4">
+          <div className="flex flex-wrap justify-between gap-2 font-mono text-xs uppercase tracking-[0.06em] text-ink-muted">
+            <span aria-live="polite">{loading ? "Loading…" : `${filteredCount} result${filteredCount === 1 ? "" : "s"}`}</span>
+            {(category || resourceType) && (
+              <span>
+                {[resourceType && typeLabel(resourceType), category && categoryLabel(category)].filter(Boolean).join(" · ")}
+              </span>
+            )}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-            {items.map((resource) => (
-              <ResourceCard key={resource._id} resource={resource} onOpen={handleOpen} />
-            ))}
-          </div>
-        )}
+
+          {error && (
+            <div role="alert" className="rounded-lg border border-[#F3C4C4] bg-[#FBE4E4] px-4 py-3 text-sm text-[#991B1B]">
+              {error}
+            </div>
+          )}
+
+          {loading ? (
+            <ul role="status" aria-label="Loading resources" className="m-0 list-none rounded-lg border border-line bg-surface p-0">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <li key={i} className="flex items-center gap-5 border-b border-line-soft px-6 py-5 last:border-b-0">
+                  <span className="h-14 w-14 shrink-0 animate-pulse rounded-md bg-[#E6E7E1]" />
+                  <span className="flex flex-1 flex-col gap-2">
+                    <span className="h-4 w-2/3 animate-pulse rounded bg-[#E6E7E1]" />
+                    <span className="h-3 w-1/3 animate-pulse rounded bg-[#E6E7E1]" />
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : filteredCount === 0 && !hasActiveFilters ? (
+            <EmptyLog
+              id="resources-empty-title"
+              title="No resources shared yet."
+              scannerLabel="No resources found · Jarvis is also waiting for the team to update"
+            >
+              Datasheets, guides and shared lab materials will be listed here once admins publish them. Check back
+              soon.
+            </EmptyLog>
+          ) : filteredCount === 0 ? (
+            <NoMatchCard title="No resources match" hint="Try a different search term, type or category." onClear={clearFilters} />
+          ) : (
+            <ul className="m-0 list-none rounded-lg border border-line bg-surface p-0">
+              {items.map((resource) => (
+                <ResourceRow key={resource._id} resource={resource} onOpen={handleOpen} />
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
 
       {viewer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80" role="dialog" aria-modal="true" aria-labelledby="resource-viewer-title" onClick={() => setViewer(null)}>
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-ink/70 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="resource-viewer-title"
+          onClick={() => setViewer(null)}
+        >
           <div
-            className="w-full max-w-4xl rounded-2xl border border-white/10 bg-[#0b1018] overflow-hidden"
+            className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg border border-line bg-surface text-ink"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-              <div>
-                <h3 id="resource-viewer-title" className="font-bold text-lg">{viewer.title}</h3>
-                <p className="text-sm text-white/50">
+            <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
+              <div className="min-w-0">
+                <h3 id="resource-viewer-title" className="m-0 font-display text-lg font-semibold">
+                  {viewer.title}
+                </h3>
+                <p className="m-0 mt-1 font-mono text-xs uppercase tracking-[0.06em] text-ink-muted">
                   {categoryLabel(viewer.category)} · {typeLabel(viewer.resourceType)}
                 </p>
               </div>
-              <button type="button" onClick={() => setViewer(null)} className="text-white/60 hover:text-white" aria-label="Close resource viewer">
-                <X className="w-5 h-5" />
+              <button
+                type="button"
+                onClick={() => setViewer(null)}
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-line text-ink hover:border-ink"
+                aria-label="Close resource viewer"
+              >
+                <X size={18} aria-hidden="true" />
               </button>
             </div>
-            <div className="p-5">
+            <div className="overflow-y-auto p-5">
               {viewer.resourceType === "video" && viewer.fileUrl && (
-                <video src={viewer.fileUrl} controls className="w-full max-h-[60vh] rounded-xl bg-black" />
+                <video src={viewer.fileUrl} controls className="max-h-[60vh] w-full rounded-md bg-ink" />
               )}
               {viewer.resourceType === "image" && viewer.fileUrl && (
-                <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black">
-                  <Image
+                <div className="nb-blueprint-sm relative aspect-video w-full overflow-hidden rounded-md">
+                  <RemoteImage
                     src={getResourcePreviewUrl(viewer) || viewer.fileUrl}
                     alt={viewer.title}
                     fill
                     className="object-contain"
-                    unoptimized={isCloudinaryUrl(viewer.fileUrl)}
                   />
                 </div>
               )}
@@ -256,18 +329,20 @@ function ResourcesContent() {
                   href={getResourceOpenUrl(viewer)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-xl bg-red-600 hover:bg-red-500 px-5 py-3 font-semibold"
+                  className="nb-btn nb-btn-primary"
                 >
                   Open in new tab
-                  <ExternalLink className="w-4 h-4" />
+                  <ExternalLink size={16} aria-hidden="true" />
                 </a>
               )}
-              {viewer.description && <p className="mt-4 text-white/70 leading-relaxed">{viewer.description}</p>}
+              {viewer.description && (
+                <p className="m-0 mt-4 max-w-[680px] leading-relaxed text-ink-muted">{viewer.description}</p>
+              )}
             </div>
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }
 

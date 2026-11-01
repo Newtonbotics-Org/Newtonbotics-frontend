@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ArrowUpRight, Boxes, MapPin, Search } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Boxes, MapPin, Search, X } from "lucide-react";
 import { getInventoryProject } from "@/lib/inventoryProjects";
 import inventoryService from "@/lib/inventory";
 import { DetailPageSkeleton } from "@/components/PageSkeletons";
+import { DemoBanner, EmptyState, categoryCode, stockChip } from "./InventoryUi";
 import styles from "./inventory.module.css";
 
 function stockTone(item) {
@@ -79,103 +80,146 @@ export default function ProjectInventoryDetail() {
   };
 
   return (
-    <main className={styles.scope}>
-      <div className={styles.container}>
-        <nav className={styles.detailNav} aria-label="Inventory breadcrumb">
-          <Link href="/Inventory?section=projects" className={styles.backLink}>
-            <ArrowLeft size={16} /> Project inventories
-          </Link>
-          {projectId && (
-            <Link href={`/Projects/${encodeURIComponent(projectId)}`} className={styles.backLink}>
-              Back to project <ArrowUpRight size={14} />
+    <main className="nb-dark bg-paper text-ink">
+      <header className="nb-blueprint border-b border-line">
+        <div className="nb-container flex flex-col gap-5 pb-12 pt-10 sm:pt-14">
+          <nav aria-label="Inventory breadcrumb" className="flex flex-wrap items-center justify-between gap-3">
+            <Link href="/Inventory?section=projects" className="inline-flex min-h-[44px] items-center gap-2 font-mono text-xs uppercase tracking-[0.06em] text-ink-muted hover:text-ink">
+              <ArrowLeft size={16} aria-hidden="true" /> Project inventories
             </Link>
+            {projectId && (
+              <Link href={`/Projects/${encodeURIComponent(projectId)}`} className="nb-link inline-flex min-h-[44px] items-center gap-1 text-sm">
+                Back to project <ArrowUpRight size={14} aria-hidden="true" />
+              </Link>
+            )}
+          </nav>
+          {!loading && !error && project && (
+            <>
+              <span className="nb-eyebrow">
+                <span className="nb-eyebrow-num">[INV]</span> Project inventory
+              </span>
+              <h1 className="nb-h1 m-0 max-w-[900px]">{project.title || "Untitled project"}</h1>
+              {project.description && <p className="nb-lead m-0 line-clamp-3 max-w-[720px]">{project.description}</p>}
+            </>
           )}
-        </nav>
+        </div>
+      </header>
 
+      <div className="nb-container flex flex-col gap-6 pb-28 pt-8">
         {loading ? (
           <DetailPageSkeleton />
         ) : error ? (
-          <div className={styles.empty} role="alert">
-            <h1>Project inventory unavailable</h1>
-            <p>{error}</p>
-            <button className={styles.secondaryButton} onClick={() => setRetry((value) => value + 1)}>Try again</button>
-          </div>
+          <EmptyState
+            role="alert"
+            headingLevel={1}
+            title="Project inventory unavailable"
+            action={<button type="button" className="nb-btn nb-btn-primary" onClick={() => setRetry((value) => value + 1)}>Try again</button>}
+          >
+            {error}
+          </EmptyState>
         ) : project && (
           <>
-            <header className={styles.projectHeader}>
-              <p className={styles.eyebrow}>PROJECT INVENTORY</p>
-              <h1>{project.title || "Untitled project"}</h1>
-              {project.description && <p>{project.description}</p>}
-              <Link href={`/Projects/${encodeURIComponent(projectId)}`} className={styles.backLink}>
-                View project details <ArrowUpRight size={16} />
-              </Link>
-            </header>
+            <DemoBanner label="Project-owned stock">Approved requests transfer quantities from General Lab into this project.</DemoBanner>
 
-            <div className={styles.demoBanner} role="status">
-              <span>PROJECT-OWNED STOCK</span>
-              <span>Approved requests transfer quantities from General Lab into this project.</span>
+            <div className="flex flex-col gap-2">
+              <h2 className="m-0 font-display text-[28px] font-semibold tracking-[-0.02em]">Project components</h2>
+              <p className="m-0 text-ink-muted">Component records are managed through the admin dashboard.</p>
             </div>
 
-            <div className={styles.sectionHeading}>
-              <div>
-                <h2>Project components</h2>
-                <p>Component records are managed through the admin dashboard.</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative min-w-0 flex-[1_1_260px]">
+                <label htmlFor="project-components-search" className="nb-sr-only">Search project components</label>
+                <Search size={16} aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-subtle" />
+                <input
+                  id="project-components-search"
+                  type="search"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search components…"
+                  className="nb-input h-11 pl-10 text-sm"
+                />
               </div>
-            </div>
-
-            <div className={styles.toolbar}>
-              <label className={styles.search}>
-                <Search size={18} />
-                <span className={styles.srOnly}>Search project components</span>
-                <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search components…" />
-              </label>
-              <label className={styles.statusSelect}>
-                <span className={styles.srOnly}>Filter by category</span>
-                <select value={category} onChange={(event) => setCategory(event.target.value)}>
-                  <option value="">All categories</option>
-                  {categories.map((value) => <option key={value} value={value}>{value}</option>)}
-                </select>
-              </label>
-              <label className={styles.statusSelect}>
-                <span className={styles.srOnly}>Filter by availability</span>
-                <select value={availability} onChange={(event) => setAvailability(event.target.value)}>
-                  <option value="">All availability</option>
-                  <option value="success">Available</option>
-                  <option value="danger">Out of stock</option>
-                </select>
-              </label>
-              {hasFilters && <button className={styles.secondaryButton} onClick={clearFilters}>Clear filters</button>}
+              <label htmlFor="project-components-category" className="nb-sr-only">Filter by category</label>
+              <select
+                id="project-components-category"
+                value={category}
+                onChange={(event) => setCategory(event.target.value)}
+                className="nb-input h-11 w-[180px] shrink-0 truncate pr-8 text-sm"
+              >
+                <option value="">All categories</option>
+                {categories.map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+              <label htmlFor="project-components-availability" className="nb-sr-only">Filter by availability</label>
+              <select
+                id="project-components-availability"
+                value={availability}
+                onChange={(event) => setAvailability(event.target.value)}
+                className="nb-input h-11 w-[180px] shrink-0 truncate pr-8 text-sm"
+              >
+                <option value="">Any status</option>
+                <option value="success">Available</option>
+                <option value="danger">Out of stock</option>
+              </select>
+              {hasFilters && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="inline-flex min-h-[44px] items-center gap-1 px-2 font-mono text-xs uppercase tracking-[0.06em] text-signal-text hover:text-signal-hover"
+                >
+                  <X size={14} aria-hidden="true" /> Clear filters
+                </button>
+              )}
             </div>
 
             {filteredItems.length === 0 ? (
-              <div className={styles.empty}>
-                <Boxes size={40} strokeWidth={1.2} />
-                <h3>{hasFilters ? "No matching components" : "No components yet"}</h3>
-                <p>{hasFilters ? "Try changing your search or filters." : "Components will appear here after an admin adds them or approves a request."}</p>
-                {hasFilters && <button className={styles.secondaryButton} onClick={clearFilters}>Clear filters</button>}
-              </div>
+              <EmptyState
+                icon={Boxes}
+                title={hasFilters ? "No matching components" : "No components yet"}
+                action={hasFilters && <button type="button" className="nb-btn nb-btn-secondary" onClick={clearFilters}>Clear filters</button>}
+              >
+                {hasFilters ? "Try changing your search or filters." : "Components will appear here after an admin adds them or approves a request."}
+              </EmptyState>
             ) : (
-              <div className={styles.itemGrid}>
-                {filteredItems.map((item) => {
-                  const stock = stockTone(item);
-                  return (
-                    <article key={item._id} className={styles.itemCard}>
-                      <div className={styles.itemImage}><Boxes size={42} strokeWidth={1.2} aria-label="Component" /></div>
-                      <div className={styles.itemBody}>
-                        <div className={styles.itemMeta}>
-                          <span className={styles.categoryLabel}>{item.category || "Uncategorized"}</span>
-                          <span className={`${styles.stockBadge} ${styles[stock.tone]}`}>{stock.label}</span>
-                        </div>
-                        <h4>{item.name}</h4>
-                        <p className={styles.itemDescription}>{item.description || "Project component"}</p>
-                        <div className={styles.itemFacts}>
-                          <div><strong>{item.quantity}</strong><span>available</span></div>
-                          <span><MapPin size={14} />{item.location || "Location not set"}</span>
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th scope="col">Item</th>
+                      <th scope="col">Category</th>
+                      <th scope="col">Location</th>
+                      <th scope="col">Available</th>
+                      <th scope="col">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredItems.map((item) => {
+                      const stock = stockTone(item);
+                      return (
+                        <tr key={item._id}>
+                          <td>
+                            <span className="flex min-w-[240px] items-center gap-3">
+                              <span className={styles.codeTile} aria-hidden="true">{categoryCode(item.category)}</span>
+                              <span className="flex min-w-0 flex-col">
+                                <span className="font-semibold">{item.name}</span>
+                                <span className="line-clamp-1 text-[13px] text-ink-muted">{item.description || "Project component"}</span>
+                              </span>
+                            </span>
+                          </td>
+                          <td className="text-ink-muted">{item.category || "Uncategorized"}</td>
+                          <td className="font-mono text-[13px]">
+                            {item.location ? (
+                              <span className="inline-flex items-center gap-1"><MapPin size={14} aria-hidden="true" />{item.location}</span>
+                            ) : (
+                              <span className="text-ink-muted">Not set</span>
+                            )}
+                          </td>
+                          <td className="font-mono text-xs">{item.quantity}</td>
+                          <td><span className={`nb-chip ${stockChip(stock.label)}`}>{stock.label}</span></td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </>

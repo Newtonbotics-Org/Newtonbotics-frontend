@@ -12,7 +12,7 @@ function Bone({ className = "", delay = 0 }) {
 }
 
 const cardShell =
-  "bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10";
+  "bg-surface rounded-lg border border-line";
 
 export function ProjectCardSkeleton({ delay = 0 }) {
   return (
@@ -119,7 +119,7 @@ export function ResearchAreaCardSkeleton({ delay = 0, compact = false }) {
       <Bone className="h-3.5 w-full rounded mb-2" delay={delay + 140} />
       <Bone className="h-3.5 w-5/6 rounded mb-4" delay={delay + 180} />
       {!compact && (
-        <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/10">
+        <div className="grid grid-cols-2 gap-3 pt-4 border-t border-line">
           <Bone className="h-10 w-full rounded" delay={delay + 220} />
           <Bone className="h-10 w-full rounded" delay={delay + 260} />
         </div>
@@ -171,7 +171,7 @@ export function FilterBarSkeleton({ fields = 4 }) {
 
 export function DetailPageSkeleton({ className = "" }) {
   return (
-    <div className={`min-h-screen bg-black text-white ${className}`} role="status" aria-label="Loading content">
+    <div className={`nb-dark min-h-screen bg-paper text-ink ${className}`} role="status" aria-label="Loading content">
       <div className="container mx-auto px-4 py-8">
         <Bone className="h-10 w-36 rounded-lg mb-6" />
         <Bone className="h-64 md:h-80 w-full rounded-2xl mb-8" />
@@ -203,7 +203,7 @@ export function DetailPageSkeleton({ className = "" }) {
 
 export function ArticleDetailSkeleton({ className = "" }) {
   return (
-    <div className={`min-h-screen bg-black text-white ${className}`} role="status" aria-label="Loading article">
+    <div className={`nb-dark min-h-screen bg-paper text-ink ${className}`} role="status" aria-label="Loading article">
       <div className="container mx-auto px-4 py-6">
         <Bone className="h-8 w-24 rounded-lg mb-4" />
         <Bone className="h-64 w-full rounded-2xl mb-6" />

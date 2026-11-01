@@ -9,6 +9,12 @@ import { DetailPageSkeleton } from "@/components/PageSkeletons";
 import { API_BASE_URL } from "@/lib/api";
 import { isDemoMode } from "@/lib/demoMode";
 import { getDemoEquipmentById, getDemoProjects } from "@/lib/demoStore";
+import { ArrowLeft, LogIn, LogOut, RefreshCw } from "lucide-react";
+import BlueprintPlaceholder from "@/components/lab/BlueprintPlaceholder";
+import InventoryDialog from "@/components/inventory/InventoryDialog";
+import { Alert, DemoBanner, Field, Toast, checkoutChip, equipmentStatusChip } from "@/components/inventory/InventoryUi";
+import styles from "@/components/inventory/inventory.module.css";
+import { optimizeImageUrl } from "@/lib/cloudinaryMedia";
 
 const DEMO = isDemoMode();
 
@@ -80,8 +86,6 @@ export default function EquipmentDetailPage(){
     try {
       const data = await inventoryService.getActiveCheckouts(params.id);
       const checkouts = data.activeCheckouts || [];
-      console.log('Loaded active checkouts:', checkouts);
-      console.log('Checkout IDs:', checkouts.map(c => ({ id: c.id, _id: c._id, userId: c.userId })));
       setActiveCheckouts(checkouts);
     } catch (e) {
       console.error('Failed to load active checkouts:', e);
@@ -161,11 +165,27 @@ export default function EquipmentDetailPage(){
   },[params.id]);
 
   if (loading) return <DetailPageSkeleton />;
-  if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">{error}</div>;
-  if (!item) return <div className="min-h-screen flex items-center justify-center text-white/70">Not found</div>;
+  if (error || !item) {
+    return (
+      <main className="nb-dark bg-paper text-ink">
+        <div className="nb-container flex flex-col items-start gap-4 pb-28 pt-16">
+          <Link href="/Inventory" className="inline-flex min-h-[44px] items-center gap-2 font-mono text-xs uppercase tracking-[0.06em] text-ink-muted hover:text-ink">
+            <ArrowLeft size={16} aria-hidden="true" /> Back to inventory
+          </Link>
+          <div role={error ? "alert" : undefined} className="nb-card flex w-full flex-wrap items-center gap-8 p-8 sm:p-10">
+            <div className="flex min-w-0 flex-[1_1_260px] flex-col items-start gap-3">
+              <h1 className="m-0 font-display text-3xl font-semibold tracking-[-0.02em]">{error ? "Equipment couldn't be loaded" : "Not found"}</h1>
+              <p className="m-0 text-ink-muted">{error || "This equipment record doesn't exist or was removed."}</p>
+            </div>
+            <BlueprintPlaceholder label="Equipment not found" className="h-[220px] min-w-0 flex-[1.4_1_320px] rounded-md border border-line" />
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   const status = item.status;
-  const statusClass = status === 'available' ? 'bg-green-600' : status === 'low_stock' ? 'bg-yellow-600' : status === 'out_of_stock' ? 'bg-red-600' : 'bg-white/20';
+  const categoryName = typeof item.categoryId === "object" ? item.categoryId?.name : "";
 
   const handleCheckout = async () => {
     try {
@@ -228,15 +248,6 @@ export default function EquipmentDetailPage(){
           return cId === selectedId;
         });
         
-        console.log('Selected checkout ID from state:', selectedCheckoutId);
-        console.log('Selected checkout object:', selectedCheckout);
-        console.log('All active checkouts with IDs:', activeCheckouts.map(c => ({
-          id: c.id,
-          _id: c._id,
-          checkoutId: c.checkoutId,
-          userId: c.userId,
-          allKeys: Object.keys(c)
-        })));
         
         if (!selectedCheckout) {
           setActionError(`Selected checkout not found. Please refresh and select again.`);
@@ -246,7 +257,6 @@ export default function EquipmentDetailPage(){
         // Use the ID from the checkout object to ensure we have the correct format
         const finalCheckoutId = selectedCheckout.id || selectedCheckout._id || selectedCheckout.checkoutId || selectedCheckoutId.trim();
         payload.checkoutId = finalCheckoutId;
-        console.log('Final checkout ID being sent:', payload.checkoutId);
       } else if (activeCheckouts.length > 0) {
         // If there are active checkouts but no selection, this should not happen due to validation
         setActionError('Please select a checkout to return');
@@ -256,18 +266,14 @@ export default function EquipmentDetailPage(){
       // Only include quantity if specified (for partial returns)
       if (returnQty && returnQty > 0 && returnQty !== '' && !isNaN(returnQty)) {
         payload.quantity = parseInt(returnQty, 10);
-        console.log('Return quantity:', payload.quantity);
       }
       
       if (returnNotes.trim()) {
         payload.returnNotes = returnNotes.trim();
       }
 
-      console.log('Final return payload:', JSON.stringify(payload, null, 2));
-      console.log('Equipment ID:', item._id);
       
-      const result = await inventoryService.returnEquipment(item._id, payload);
-      console.log('Return result:', result);
+      await inventoryService.returnEquipment(item._id, payload);
       
       setIsReturnOpen(false);
       setSelectedCheckoutId("");
@@ -282,203 +288,222 @@ export default function EquipmentDetailPage(){
     }
   };
 
-  return (
-    <div className="min-h-screen bg-black text-white py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="mb-4">
-          <Link href="/Inventory" className="text-sm text-white/60 hover:text-white transition-colors">← Back to Inventory</Link>
-        </div>
-        {DEMO && (
-          <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-white/75" role="status">
-            <span className="mr-2 inline-flex rounded-full border border-red-500/40 bg-red-500/20 px-2 py-0.5 text-[0.65rem] tracking-[0.12em] uppercase text-red-200">Demo mode</span>
-            Showing local sample component details. Checkout and return stay disabled so demo data is never sent to the real API.
-          </div>
-        )}
-        <div className="flex items-center justify-between mb-6 gap-4">
-          <h1 className="text-2xl font-bold">{item.name}</h1>
-          <div className={`px-3 py-1 rounded-full text-sm ${statusClass}`}>{String(status || "unknown").replace(/_/g,' ')}</div>
-        </div>
+  const specs = [
+    ["Current qty", item.currentQuantity],
+    ["Min qty", item.minQuantity || 0],
+    ["Available", item.currentQuantity > 0 ? "Yes" : "No"],
+    ...(item.location ? [["Location", item.location]] : []),
+  ];
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-3">
-            <div className="text-white/80">Current Qty: <span className="text-white">{item.currentQuantity}</span></div>
-            <div className="text-white/80">Min Qty: <span className="text-white">{item.minQuantity || 0}</span></div>
-            <div className="text-white/80">Available: <span className="text-white">{item.currentQuantity > 0 ? 'Yes' : 'No'}</span></div>
-            {item.location && <div className="text-white/80">Location: <span className="text-white">{item.location}</span></div>}
-            {item.description && <div className="text-white/80">Description: <span className="text-white">{item.description}</span></div>}
+  return (
+    <main className="nb-dark bg-paper text-ink">
+      <header className="nb-blueprint border-b border-line">
+        <div className="nb-container flex flex-col gap-5 pb-12 pt-10 sm:pt-14">
+          <nav aria-label="Inventory breadcrumb">
+            <Link href="/Inventory" className="inline-flex min-h-[44px] items-center gap-2 font-mono text-xs uppercase tracking-[0.06em] text-ink-muted hover:text-ink">
+              <ArrowLeft size={16} aria-hidden="true" /> Back to inventory
+            </Link>
+          </nav>
+          <span className="nb-eyebrow">
+            <span className="nb-eyebrow-num">[INV]</span> {categoryName || "Lab equipment"}
+          </span>
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <h1 className="nb-h1 m-0 max-w-[900px]">{item.name}</h1>
+            <span className={`nb-chip ${equipmentStatusChip(status)}`}>{String(status || "unknown").replace(/_/g, " ")}</span>
           </div>
-          <div>
-            {item.imageUrl && (
+        </div>
+      </header>
+
+      <div className="nb-container flex flex-col gap-8 pb-28 pt-10">
+        {DEMO && (
+          <DemoBanner>
+            Showing local sample component details. Checkout and return stay disabled so demo data is never sent to the real API.
+          </DemoBanner>
+        )}
+
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="nb-card overflow-hidden">
+            {item.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={item.imageUrl} alt={item.name} className="w-full rounded-lg border border-white/10 object-contain max-h-72 bg-white/5" />
+              <img src={optimizeImageUrl(item.imageUrl, { width: 640 })} alt={item.name} decoding="async" className="h-[320px] w-full bg-surface object-contain p-6" />
+            ) : (
+              <BlueprintPlaceholder label="No photo" className="h-[320px]" />
             )}
+          </div>
+          <div className="nb-card flex flex-col gap-6 p-6 sm:p-8">
+            <dl className="m-0 grid grid-cols-2 gap-x-6 gap-y-5">
+              {specs.map(([label, value]) => (
+                <div key={label} className="flex min-w-0 flex-col gap-1">
+                  <dt className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">{label}</dt>
+                  <dd className="m-0 break-words font-display text-xl font-semibold">{value}</dd>
+                </div>
+              ))}
+            </dl>
+            {item.description && (
+              <div className="flex flex-col gap-1 border-t border-line pt-5">
+                <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">Description</span>
+                <p className="m-0 text-ink-body">{item.description}</p>
+              </div>
+            )}
+
+            <div className="mt-auto border-t border-line pt-5">
+              {DEMO ? (
+                <p className="m-0 text-sm text-ink-muted">
+                  Demo mode keeps checkout/return offline. Use Add / Edit / Delete on the General Lab catalogue to change sample stock locally.
+                </p>
+              ) : canManage ? (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    disabled={item.currentQuantity===0}
+                    onClick={async ()=>{
+                      setActionError("");
+                      setCheckoutQty(1);
+                      setCheckoutDue("");
+                      setCheckoutNotes("");
+                      setProjectId("");
+                      setIsProjectUse(false);
+                      setCheckoutUserId("");
+                      if (isAdmin) {
+                        await loadUsers();
+                      }
+                      setIsCheckoutOpen(true);
+                    }}
+                    className="nb-btn nb-btn-primary"
+                  >
+                    <LogOut size={18} aria-hidden="true" /> Checkout
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async ()=>{
+                      setActionError("");
+                      setSelectedCheckoutId("");
+                      setReturnQty(1);
+                      setReturnNotes("");
+                      // Load active checkouts before opening modal
+                      const activeData = await inventoryService.getActiveCheckouts(params.id);
+                      const activeList = activeData.activeCheckouts || [];
+                      setActiveCheckouts(activeList);
+
+                      // Auto-select if only one active checkout
+                      if (activeList.length === 1) {
+                        const checkoutId = activeList[0].id || activeList[0]._id;
+                        setSelectedCheckoutId(checkoutId);
+                      }
+                      setIsReturnOpen(true);
+                    }}
+                    className="nb-btn nb-btn-secondary"
+                  >
+                    <LogIn size={18} aria-hidden="true" /> Return
+                  </button>
+                </div>
+              ) : (
+                <p className="m-0 text-sm text-ink-muted">You don&apos;t have permission to manage this equipment.</p>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Active Checkouts */}
         {activeCheckouts.length > 0 && (
-          <div className="mt-6 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-            <h3 className="text-lg font-semibold mb-2 text-yellow-300">Active Checkouts ({activeCheckouts.length})</h3>
-            <div className="space-y-2">
+          <section aria-labelledby="active-checkouts-title" className="rounded-lg border border-[#EBD9A8] bg-[#FDF1D8] p-5 text-[#854D0E]">
+            <h2 id="active-checkouts-title" className="m-0 mb-3 font-display text-lg font-semibold">Active checkouts ({activeCheckouts.length})</h2>
+            <ul className="m-0 flex list-none flex-col gap-2 p-0 text-sm">
               {activeCheckouts.map((checkout) => (
-                <div key={checkout.id} className="text-sm text-white/80">
-                  <span className="font-medium">{checkout.userNameSnapshot || checkout.userId}</span>
-                  {' - '}
+                <li key={checkout.id}>
+                  <span className="font-semibold">{checkout.userNameSnapshot || checkout.userId}</span>
+                  {' · '}
                   Qty: {checkout.quantity}
-                  {checkout.projectName && ` - Project: ${checkout.projectName}`}
-                  {checkout.expectedReturnDate && ` - Expected: ${new Date(checkout.expectedReturnDate).toLocaleDateString()}`}
-                  {checkout.status === 'overdue' && <span className="ml-2 text-red-400">(Overdue)</span>}
-                </div>
+                  {checkout.projectName && ` · Project: ${checkout.projectName}`}
+                  {checkout.expectedReturnDate && ` · Expected: ${new Date(checkout.expectedReturnDate).toLocaleDateString()}`}
+                  {checkout.status === 'overdue' && <span className="nb-chip nb-chip-red ml-2">Overdue</span>}
+                </li>
               ))}
-            </div>
-          </div>
-        )}
-
-        {DEMO ? (
-          <div className="mt-8 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/65">
-            Demo mode keeps checkout/return offline. Use Add / Edit / Delete on the General Lab catalogue to change sample stock locally.
-          </div>
-        ) : canManage ? (
-          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <button 
-              disabled={item.currentQuantity===0} 
-              onClick={async ()=>{ 
-                setActionError(""); 
-                setCheckoutQty(1); 
-                setCheckoutDue(""); 
-                setCheckoutNotes("");
-                setProjectId("");
-                setIsProjectUse(false);
-                setCheckoutUserId("");
-                if (isAdmin) {
-                  await loadUsers();
-                }
-                setIsCheckoutOpen(true); 
-              }} 
-              className="px-4 py-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/10 text-center disabled:opacity-50"
-            >
-              Checkout
-            </button>
-            <button 
-              onClick={async ()=>{ 
-                setActionError(""); 
-                setSelectedCheckoutId("");
-                setReturnQty(1);
-                setReturnNotes("");
-                // Load active checkouts before opening modal
-                const activeData = await inventoryService.getActiveCheckouts(params.id);
-                const activeList = activeData.activeCheckouts || [];
-                console.log('Active checkouts loaded:', activeList);
-                console.log('Checkout IDs:', activeList.map(c => ({ id: c.id, _id: c._id })));
-                setActiveCheckouts(activeList);
-                
-                // Auto-select if only one active checkout
-                if (activeList.length === 1) {
-                  const checkoutId = activeList[0].id || activeList[0]._id;
-                  console.log('Auto-selecting checkout ID:', checkoutId);
-                  setSelectedCheckoutId(checkoutId);
-                }
-                setIsReturnOpen(true); 
-              }} 
-              className="px-4 py-3 rounded-lg bg-green-600/80 hover:bg-green-600 text-white text-center"
-            >
-              Return
-            </button>
-          </div>
-        ) : (
-          <div className="mt-6 text-white/70">You don't have permission to manage this equipment.</div>
+            </ul>
+          </section>
         )}
 
         {/* Checkout History */}
-        <div className="mt-10">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold">Checkout History</h2>
+        <section aria-labelledby="checkout-history-title" className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 id="checkout-history-title" className="m-0 font-display text-[28px] font-semibold tracking-[-0.02em]">Checkout history</h2>
             {!DEMO && (
               <button
+                type="button"
                 onClick={loadCheckouts}
                 disabled={loadingCheckouts}
-                className="text-sm text-white/60 hover:text-white/80 disabled:opacity-50"
+                className="nb-btn nb-btn-ghost nb-btn-sm"
               >
-                {loadingCheckouts ? 'Loading...' : 'Refresh'}
+                <RefreshCw size={16} aria-hidden="true" /> {loadingCheckouts ? 'Loading…' : 'Refresh'}
               </button>
             )}
           </div>
           {DEMO ? (
-            <div className="text-center py-8 text-white/60">No checkout history in demo mode</div>
+            <p className="nb-card m-0 p-8 text-center text-ink-muted">No checkout history in demo mode</p>
           ) : loadingCheckouts ? (
-            <div className="text-center py-8 text-white/60">Loading checkouts...</div>
+            <p className="nb-card m-0 p-8 text-center text-ink-muted" role="status">Loading checkouts…</p>
           ) : checkouts.length === 0 ? (
-            <div className="text-center py-8 text-white/60">No checkout history</div>
+            <p className="nb-card m-0 p-8 text-center text-ink-muted">No checkout history</p>
           ) : (
-          <div className="overflow-x-auto rounded-lg border border-white/10">
-            <table className="min-w-full text-sm">
-              <thead className="bg-white/5 text-white/70">
-                <tr>
-                  <th className="px-3 py-2 text-left">User</th>
-                    <th className="px-3 py-2 text-left">Quantity</th>
-                  <th className="px-3 py-2 text-left">Status</th>
-                    <th className="px-3 py-2 text-left">Project</th>
-                  <th className="px-3 py-2 text-left">Checkout Date</th>
-                  <th className="px-3 py-2 text-left">Expected Return</th>
-                  <th className="px-3 py-2 text-left">Actual Return</th>
-                    <th className="px-3 py-2 text-left">Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                  {checkouts.map((c)=>{
-                  return (
-                      <tr key={c.id} className="border-t border-white/10">
-                        <td className="px-3 py-2">{c.userNameSnapshot || c.userId || '—'}</td>
-                        <td className="px-3 py-2">{c.quantity}</td>
-                        <td className="px-3 py-2">
-                          <span className={`px-2 py-1 rounded text-xs ${
-                            c.status === 'returned' ? 'bg-green-500/20 text-green-300' :
-                            c.status === 'overdue' ? 'bg-red-500/20 text-red-300' :
-                            c.status === 'project_use' ? 'bg-blue-500/20 text-blue-300' :
-                            'bg-yellow-500/20 text-yellow-300'
-                          }`}>
-                            {(c.status||'checked_out').replace(/_/g,' ')}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2">{c.projectName || '—'}</td>
-                      <td className="px-3 py-2">{c.checkoutDate ? new Date(c.checkoutDate).toLocaleDateString() : '—'}</td>
-                      <td className="px-3 py-2">{c.expectedReturnDate ? new Date(c.expectedReturnDate).toLocaleDateString() : '—'}</td>
-                      <td className="px-3 py-2">{c.actualReturnDate ? new Date(c.actualReturnDate).toLocaleDateString() : '—'}</td>
-                        <td className="px-3 py-2 text-xs text-white/60 max-w-xs truncate" title={c.checkoutNotes || c.returnNotes || ''}>
-                          {c.checkoutNotes || c.returnNotes || '—'}
-                        </td>
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th scope="col">User</th>
+                    <th scope="col">Qty</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Project</th>
+                    <th scope="col">Checked out</th>
+                    <th scope="col">Expected return</th>
+                    <th scope="col">Returned</th>
+                    <th scope="col">Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {checkouts.map((c)=>(
+                    <tr key={c.id}>
+                      <td className="font-semibold">{c.userNameSnapshot || c.userId || '—'}</td>
+                      <td className="font-mono text-[13px]">{c.quantity}</td>
+                      <td>
+                        <span className={`nb-chip ${checkoutChip(c.status)}`}>{(c.status||'checked_out').replace(/_/g,' ')}</span>
+                      </td>
+                      <td className="text-ink-muted">{c.projectName || '—'}</td>
+                      <td className="font-mono text-[13px]">{c.checkoutDate ? new Date(c.checkoutDate).toLocaleDateString() : '—'}</td>
+                      <td className="font-mono text-[13px]">{c.expectedReturnDate ? new Date(c.expectedReturnDate).toLocaleDateString() : '—'}</td>
+                      <td className="font-mono text-[13px]">{c.actualReturnDate ? new Date(c.actualReturnDate).toLocaleDateString() : '—'}</td>
+                      <td className="max-w-xs truncate text-[13px] text-ink-muted" title={c.checkoutNotes || c.returnNotes || ''}>
+                        {c.checkoutNotes || c.returnNotes || '—'}
+                      </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
-        </div>
+        </section>
       </div>
 
-      {/* Toast */}
-      {toast.visible && (
-        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-lg shadow-lg border ${toast.kind === 'success' ? 'bg-green-600/90 border-green-500 text-white' : 'bg-red-600/90 border-red-500 text-white'}`}>
-          {toast.message}
-        </div>
-      )}
+      <Toast toast={toast} />
 
-      {/* Enhanced Checkout Modal */}
+      {/* Checkout dialog */}
       {isCheckoutOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={()=>setIsCheckoutOpen(false)}>
-          <div className="w-full max-w-md bg-zinc-900 border border-white/10 rounded-xl p-6 max-h-[90vh] overflow-y-auto" onClick={(e)=>e.stopPropagation()}>
-            <h3 className="text-xl font-semibold mb-4 text-white">Checkout - {item.name}</h3>
-            {actionError && <div className="mb-3 text-sm text-red-400">{actionError}</div>}
-            
-            <div className="space-y-4">
+        <InventoryDialog label={`Checkout ${item.name}`} onClose={()=>setIsCheckoutOpen(false)}>
+          <div className={styles.dialogPanel}>
+            <h2 className="m-0 mb-5 font-display text-2xl font-semibold tracking-[-0.02em]">Checkout · {item.name}</h2>
+            {actionError && <Alert className="mb-4">{actionError}</Alert>}
+
+            <div className="flex flex-col gap-5">
               {isAdmin && (
-                <div>
-                  <label className="block mb-1 text-sm text-white/80">Checkout for Team Member (optional - leave empty for yourself)</label>
+                <Field
+                  id="checkout-user"
+                  label="Checkout for team member"
+                  hint={loadingUsers ? "Loading team members…" : users.length === 0 ? "No team members found" : "Optional — leave as yourself to check out on your own account."}
+                >
                   <select
+                    id="checkout-user"
                     value={checkoutUserId}
                     onChange={(e)=>setCheckoutUserId(e.target.value)}
-                    className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white"
+                    className="nb-input truncate pr-8"
                   >
                     <option value="">Myself ({user?.firstName} {user?.lastName})</option>
                     {users.map(u => {
@@ -490,199 +515,152 @@ export default function EquipmentDetailPage(){
                       );
                     })}
                   </select>
-                  {loadingUsers && <div className="text-xs text-white/60 mt-1">Loading team members...</div>}
-                  {!loadingUsers && users.length === 0 && <div className="text-xs text-white/60 mt-1">No team members found</div>}
-                </div>
+                </Field>
               )}
 
-              <div>
-                <label className="block mb-1 text-sm text-white/80">Quantity</label>
-                <input 
-                  type="number" 
-                  min={1} 
+              <Field id="checkout-qty" label="Quantity" hint={`Available: ${item.currentQuantity}`}>
+                <input
+                  id="checkout-qty"
+                  type="number"
+                  min={1}
                   max={item.currentQuantity}
-                  value={checkoutQty} 
-                  onChange={(e)=>setCheckoutQty(Math.max(1, Math.min(item.currentQuantity, Number(e.target.value||1))))} 
-                  className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white" 
+                  value={checkoutQty}
+                  onChange={(e)=>setCheckoutQty(Math.max(1, Math.min(item.currentQuantity, Number(e.target.value||1))))}
+                  className="nb-input max-w-[200px]"
                 />
-                <div className="text-xs text-white/60 mt-1">Available: {item.currentQuantity}</div>
-              </div>
+              </Field>
 
-              <div>
-                <label className="flex items-center gap-2 mb-2 text-sm text-white/80">
-                  <input 
-                    type="checkbox" 
-                    checked={isProjectUse} 
-                    onChange={(e)=>setIsProjectUse(e.target.checked)} 
-                    className="rounded"
-                  />
-                  <span>For project use (may not return)</span>
-                </label>
-              </div>
+              <label className="inline-flex min-h-[44px] cursor-pointer items-center gap-2.5 text-sm">
+                <input
+                  type="checkbox"
+                  checked={isProjectUse}
+                  onChange={(e)=>setIsProjectUse(e.target.checked)}
+                  className="h-[18px] w-[18px] accent-ink"
+                />
+                For project use (may not return)
+              </label>
 
               {isProjectUse && (
-                <div>
-                  <label className="block mb-1 text-sm text-white/80">Project (optional)</label>
+                <Field id="checkout-project" label="Project (optional)">
                   <select
+                    id="checkout-project"
                     value={projectId}
                     onChange={(e)=>setProjectId(e.target.value)}
-                    className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white"
+                    className="nb-input truncate pr-8"
                   >
                     <option value="">Select a project (optional)</option>
                     {projects.map(p => (
                       <option key={p._id} value={p._id}>{p.title}</option>
                     ))}
                   </select>
-                </div>
+                </Field>
               )}
 
               {!isProjectUse && (
-                <div>
-                  <label className="block mb-1 text-sm text-white/80">Expected Return Date (optional)</label>
-                  <input 
-                    type="date" 
-                    value={checkoutDue} 
-                    onChange={(e)=>setCheckoutDue(e.target.value)} 
-                    className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white" 
+                <Field id="checkout-due" label="Expected return date (optional)">
+                  <input
+                    id="checkout-due"
+                    type="date"
+                    value={checkoutDue}
+                    onChange={(e)=>setCheckoutDue(e.target.value)}
+                    className="nb-input"
                   />
-                </div>
+                </Field>
               )}
 
-              <div>
-                <label className="block mb-1 text-sm text-white/80">Notes (optional)</label>
+              <Field id="checkout-notes" label="Notes (optional)" hint={`${checkoutNotes.length}/1000`}>
                 <textarea
+                  id="checkout-notes"
                   value={checkoutNotes}
                   onChange={(e)=>setCheckoutNotes(e.target.value)}
-                  placeholder="Add checkout notes..."
+                  placeholder="Add checkout notes…"
                   rows={3}
                   maxLength={1000}
-                  className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white resize-none"
+                  className="nb-textarea resize-none"
                 />
-                <div className="text-xs text-white/60 mt-1">{checkoutNotes.length}/1000</div>
-              </div>
+              </Field>
             </div>
 
-            <div className="flex items-center justify-end gap-3 mt-6">
-              <button className="px-4 py-2 rounded-md bg-white/10 hover:bg-white/15 border border-white/10" onClick={()=>setIsCheckoutOpen(false)}>Cancel</button>
-              <button className="px-4 py-2 rounded-md bg-red-600 hover:bg-red-500 text-white" onClick={handleCheckout}>
-                Checkout
-              </button>
+            <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
+              <button type="button" className="nb-btn nb-btn-secondary nb-btn-sm" onClick={()=>setIsCheckoutOpen(false)}>Cancel</button>
+              <button type="button" className="nb-btn nb-btn-primary nb-btn-sm" onClick={handleCheckout}>Checkout</button>
             </div>
           </div>
-        </div>
+        </InventoryDialog>
       )}
 
-      {/* Enhanced Return Modal */}
+      {/* Return dialog */}
       {isReturnOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={()=>setIsReturnOpen(false)}>
-          <div className="w-full max-w-lg bg-zinc-900 border border-white/10 rounded-xl p-6" onClick={(e)=>e.stopPropagation()}>
-            <h3 className="text-xl font-semibold mb-4 text-white">Return - {item.name}</h3>
-            {actionError && <div className="mb-3 text-sm text-red-400">{actionError}</div>}
-            
-            {activeCheckouts.length > 0 ? (
-              <div className="mb-4">
-                <label className="block mb-2 text-sm text-white/80">
-                  Select Checkout {activeCheckouts.length > 1 && <span className="text-red-400">*</span>}
-                </label>
-                <select
-                  value={selectedCheckoutId}
-                  onChange={(e)=>{
-                    console.log('Selected checkout ID from dropdown:', e.target.value);
-                    setSelectedCheckoutId(e.target.value);
-                  }}
-                  className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white mb-2"
-                  required={activeCheckouts.length > 0}
-                >
-                  <option value="">Select a checkout...</option>
-                  {activeCheckouts.map((checkout, idx) => {
-                    // Try multiple possible ID field names - checkout ID is different from user ID
-                    // The checkout ID should be the record ID, not the userId
-                    const checkoutId = checkout.id || checkout._id || checkout.checkoutId;
-                    
-                    // Debug: Log checkout structure for first item
-                    if (idx === 0) {
-                      console.log('=== CHECKOUT OBJECT STRUCTURE ===');
-                      console.log('Full checkout object:', JSON.stringify(checkout, null, 2));
-                      console.log('Checkout ID fields:', { 
-                        id: checkout.id, 
-                        _id: checkout._id, 
-                        checkoutId: checkout.checkoutId,
-                        userId: checkout.userId,
-                        equipmentId: checkout.equipmentId
-                      });
-                      console.log('All keys:', Object.keys(checkout));
-                    }
-                    
-                    if (!checkoutId) {
-                      console.error('⚠️ Checkout missing ID at index', idx, ':', checkout);
-                      console.error('Available keys:', Object.keys(checkout));
-                    } else {
-                      console.log(`✓ Checkout ${idx} ID:`, checkoutId, 'User:', checkout.userId);
-                    }
-                    
-                    const userName = checkout.userNameSnapshot || checkout.userName || checkout.user?.fullName || checkout.user?.name || checkout.userId || 'Unknown';
-                    const displayText = `${userName} - Qty: ${checkout.quantity}${checkout.projectName ? ` - ${checkout.projectName}` : ''}${checkout.expectedReturnDate ? ` (Due: ${new Date(checkout.expectedReturnDate).toLocaleDateString()})` : ''}`;
-                    
-                    // Ensure we're using the checkout ID, not the user ID
-                    const finalId = checkoutId;
-                    
-                    return (
-                      <option key={finalId || `checkout-${idx}`} value={finalId || ''}>
-                        {displayText} {finalId ? `[ID: ${finalId.substring(0, 8)}...]` : '[NO ID]'}
-                      </option>
-                    );
-                  })}
-                </select>
-                <div className="text-xs text-white/40 mt-1">
-                  Selected: {selectedCheckoutId || 'None'}
-                </div>
-                {activeCheckouts.length === 1 && (
-                  <div className="text-xs text-white/60 mt-1">Only one active checkout found - auto-selected</div>
-                )}
-              </div>
-            ) : (
-              <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                <div className="text-sm text-yellow-300">No active checkouts found for this equipment.</div>
-              </div>
-            )}
+        <InventoryDialog label={`Return ${item.name}`} onClose={()=>setIsReturnOpen(false)}>
+          <div className={styles.dialogPanel}>
+            <h2 className="m-0 mb-5 font-display text-2xl font-semibold tracking-[-0.02em]">Return · {item.name}</h2>
+            {actionError && <Alert className="mb-4">{actionError}</Alert>}
 
-            <div className="space-y-4 mb-4">
-              <div>
-                <label className="block mb-1 text-sm text-white/80">Return Quantity (optional - for partial returns)</label>
-                <input 
-                  type="number" 
+            <div className="flex flex-col gap-5">
+              {activeCheckouts.length > 0 ? (
+                <Field
+                  id="return-checkout"
+                  label="Select checkout"
+                  required={activeCheckouts.length > 1}
+                  hint={activeCheckouts.length === 1 ? "Only one active checkout found — auto-selected" : undefined}
+                >
+                  <select
+                    id="return-checkout"
+                    value={selectedCheckoutId}
+                    onChange={(e)=>setSelectedCheckoutId(e.target.value)}
+                    className="nb-input truncate pr-8"
+                    required={activeCheckouts.length > 0}
+                  >
+                    <option value="">Select a checkout…</option>
+                    {activeCheckouts.map((checkout, idx) => {
+                      // The checkout record ID (not the userId) identifies the checkout to return.
+                      const checkoutId = checkout.id || checkout._id || checkout.checkoutId;
+                      const userName = checkout.userNameSnapshot || checkout.userName || checkout.user?.fullName || checkout.user?.name || checkout.userId || 'Unknown';
+                      const displayText = `${userName} · Qty: ${checkout.quantity}${checkout.projectName ? ` · ${checkout.projectName}` : ''}${checkout.expectedReturnDate ? ` (Due: ${new Date(checkout.expectedReturnDate).toLocaleDateString()})` : ''}`;
+                      return (
+                        <option key={checkoutId || `checkout-${idx}`} value={checkoutId || ''}>
+                          {displayText}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </Field>
+              ) : (
+                <Alert kind="warning">No active checkouts found for this equipment.</Alert>
+              )}
+
+              <Field id="return-qty" label="Return quantity (optional)" hint="For partial returns. Leave empty to return all items from the selected checkout.">
+                <input
+                  id="return-qty"
+                  type="number"
                   min={1}
-                  value={returnQty} 
-                  onChange={(e)=>setReturnQty(Number(e.target.value) || 1)} 
-                  className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white" 
+                  value={returnQty}
+                  onChange={(e)=>setReturnQty(Number(e.target.value) || 1)}
+                  className="nb-input max-w-[200px]"
                   placeholder="Leave empty for full return"
                 />
-                <div className="text-xs text-white/60 mt-1">Leave empty to return all items from selected checkout</div>
-              </div>
+              </Field>
 
-              <div>
-                <label className="block mb-1 text-sm text-white/80">Return Notes (optional)</label>
+              <Field id="return-notes" label="Return notes (optional)" hint={`${returnNotes.length}/1000`}>
                 <textarea
+                  id="return-notes"
                   value={returnNotes}
                   onChange={(e)=>setReturnNotes(e.target.value)}
-                  placeholder="Add return notes..."
+                  placeholder="Add return notes…"
                   rows={3}
                   maxLength={1000}
-                  className="w-full p-3 rounded-lg border border-white/10 bg-white/5 text-white resize-none"
+                  className="nb-textarea resize-none"
                 />
-                <div className="text-xs text-white/60 mt-1">{returnNotes.length}/1000</div>
-              </div>
+              </Field>
             </div>
 
-            <div className="flex items-center justify-end gap-3">
-              <button className="px-4 py-2 rounded-md bg-white/10 hover:bg-white/15 border border-white/10" onClick={()=>setIsReturnOpen(false)}>Cancel</button>
-              <button className="px-4 py-2 rounded-md bg-green-600 hover:bg-green-500 text-white" onClick={handleReturn}>
-                Return
-              </button>
+            <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
+              <button type="button" className="nb-btn nb-btn-secondary nb-btn-sm" onClick={()=>setIsReturnOpen(false)}>Cancel</button>
+              <button type="button" className="nb-btn nb-btn-primary nb-btn-sm" onClick={handleReturn}>Return</button>
             </div>
           </div>
-        </div>
+        </InventoryDialog>
       )}
-    </div>
+    </main>
   );
 }

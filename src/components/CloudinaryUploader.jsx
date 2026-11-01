@@ -128,7 +128,7 @@ export default function CloudinaryUploader({
 						<button
 							type="button"
 							onClick={handleOpen}
-							className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+							className="nb-btn nb-btn-sm nb-btn-secondary"
 						>
 							{label}
 						</button>
@@ -136,7 +136,7 @@ export default function CloudinaryUploader({
 				}}
 			</CldUploadWidget>
 
-			{error ? <span className="text-xs text-red-400">{error}</span> : null}
+			{error ? <span role="alert" className="text-xs text-[#B91C1C]">{error}</span> : null}
 
 			{showPreview && lastResult?.publicId ? (
 				<div className="mt-2">

@@ -1,9 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  FileText, Plus, X, Users, DollarSign, Calendar, 
-  Target, TrendingUp, Briefcase, AlertCircle, CheckCircle, Send,
+import {
+  FileText, Plus, X, AlertCircle, CheckCircle, Send,
   Clock, Eye, RefreshCw, Edit2, Trash2, Upload, Download, File
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
@@ -163,7 +161,6 @@ const ProjectRequestPage = () => {
       if (storedDoc) {
         try {
           documentData = JSON.parse(storedDoc);
-          console.log('Loaded document from localStorage:', documentData);
         } catch (e) {
           console.error('Failed to parse stored document:', e);
         }
@@ -217,7 +214,6 @@ const ProjectRequestPage = () => {
         throw new Error('Authentication required. Please log in.');
       }
 
-      console.log('Deleting project:', requestId);
 
       const response = await fetch(`${API_BASE_URL}/project-requests/${requestId}`, {
         method: 'DELETE',
@@ -230,7 +226,6 @@ const ProjectRequestPage = () => {
         })
       });
 
-      console.log('Delete response status:', response.status);
 
       // Check if response is JSON
       const contentType = response.headers.get("content-type");
@@ -240,11 +235,9 @@ const ProjectRequestPage = () => {
         data = await response.json();
       } else {
         const text = await response.text();
-        console.log('Non-JSON response:', text);
         data = { message: text };
       }
 
-      console.log('Delete response data:', data);
 
       if (!response.ok) {
         console.error('Delete failed:', data);
@@ -256,7 +249,6 @@ const ProjectRequestPage = () => {
         throw new Error(data.message || 'Failed to delete project request');
       }
 
-      console.log('Delete successful - verifying...');
       setSuccess(true);
       setSuccessMessage('Project request deleted successfully!');
       setError(null);
@@ -474,15 +466,6 @@ const ProjectRequestPage = () => {
         throw new Error(data.error?.message || `Failed to ${editingRequest ? 'update' : 'create'} project request`);
       }
 
-      // Debug: Log the response to see what document data is returned
-      console.log('Save response:', data);
-      console.log('Data sent to backend:', cleanedData);
-      if (data.data?.item) {
-        console.log('Saved item document:', data.data.item.document);
-        console.log('Saved item documentUrl:', data.data.item.documentUrl);
-        console.log('Saved item keys:', Object.keys(data.data.item));
-      }
-
       setSuccess(true);
       setSuccessMessage(editingRequest ? 'Project request updated successfully!' : 'Project request submitted successfully!');
       setError(null);
@@ -567,41 +550,42 @@ const ProjectRequestPage = () => {
   // Show loading while checking authentication
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-red-500/30 border-t-red-500 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-white/60">Loading...</p>
+      <main className="nb-dark flex min-h-[60vh] items-center justify-center bg-paper text-ink" role="status">
+        <div className="flex flex-col items-center gap-4">
+          <span className="h-10 w-10 animate-spin rounded-full border-2 border-line-strong border-t-signal" aria-hidden="true" />
+          <p className="m-0 font-mono text-xs uppercase tracking-[0.06em] text-ink-muted">Loading…</p>
         </div>
-      </div>
+      </main>
     );
   }
 
   // Show authentication required only after loading is complete
   if (!authLoading && !isAuthenticated) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Authentication Required</h2>
-          <p className="text-white/60 mb-6">Please log in to submit a project request.</p>
+      <main className="nb-dark bg-paper text-ink">
+        <div className="nb-container flex min-h-[60vh] flex-col items-start justify-center gap-4 py-24">
+          <span className="nb-eyebrow">Members only</span>
+          <h1 className="m-0 font-display text-[32px] font-semibold tracking-[-0.02em]">Authentication required</h1>
+          <p className="m-0 text-ink-muted">Please log in to submit a project request.</p>
         </div>
-      </div>
+      </main>
     );
   }
 
   const getStatusColor = (status) => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
+        return 'nb-chip-amber';
       case 'under_review':
-        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+        return 'nb-chip-blue';
       case 'approved':
-        return 'bg-green-500/20 text-green-300 border-green-500/30';
+        return 'nb-chip-green';
       case 'rejected':
-        return 'bg-red-500/20 text-red-300 border-red-500/30';
+        return 'nb-chip-red';
       case 'on_hold':
-        return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+        return 'nb-chip-outline';
       default:
-        return 'bg-white/10 text-white/80 border-white/20';
+        return 'nb-chip-outline';
     }
   };
 
@@ -654,252 +638,242 @@ const ProjectRequestPage = () => {
     return url;
   };
 
-  return (
-    <div className="min-h-screen bg-black text-white py-12">
-      <div className="container mx-auto px-4 max-w-6xl">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-8"
-        >
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Project Requests
-          </h1>
-          <p className="text-xl text-white/60">
-            {showForm ? 'Submit your innovative robotics project idea' : 'Manage your project requests'}
-          </p>
-        </motion.div>
+  // Presentation-only: which form sections already have content (drives the section indicator)
+  const hasDocument = Boolean(formData.document && (formData.document.secureUrl || formData.document.url));
+  const formSections = [
+    { id: 'pr-sec-basics', label: 'The idea', done: formData.title.trim().length >= 5 && formData.description.trim().length >= 20 },
+    { id: 'pr-sec-document', label: 'Document', done: hasDocument, optional: true },
+    { id: 'pr-sec-goals', label: 'Objectives & outcomes', done: formData.objectives.some((o) => o.trim()) && formData.expectedOutcomes.some((o) => o.trim()) },
+    { id: 'pr-sec-resources', label: 'Parts & budget', done: formData.requiredResources.some((r) => r.trim()) || formData.resources.some((r) => r.description.trim()) },
+  ];
+  const firstOpenSection = formSections.findIndex((s) => !s.done && !s.optional);
 
-        {/* Toggle Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.8 }}
-          className="flex justify-center gap-4 mb-8"
-        >
-          <button
-            onClick={() => setShowForm(false)}
-            className={`px-6 py-3 rounded-lg font-medium transition-all ${
-              !showForm
-                ? 'bg-red-600 text-white'
-                : 'bg-white/10 text-white/60 hover:bg-white/20'
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              My Requests ({myRequests.length})
+  // Restores page scroll after opening a document in a new tab (PDF viewers can leave it locked)
+  const unlockScroll = () => {
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+  };
+  const unlockScrollSoon = () => {
+    setTimeout(unlockScroll, 100);
+  };
+
+  const sectionTitle = (num, title, extra) => (
+    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+      <span className="font-mono text-xs text-signal-text">{num}</span>
+      <h2 className="m-0 font-display text-xl font-semibold tracking-[-0.01em]">{title}</h2>
+      {extra && <span className="text-sm text-ink-muted">{extra}</span>}
+    </div>
+  );
+
+  const removeRowButton = (label, onClick) => (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-line-strong bg-surface text-ink-muted hover:border-[#B91C1C] hover:text-[#B91C1C]"
+    >
+      <X size={18} aria-hidden="true" />
+    </button>
+  );
+
+  const addRowButton = (label, onClick) => (
+    <button type="button" onClick={onClick} className="nb-btn nb-btn-secondary nb-btn-sm self-start">
+      <Plus size={16} aria-hidden="true" />
+      {label}
+    </button>
+  );
+
+  return (
+    <main className="nb-dark bg-paper text-ink">
+      <div className="nb-container flex flex-col gap-8 pb-24 pt-10 sm:pt-12">
+        {/* Header */}
+        <header className="flex flex-wrap items-end justify-between gap-5">
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <span className="font-mono text-xs uppercase tracking-[0.06em] text-ink-muted">
+              {showForm ? (editingRequest ? 'Edit project request' : 'New project request') : 'Project requests'}
             </span>
-          </button>
-          <button
-            onClick={() => setShowForm(true)}
-            className={`px-6 py-3 rounded-lg font-medium transition-all ${
-              showForm
-                ? 'bg-red-600 text-white'
-                : 'bg-white/10 text-white/60 hover:bg-white/20'
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              <Plus className="w-5 h-5" />
-              New Request
-            </span>
-          </button>
-        </motion.div>
+            <h1 className="m-0 font-display text-[32px] font-semibold leading-tight tracking-[-0.02em] sm:text-4xl">
+              {showForm ? (editingRequest ? 'Update your pitch' : 'Pitch a project') : 'My project requests'}
+            </h1>
+            <p className="m-0 max-w-[620px] text-[15px] leading-relaxed text-ink-muted">
+              {showForm
+                ? 'Submit your robotics project idea. Be specific about the problem and honest about what you’ll need.'
+                : 'Track the status of the projects you’ve pitched to the lab.'}
+            </p>
+          </div>
+
+          {/* Toggle Buttons */}
+          <div className="flex flex-wrap gap-2" role="group" aria-label="View">
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              aria-pressed={!showForm}
+              className={`nb-pill h-11 px-4 text-sm ${!showForm ? 'nb-pill-active' : ''}`}
+            >
+              <FileText size={16} aria-hidden="true" />
+              My requests ({myRequests.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowForm(true)}
+              aria-pressed={showForm}
+              className={`nb-pill h-11 px-4 text-sm ${showForm ? 'nb-pill-active' : ''}`}
+            >
+              <Plus size={16} aria-hidden="true" />
+              New request
+            </button>
+          </div>
+        </header>
 
         {/* Success Message */}
         {success && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-lg flex items-center gap-3"
-          >
-            <CheckCircle className="w-5 h-5 text-green-400" />
-            <p className="text-green-300">
-              {successMessage || 'Operation completed successfully!'}
-            </p>
-          </motion.div>
+          <div role="status" className="flex items-start gap-2 rounded-md border border-[#BBDFC6] bg-[#E3F1E7] px-4 py-3 text-sm text-[#166534]">
+            <CheckCircle size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+            <span>{successMessage || 'Operation completed successfully!'}</span>
+          </div>
         )}
 
         {/* Error Message */}
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-lg flex items-center gap-3"
-          >
-            <AlertCircle className="w-5 h-5 text-red-400" />
-            <p className="text-red-300">{error}</p>
-          </motion.div>
+          <div role="alert" className="flex items-start gap-2 rounded-md border border-[#F3C4C4] bg-[#FBE4E4] px-4 py-3 text-sm text-[#991B1B]">
+            <AlertCircle size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+            <span>{error}</span>
+          </div>
         )}
 
         {/* My Requests List View */}
         {!showForm && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.8 }}
-          >
+          <section className="flex flex-col gap-5">
             {requestsLoading ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 border-4 border-red-500/30 border-t-red-500 rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-white/60">Loading your requests...</p>
+              <div className="flex flex-col items-center gap-4 py-16" role="status">
+                <span className="h-10 w-10 animate-spin rounded-full border-2 border-line-strong border-t-signal" aria-hidden="true" />
+                <p className="m-0 text-sm text-ink-muted">Loading your requests…</p>
               </div>
             ) : myRequests.length === 0 ? (
-              <div className="text-center py-12">
-                <FileText className="w-16 h-16 text-white/20 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">No Project Requests Yet</h3>
-                <p className="text-white/60 mb-6">
-                  You haven't submitted any project requests. Click "New Request" to get started!
+              <div className="nb-card nb-blueprint-sm flex flex-col items-start gap-3 p-8 sm:p-10">
+                <FileText size={28} className="text-ink-muted" aria-hidden="true" />
+                <h2 className="m-0 font-display text-2xl font-semibold">No project requests yet</h2>
+                <p className="m-0 max-w-[520px] text-ink-muted">
+                  You haven&apos;t submitted any project requests. Pitch your first idea to get started.
                 </p>
-                <button
-                  onClick={() => setShowForm(true)}
-                  className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-                >
-                  Create Your First Request
+                <button type="button" onClick={() => setShowForm(true)} className="nb-btn nb-btn-accent mt-2">
+                  <Plus size={16} aria-hidden="true" />
+                  Create your first request
                 </button>
               </div>
             ) : (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-bold">Your Project Requests</h2>
-                  <button
-                    onClick={fetchMyRequests}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white/80 rounded-lg hover:bg-white/20 transition"
-                  >
-                    <RefreshCw className="w-4 h-4" />
+              <>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <h2 className="m-0 font-display text-2xl font-semibold">Your project requests</h2>
+                  <button type="button" onClick={fetchMyRequests} className="nb-btn nb-btn-secondary nb-btn-sm">
+                    <RefreshCw size={16} aria-hidden="true" />
                     Refresh
                   </button>
                 </div>
 
-                {myRequests.map((request, index) => (
-                  <motion.div
-                    key={request._id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1, duration: 0.5 }}
-                    className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all"
-                  >
-                    {/* Request Header */}
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold text-white mb-2">
-                          {request.title}
-                        </h3>
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(request.status)}`}>
-                            {request.status.replace('_', ' ').toUpperCase()}
-                          </span>
-                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-white/10 text-white/80 border border-white/20">
-                            {request.teamSize} Team Members
-                          </span>
-                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-white/10 text-white/80 border border-white/20">
-                            {request.estimatedDurationMonths} Months
-                          </span>
-                          {request.budgetEstimate > 0 && (
-                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-white/10 text-white/80 border border-white/20">
-                              ${request.budgetEstimate}
+                <div className="flex flex-col gap-4">
+                  {myRequests.map((request) => (
+                    <article key={request._id} className="nb-card flex flex-col gap-4 p-5 sm:p-6">
+                      {/* Request Header */}
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="flex min-w-0 flex-[1_1_320px] flex-col gap-2.5">
+                          <h3 className="m-0 font-display text-xl font-semibold tracking-[-0.01em]">{request.title}</h3>
+                          <div className="flex flex-wrap gap-2">
+                            <span className={`nb-chip ${getStatusColor(request.status)}`}>
+                              {request.status.replace('_', ' ')}
                             </span>
-                          )}
+                            <span className="nb-chip nb-chip-outline">{request.teamSize} team members</span>
+                            <span className="nb-chip nb-chip-outline">{request.estimatedDurationMonths} months</span>
+                            {request.budgetEstimate > 0 && (
+                              <span className="nb-chip nb-chip-outline">${request.budgetEstimate}</span>
+                            )}
+                          </div>
                         </div>
+
+                        {/* Action Buttons - Top Right */}
+                        {request.status !== 'approved' && (
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleEdit(request)}
+                              aria-label={`Edit ${request.title}`}
+                              title="Edit project"
+                              className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-line-strong bg-surface text-ink hover:border-ink"
+                            >
+                              <Edit2 size={16} aria-hidden="true" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDeleteConfirm(request._id)}
+                              aria-label={`Delete ${request.title}`}
+                              title="Delete project"
+                              className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-line-strong bg-surface text-[#B91C1C] hover:border-[#B91C1C]"
+                            >
+                              <Trash2 size={16} aria-hidden="true" />
+                            </button>
+                          </div>
+                        )}
                       </div>
-                      
-                      {/* Action Buttons - Top Right */}
-                      {request.status !== 'approved' && (
-                        <div className="flex items-center gap-2 ml-4">
-                          <button
-                            onClick={() => handleEdit(request)}
-                            title="Edit Project"
-                            className="p-2 bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-lg hover:bg-blue-500/30 transition"
-                          >
-                            <Edit2 className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => setDeleteConfirm(request._id)}
-                            title="Delete Project"
-                            className="p-2 bg-red-500/20 text-red-300 border border-red-500/30 rounded-lg hover:bg-red-500/30 transition"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
+
+                      {/* Description */}
+                      <p className="m-0 line-clamp-3 text-[15px] leading-relaxed text-ink-body">{request.description}</p>
+
+                      {/* Objectives */}
+                      {request.objectives && request.objectives.length > 0 && (
+                        <div className="flex flex-col gap-2">
+                          <h4 className="m-0 font-mono text-xs uppercase tracking-[0.06em] text-ink-muted">Objectives</h4>
+                          <ul className="m-0 flex list-none flex-col gap-1 p-0 text-sm text-ink-body">
+                            {request.objectives.slice(0, 3).map((obj, idx) => (
+                              <li key={idx} className="flex gap-2.5">
+                                <span className="font-mono text-xs leading-5 text-signal-text">{String(idx + 1).padStart(2, '0')}</span>
+                                <span className="line-clamp-1">{obj}</span>
+                              </li>
+                            ))}
+                            {request.objectives.length > 3 && (
+                              <li className="pl-7 text-ink-muted">+{request.objectives.length - 3} more</li>
+                            )}
+                          </ul>
                         </div>
                       )}
-                    </div>
 
-                    {/* Description */}
-                    <p className="text-white/70 mb-4 line-clamp-3">
-                      {request.description}
-                    </p>
-
-                    {/* Objectives */}
-                    {request.objectives && request.objectives.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="text-sm font-semibold text-white/80 mb-2 flex items-center gap-2">
-                          <Target className="w-4 h-4" />
-                          Objectives
-                        </h4>
-                        <ul className="list-disc list-inside text-white/60 text-sm space-y-1">
-                          {request.objectives.slice(0, 3).map((obj, idx) => (
-                            <li key={idx} className="line-clamp-1">{obj}</li>
-                          ))}
-                          {request.objectives.length > 3 && (
-                            <li className="text-white/40">+{request.objectives.length - 3} more</li>
-                          )}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Team Members */}
-                    {request.teamMembers && request.teamMembers.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="text-sm font-semibold text-white/80 mb-2 flex items-center gap-2">
-                          <Users className="w-4 h-4" />
-                          Team Members
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {request.teamMembers.map((member, idx) => (
-                            <span
-                              key={idx}
-                              className="px-3 py-1 bg-white/10 rounded-lg text-xs text-white/70"
-                            >
-                              {member.userId?.firstName} {member.userId?.lastName} - {member.proposedRole}
-                            </span>
-                          ))}
+                      {/* Team Members */}
+                      {request.teamMembers && request.teamMembers.length > 0 && (
+                        <div className="flex flex-col gap-2">
+                          <h4 className="m-0 font-mono text-xs uppercase tracking-[0.06em] text-ink-muted">Team members</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {request.teamMembers.map((member, idx) => (
+                              <span key={idx} className="rounded border border-line px-2.5 py-1 text-xs text-ink-body">
+                                {member.userId?.firstName} {member.userId?.lastName} — {member.proposedRole}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Mentor Info */}
-                    {request.mentorId && (
-                      <div className="mb-4 p-3 bg-white/5 rounded-lg">
-                        <p className="text-sm text-white/60">
-                          <span className="text-white/80 font-medium">Mentor:</span>{' '}
+                      {/* Mentor Info */}
+                      {request.mentorId && (
+                        <p className="m-0 rounded-md bg-paper px-3 py-2.5 text-sm text-ink-body">
+                          <span className="font-semibold text-ink">Mentor:</span>{' '}
                           {request.mentorId.firstName} {request.mentorId.lastName}
                         </p>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Review Notes */}
-                    {request.reviewNotes && (
-                      <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                        <p className="text-sm text-blue-300">
-                          <span className="font-medium">Review Notes:</span> {request.reviewNotes}
+                      {/* Review Notes */}
+                      {request.reviewNotes && (
+                        <p className="m-0 rounded-md border border-[#C9D6F5] bg-[#E5ECFB] px-3 py-2.5 text-sm text-[#1E40AF]">
+                          <span className="font-semibold">Review notes:</span> {request.reviewNotes}
                         </p>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Document Section */}
-                    {(request.document || (request.documentUrl && request.documentName)) && (
-                      <div className="mb-4 p-4 bg-white/5 border border-white/10 rounded-lg">
-                        <h4 className="text-sm font-semibold text-white/80 mb-3 flex items-center gap-2">
-                          <File className="w-4 h-4" />
-                          Project Document
-                        </h4>
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <p className="text-white/70 text-sm mb-1">
+                      {/* Document Section */}
+                      {(request.document || (request.documentUrl && request.documentName)) && (
+                        <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-line px-4 py-3">
+                          <span className="flex min-w-0 items-center gap-2.5 text-sm">
+                            <File size={16} className="shrink-0 text-ink-muted" aria-hidden="true" />
+                            <span className="truncate font-medium">
                               {request.document?.originalName || request.document?.filename || request.documentName || 'Document'}
-                            </p>
-                          </div>
+                            </span>
+                          </span>
                           <a
                             href={fixCloudinaryUrl(
                               request.document?.secureUrl || request.document?.url || request.documentUrl || 
@@ -908,569 +882,549 @@ const ProjectRequestPage = () => {
                             )}
                             target="_blank"
                             rel="noopener noreferrer"
-                            onClick={(e) => {
-                              // Ensure scroll is enabled before opening PDF
-                              document.body.style.overflow = '';
-                              document.documentElement.style.overflow = '';
-                            }}
-                            onBlur={() => {
-                              // Restore scroll when link loses focus
-                              setTimeout(() => {
-                                document.body.style.overflow = '';
-                                document.documentElement.style.overflow = '';
-                              }, 100);
-                            }}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-lg hover:bg-blue-500/30 transition"
+                            onClick={unlockScroll}
+                            onBlur={unlockScrollSoon}
+                            className="nb-btn nb-btn-secondary nb-btn-sm"
                           >
-                            <Download className="w-4 h-4" />
+                            <Download size={16} aria-hidden="true" />
                             Download
                           </a>
                         </div>
-                      </div>
-                    )}
-
-                    {/* Footer */}
-                    <div className="flex flex-wrap items-center gap-4 pt-4 border-t border-white/10 text-sm text-white/60">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        Submitted: {formatDate(request.submittedAt)}
-                      </span>
-                      {request.reviewedAt && (
-                        <span className="flex items-center gap-1">
-                          <Eye className="w-4 h-4" />
-                          Reviewed: {formatDate(request.reviewedAt)}
-                        </span>
                       )}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+
+                      {/* Footer */}
+                      <div className="flex flex-wrap items-center gap-x-6 gap-y-1 border-t border-line-soft pt-4 font-mono text-xs uppercase tracking-[0.04em] text-ink-muted">
+                        <span className="inline-flex items-center gap-1.5">
+                          <Clock size={14} aria-hidden="true" />
+                          Submitted {formatDate(request.submittedAt)}
+                        </span>
+                        {request.reviewedAt && (
+                          <span className="inline-flex items-center gap-1.5">
+                            <Eye size={14} aria-hidden="true" />
+                            Reviewed {formatDate(request.reviewedAt)}
+                          </span>
+                        )}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </>
             )}
-          </motion.div>
+          </section>
         )}
 
         {/* Form */}
         {showForm && (
-        <motion.form
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.8 }}
-          onSubmit={handleSubmit}
-          className="bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/10"
-        >
-          {/* Form Header */}
-          <div className="mb-8 pb-4 border-b border-white/10">
-            <h2 className="text-3xl font-bold mb-2">
-              {editingRequest ? 'Edit Project Request' : 'Create New Project Request'}
-            </h2>
-            <p className="text-white/60">
-              {editingRequest ? 'Update your project details below' : 'Fill in the details to submit your project proposal'}
-            </p>
-          </div>
+          <>
+            {/* Section indicator */}
+            <ol aria-label="Form sections" className="m-0 grid list-none grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2 p-0">
+              {formSections.map((s, i) => {
+                const isCurrent = i === firstOpenSection;
+                return (
+                  <li key={s.id}>
+                    <a href={`#${s.id}`} className="flex flex-col gap-2 py-1 text-ink no-underline" aria-current={isCurrent ? 'step' : undefined}>
+                      <span className={`h-1 rounded-sm ${s.done ? 'bg-ink' : isCurrent ? 'bg-signal' : 'bg-line'}`} aria-hidden="true" />
+                      <span className={`font-mono text-[11px] uppercase ${isCurrent ? 'text-signal-hover' : 'text-ink-muted'}`}>
+                        Step {i + 1}
+                        {s.done ? ' · Done' : isCurrent ? ' · Now' : s.optional ? ' · Optional' : ''}
+                      </span>
+                      <span className={`text-sm ${s.done || isCurrent ? 'font-semibold' : 'font-medium text-ink-muted'}`}>{s.label}</span>
+                    </a>
+                  </li>
+                );
+              })}
+            </ol>
 
-          {/* Basic Information Section */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <FileText className="w-6 h-6 text-red-500" />
-              Basic Information
-            </h2>
+            <div className="flex flex-wrap items-start gap-6">
+              <form
+                onSubmit={handleSubmit}
+                className="nb-card flex min-w-0 flex-[999_1_520px] flex-col gap-10 p-5 sm:p-8"
+              >
+                {/* Basic Information Section */}
+                <section id="pr-sec-basics" className="flex scroll-mt-24 flex-col gap-5">
+                  {sectionTitle('01', 'Basic information')}
 
-            {/* Title */}
-            <div className="mb-6">
-              <label className="block text-white/80 mb-2 font-medium">
-                Project Title <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                required
-                minLength={5}
-                maxLength={255}
-                placeholder="Enter your project title"
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-red-500/50"
-              />
-            </div>
-
-            {/* Description */}
-            <div className="mb-6">
-              <label className="block text-white/80 mb-2 font-medium">
-                Project Description <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                required
-                minLength={20}
-                maxLength={5000}
-                rows={6}
-                placeholder="Provide a detailed description of your project"
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-red-500/50"
-              />
-              <p className="text-white/40 text-sm mt-1">
-                {formData.description.length} / 5000 characters
-              </p>
-            </div>
-
-            {/* Project Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Team Size */}
-              <div>
-                <label className="flex items-center gap-2 text-white/80 mb-2 font-medium">
-                  <Users className="w-4 h-4" />
-                  Team Size <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  name="teamSize"
-                  value={formData.teamSize}
-                  onChange={handleInputChange}
-                  required
-                  min={1}
-                  max={20}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500/50"
-                />
-              </div>
-
-              {/* Duration */}
-              <div>
-                <label className="flex items-center gap-2 text-white/80 mb-2 font-medium">
-                  <Calendar className="w-4 h-4" />
-                  Duration (Months) <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  name="estimatedDurationMonths"
-                  value={formData.estimatedDurationMonths}
-                  onChange={handleInputChange}
-                  required
-                  min={1}
-                  max={24}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500/50"
-                />
-              </div>
-
-              {/* Budget */}
-              <div>
-                <label className="flex items-center gap-2 text-white/80 mb-2 font-medium">
-                  <DollarSign className="w-4 h-4" />
-                  Budget Estimate
-                </label>
-                <input
-                  type="number"
-                  name="budgetEstimate"
-                  value={formData.budgetEstimate}
-                  onChange={handleInputChange}
-                  min={0}
-                  placeholder="0"
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500/50"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Document Upload Section */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <File className="w-6 h-6 text-red-500" />
-              Project Document (Optional)
-            </h2>
-            <div className="p-6 bg-white/5 border border-white/10 rounded-lg">
-              <p className="text-white/60 text-sm mb-4">
-                Upload a document file (PDF, Word, Excel, PowerPoint, Text, Markdown) to provide additional details about your project.
-              </p>
-              
-              {formData.document && (formData.document.secureUrl || formData.document.url) ? (
-                <div className="mb-4 p-4 bg-white/5 border border-white/10 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <File className="w-8 h-8 text-blue-400" />
-                      <div>
-                        <p className="text-white/80 font-medium">
-                          {formData.document.originalName || 'Document'}
-                        </p>
-                        {editingRequest && (
-                          <p className="text-white/40 text-xs mt-1">
-                            Current document - click "Change Document" to replace
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <a
-                        href={fixCloudinaryUrl(formData.document.secureUrl || formData.document.url, formData.document.format)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => {
-                          // Ensure scroll is enabled before opening PDF
-                          document.body.style.overflow = '';
-                          document.documentElement.style.overflow = '';
-                        }}
-                        onBlur={() => {
-                          // Restore scroll when link loses focus
-                          setTimeout(() => {
-                            document.body.style.overflow = '';
-                            document.documentElement.style.overflow = '';
-                          }, 100);
-                        }}
-                        className="px-3 py-2 bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-lg hover:bg-blue-500/30 transition text-sm flex items-center gap-2"
-                      >
-                        <Eye className="w-4 h-4" />
-                        View
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, document: null }))}
-                        className="px-3 py-2 bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 rounded-lg hover:bg-yellow-500/30 transition text-sm flex items-center gap-2"
-                        title={editingRequest ? "Change document" : "Remove document"}
-                      >
-                        <Upload className="w-4 h-4" />
-                        {editingRequest ? 'Change' : 'Remove'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <CloudinaryUploader
-                  folder="newtonbotics/project-documents"
-                  resourceType="raw"
-                  showPreview={false}
-                  maxFileSizeBytes={10 * 1024 * 1024} // 10MB
-                  onUploadComplete={(file) => {
-                    // Cloudinary might return /image/upload/ URLs even for raw files
-                    // We need to convert them to /raw/upload/ for PDFs to work
-                    const documentFormats = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'md'];
-                    const fileFormat = file.format?.toLowerCase();
-                    
-                    // Always fix URLs for document formats
-                    let fixedSecureUrl = file.secureUrl;
-                    let fixedUrl = file.url;
-                    
-                    if (documentFormats.includes(fileFormat)) {
-                      // Convert /image/upload/ to /raw/upload/ if present
-                      fixedSecureUrl = fixCloudinaryUrl(file.secureUrl, file.format);
-                      fixedUrl = fixCloudinaryUrl(file.url, file.format);
-                    }
-                    
-                    setFormData(prev => ({
-                      ...prev,
-                      document: {
-                        secureUrl: fixedSecureUrl || file.secureUrl,
-                        url: fixedUrl || file.url,
-                        originalName: file.originalName || 'Document',
-                        bytes: file.bytes,
-                        format: file.format,
-                        publicId: file.publicId,
-                        resourceType: 'raw' // Force raw for documents
-                      }
-                    }));
-                  }}
-                  renderTrigger={({ open }) => (
-                    <button
-                      type="button"
-                      onClick={open}
-                      className="flex items-center gap-2 px-6 py-3 bg-white/10 text-white/80 border border-white/20 rounded-lg hover:bg-white/20 transition"
-                    >
-                      <Upload className="w-5 h-5" />
-                      Upload Document
-                    </button>
-                  )}
-                />
-              )}
-              
-              <p className="text-white/40 text-xs mt-3">
-                Supported formats: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, MD (Max 10MB)
-              </p>
-            </div>
-          </div>
-
-          {/* Objectives Section */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <Target className="w-6 h-6 text-red-500" />
-              Project Objectives
-            </h2>
-            {formData.objectives.map((objective, index) => (
-              <div key={index} className="mb-3 flex gap-2">
-                <input
-                  type="text"
-                  value={objective}
-                  onChange={(e) => handleArrayFieldChange('objectives', index, e.target.value)}
-                  placeholder={`Objective ${index + 1}`}
-                  maxLength={500}
-                  className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-red-500/50"
-                />
-                {formData.objectives.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeArrayField('objectives', index)}
-                    className="px-3 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => addArrayField('objectives')}
-              className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white/80 rounded-lg hover:bg-white/20 transition"
-            >
-              <Plus className="w-4 h-4" />
-              Add Objective
-            </button>
-          </div>
-
-          {/* Expected Outcomes Section */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <TrendingUp className="w-6 h-6 text-red-500" />
-              Expected Outcomes
-            </h2>
-            {formData.expectedOutcomes.map((outcome, index) => (
-              <div key={index} className="mb-3 flex gap-2">
-                <input
-                  type="text"
-                  value={outcome}
-                  onChange={(e) => handleArrayFieldChange('expectedOutcomes', index, e.target.value)}
-                  placeholder={`Expected outcome ${index + 1}`}
-                  maxLength={500}
-                  className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-red-500/50"
-                />
-                {formData.expectedOutcomes.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeArrayField('expectedOutcomes', index)}
-                    className="px-3 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => addArrayField('expectedOutcomes')}
-              className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white/80 rounded-lg hover:bg-white/20 transition"
-            >
-              <Plus className="w-4 h-4" />
-              Add Outcome
-            </button>
-          </div>
-
-          {/* Required Resources Section */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <Briefcase className="w-6 h-6 text-red-500" />
-              Required Resources
-            </h2>
-            {formData.requiredResources.map((resource, index) => (
-              <div key={index} className="mb-3 flex gap-2">
-                <input
-                  type="text"
-                  value={resource}
-                  onChange={(e) => handleArrayFieldChange('requiredResources', index, e.target.value)}
-                  placeholder={`Resource ${index + 1}`}
-                  maxLength={200}
-                  className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-red-500/50"
-                />
-                {formData.requiredResources.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeArrayField('requiredResources', index)}
-                    className="px-3 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => addArrayField('requiredResources')}
-              className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white/80 rounded-lg hover:bg-white/20 transition"
-            >
-              <Plus className="w-4 h-4" />
-              Add Resource
-            </button>
-          </div>
-
-          {/* Detailed Resources Section (Optional) */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold mb-6">
-              Detailed Resources (Optional)
-            </h2>
-            {formData.resources.map((resource, index) => (
-              <div key={index} className="mb-4 p-4 bg-white/5 rounded-lg border border-white/10">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                  <div>
-                    <label className="block text-white/70 mb-2 text-sm">Resource Type</label>
-                    <select
-                      value={resource.resourceType}
-                      onChange={(e) => handleResourceChange(index, 'resourceType', e.target.value)}
-                      className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500/50"
-                    >
-                      <option value="equipment">Equipment</option>
-                      <option value="software">Software</option>
-                      <option value="funding">Funding</option>
-                      <option value="space">Space</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-white/70 mb-2 text-sm">Priority</label>
-                    <select
-                      value={resource.priority}
-                      onChange={(e) => handleResourceChange(index, 'priority', e.target.value)}
-                      className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500/50"
-                    >
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
-                      <option value="critical">Critical</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="mb-3">
-                  <label className="block text-white/70 mb-2 text-sm">Description</label>
-                  <textarea
-                    value={resource.description}
-                    onChange={(e) => handleResourceChange(index, 'description', e.target.value)}
-                    placeholder="Describe the resource"
-                    maxLength={500}
-                    rows={2}
-                    className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-red-500/50"
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <label className="block text-white/70 mb-2 text-sm">Estimated Cost</label>
+                  {/* Title */}
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="pr-title" className="nb-label">
+                      Project title <span className="text-[#B91C1C]" aria-hidden="true">*</span>
+                    </label>
                     <input
-                      type="number"
-                      value={resource.estimatedCost}
-                      onChange={(e) => handleResourceChange(index, 'estimatedCost', parseFloat(e.target.value) || 0)}
-                      min={0}
-                      placeholder="0"
-                      className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500/50"
+                      id="pr-title"
+                      type="text"
+                      name="title"
+                      value={formData.title}
+                      onChange={handleInputChange}
+                      required
+                      minLength={5}
+                      maxLength={255}
+                      placeholder="Enter your project title"
+                      className="nb-input"
                     />
                   </div>
+
+                  {/* Description */}
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="pr-description" className="nb-label">
+                      Project description <span className="text-[#B91C1C]" aria-hidden="true">*</span>
+                    </label>
+                    <textarea
+                      id="pr-description"
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      required
+                      minLength={20}
+                      maxLength={5000}
+                      rows={6}
+                      placeholder="Provide a detailed description of your project"
+                      aria-describedby="pr-description-count"
+                      className="nb-textarea resize-y"
+                    />
+                    <span id="pr-description-count" className="text-[13px] text-ink-muted">
+                      At least 20 characters. {formData.description.length} / 5000
+                    </span>
+                  </div>
+
+                  {/* Project Metrics */}
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4">
+                    {/* Team Size */}
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="pr-team-size" className="nb-label">
+                        Team size <span className="text-[#B91C1C]" aria-hidden="true">*</span>
+                      </label>
+                      <input
+                        id="pr-team-size"
+                        type="number"
+                        name="teamSize"
+                        value={formData.teamSize}
+                        onChange={handleInputChange}
+                        required
+                        min={1}
+                        max={20}
+                        className="nb-input"
+                      />
+                    </div>
+
+                    {/* Duration */}
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="pr-duration" className="nb-label">
+                        Duration (months) <span className="text-[#B91C1C]" aria-hidden="true">*</span>
+                      </label>
+                      <input
+                        id="pr-duration"
+                        type="number"
+                        name="estimatedDurationMonths"
+                        value={formData.estimatedDurationMonths}
+                        onChange={handleInputChange}
+                        required
+                        min={1}
+                        max={24}
+                        className="nb-input"
+                      />
+                    </div>
+
+                    {/* Budget */}
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="pr-budget" className="nb-label">
+                        Budget estimate
+                      </label>
+                      <input
+                        id="pr-budget"
+                        type="number"
+                        name="budgetEstimate"
+                        value={formData.budgetEstimate}
+                        onChange={handleInputChange}
+                        min={0}
+                        placeholder="0"
+                        className="nb-input"
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                {/* Document Upload Section */}
+                <section id="pr-sec-document" className="flex scroll-mt-24 flex-col gap-4 border-t border-line-soft pt-8">
+                  {sectionTitle('02', 'Project document', '(optional)')}
+                  <p className="m-0 text-sm text-ink-muted">
+                    Upload a document file (PDF, Word, Excel, PowerPoint, Text, Markdown) to provide additional details about your project.
+                  </p>
+
+                  {hasDocument ? (
+                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-line bg-paper px-4 py-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-[#E5ECFB] text-[#1E40AF]">
+                          <File size={18} aria-hidden="true" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="m-0 truncate font-medium">{formData.document.originalName || 'Document'}</p>
+                          {editingRequest && (
+                            <p className="m-0 text-[13px] text-ink-muted">
+                              Current document — choose &ldquo;Change&rdquo; to replace it
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={fixCloudinaryUrl(formData.document.secureUrl || formData.document.url, formData.document.format)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={unlockScroll}
+                          onBlur={unlockScrollSoon}
+                          className="nb-btn nb-btn-secondary nb-btn-sm"
+                        >
+                          <Eye size={16} aria-hidden="true" />
+                          View
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, document: null }))}
+                          className="nb-btn nb-btn-ghost nb-btn-sm"
+                          title={editingRequest ? "Change document" : "Remove document"}
+                        >
+                          <Upload size={16} aria-hidden="true" />
+                          {editingRequest ? 'Change' : 'Remove'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <CloudinaryUploader
+                      folder="newtonbotics/project-documents"
+                      resourceType="raw"
+                      showPreview={false}
+                      maxFileSizeBytes={10 * 1024 * 1024} // 10MB
+                      onUploadComplete={(file) => {
+                        // Cloudinary might return /image/upload/ URLs even for raw files
+                        // We need to convert them to /raw/upload/ for PDFs to work
+                        const documentFormats = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'md'];
+                        const fileFormat = file.format?.toLowerCase();
+                        
+                        // Always fix URLs for document formats
+                        let fixedSecureUrl = file.secureUrl;
+                        let fixedUrl = file.url;
+                        
+                        if (documentFormats.includes(fileFormat)) {
+                          // Convert /image/upload/ to /raw/upload/ if present
+                          fixedSecureUrl = fixCloudinaryUrl(file.secureUrl, file.format);
+                          fixedUrl = fixCloudinaryUrl(file.url, file.format);
+                        }
+                        
+                        setFormData(prev => ({
+                          ...prev,
+                          document: {
+                            secureUrl: fixedSecureUrl || file.secureUrl,
+                            url: fixedUrl || file.url,
+                            originalName: file.originalName || 'Document',
+                            bytes: file.bytes,
+                            format: file.format,
+                            publicId: file.publicId,
+                            resourceType: 'raw' // Force raw for documents
+                          }
+                        }));
+                      }}
+                      renderTrigger={({ open }) => (
+                        <button
+                          type="button"
+                          onClick={open}
+                          className="nb-blueprint-sm flex min-h-[96px] w-full flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-line-strong px-4 py-5 text-ink hover:border-ink"
+                        >
+                          <span className="inline-flex items-center gap-2 font-semibold">
+                            <Upload size={18} aria-hidden="true" />
+                            Upload document
+                          </span>
+                        </button>
+                      )}
+                    />
+                  )}
+
+                  <p className="m-0 font-mono text-[11px] uppercase tracking-[0.04em] text-ink-muted">
+                    PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, MD · Max 10 MB
+                  </p>
+                </section>
+
+                {/* Objectives + Expected Outcomes */}
+                <section id="pr-sec-goals" className="flex scroll-mt-24 flex-col gap-8 border-t border-line-soft pt-8">
+                  <fieldset className="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
+                    <legend className="mb-4 p-0">{sectionTitle('03', 'Project objectives')}</legend>
+                    {formData.objectives.map((objective, index) => (
+                      <div key={index} className="flex gap-2">
+                        <label htmlFor={`pr-objective-${index}`} className="nb-sr-only">
+                          Objective {index + 1}
+                        </label>
+                        <input
+                          id={`pr-objective-${index}`}
+                          type="text"
+                          value={objective}
+                          onChange={(e) => handleArrayFieldChange('objectives', index, e.target.value)}
+                          placeholder={`Objective ${index + 1}`}
+                          maxLength={500}
+                          className="nb-input min-w-0 flex-1"
+                        />
+                        {formData.objectives.length > 1 &&
+                          removeRowButton(`Remove objective ${index + 1}`, () => removeArrayField('objectives', index))}
+                      </div>
+                    ))}
+                    {addRowButton('Add objective', () => addArrayField('objectives'))}
+                  </fieldset>
+
+                  {/* Expected Outcomes Section */}
+                  <fieldset className="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
+                    <legend className="mb-4 p-0">{sectionTitle('04', 'Expected outcomes')}</legend>
+                    {formData.expectedOutcomes.map((outcome, index) => (
+                      <div key={index} className="flex gap-2">
+                        <label htmlFor={`pr-outcome-${index}`} className="nb-sr-only">
+                          Expected outcome {index + 1}
+                        </label>
+                        <input
+                          id={`pr-outcome-${index}`}
+                          type="text"
+                          value={outcome}
+                          onChange={(e) => handleArrayFieldChange('expectedOutcomes', index, e.target.value)}
+                          placeholder={`Expected outcome ${index + 1}`}
+                          maxLength={500}
+                          className="nb-input min-w-0 flex-1"
+                        />
+                        {formData.expectedOutcomes.length > 1 &&
+                          removeRowButton(`Remove expected outcome ${index + 1}`, () => removeArrayField('expectedOutcomes', index))}
+                      </div>
+                    ))}
+                    {addRowButton('Add outcome', () => addArrayField('expectedOutcomes'))}
+                  </fieldset>
+                </section>
+
+                {/* Required Resources Section */}
+                <section id="pr-sec-resources" className="flex scroll-mt-24 flex-col gap-8 border-t border-line-soft pt-8">
+                  <fieldset className="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
+                    <legend className="mb-4 p-0">{sectionTitle('05', 'Required resources')}</legend>
+                    {formData.requiredResources.map((resource, index) => (
+                      <div key={index} className="flex gap-2">
+                        <label htmlFor={`pr-resource-${index}`} className="nb-sr-only">
+                          Resource {index + 1}
+                        </label>
+                        <input
+                          id={`pr-resource-${index}`}
+                          type="text"
+                          value={resource}
+                          onChange={(e) => handleArrayFieldChange('requiredResources', index, e.target.value)}
+                          placeholder={`Resource ${index + 1}`}
+                          maxLength={200}
+                          className="nb-input min-w-0 flex-1"
+                        />
+                        {formData.requiredResources.length > 1 &&
+                          removeRowButton(`Remove resource ${index + 1}`, () => removeArrayField('requiredResources', index))}
+                      </div>
+                    ))}
+                    {addRowButton('Add resource', () => addArrayField('requiredResources'))}
+                  </fieldset>
+
+                  {/* Detailed Resources Section (Optional) */}
+                  <div className="flex flex-col gap-4">
+                    {sectionTitle('06', 'Detailed resources', '(optional)')}
+                    {formData.resources.map((resource, index) => (
+                      <fieldset key={index} className="m-0 flex min-w-0 flex-col gap-4 rounded-lg border border-line bg-paper p-4">
+                        <legend className="nb-sr-only">Detailed resource {index + 1}</legend>
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="font-mono text-xs uppercase tracking-[0.06em] text-ink-muted">
+                            Resource {String(index + 1).padStart(2, '0')}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => removeResource(index)}
+                            aria-label={`Remove detailed resource ${index + 1}`}
+                            className="inline-flex h-11 w-11 items-center justify-center rounded-md text-ink-muted hover:bg-surface hover:text-[#B91C1C]"
+                          >
+                            <X size={18} aria-hidden="true" />
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4">
+                          <div className="flex flex-col gap-2">
+                            <label htmlFor={`pr-res-type-${index}`} className="nb-label">Resource type</label>
+                            <select
+                              id={`pr-res-type-${index}`}
+                              value={resource.resourceType}
+                              onChange={(e) => handleResourceChange(index, 'resourceType', e.target.value)}
+                              className="nb-input pr-8"
+                            >
+                              <option value="equipment">Equipment</option>
+                              <option value="software">Software</option>
+                              <option value="funding">Funding</option>
+                              <option value="space">Space</option>
+                              <option value="other">Other</option>
+                            </select>
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            <label htmlFor={`pr-res-priority-${index}`} className="nb-label">Priority</label>
+                            <select
+                              id={`pr-res-priority-${index}`}
+                              value={resource.priority}
+                              onChange={(e) => handleResourceChange(index, 'priority', e.target.value)}
+                              className="nb-input pr-8"
+                            >
+                              <option value="low">Low</option>
+                              <option value="medium">Medium</option>
+                              <option value="high">High</option>
+                              <option value="critical">Critical</option>
+                            </select>
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            <label htmlFor={`pr-res-cost-${index}`} className="nb-label">Estimated cost</label>
+                            <input
+                              id={`pr-res-cost-${index}`}
+                              type="number"
+                              value={resource.estimatedCost}
+                              onChange={(e) => handleResourceChange(index, 'estimatedCost', parseFloat(e.target.value) || 0)}
+                              min={0}
+                              placeholder="0"
+                              className="nb-input"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <label htmlFor={`pr-res-desc-${index}`} className="nb-label">Description</label>
+                          <textarea
+                            id={`pr-res-desc-${index}`}
+                            value={resource.description}
+                            onChange={(e) => handleResourceChange(index, 'description', e.target.value)}
+                            placeholder="Describe the resource"
+                            maxLength={500}
+                            rows={2}
+                            className="nb-textarea resize-y"
+                          />
+                        </div>
+                      </fieldset>
+                    ))}
+                    {addRowButton('Add detailed resource', addResource)}
+                  </div>
+                </section>
+
+                {/* Submit Button */}
+                <div className="flex flex-wrap justify-end gap-2 border-t border-line-soft pt-6">
                   <button
                     type="button"
-                    onClick={() => removeResource(index)}
-                    className="ml-4 mt-6 px-3 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={addResource}
-              className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white/80 rounded-lg hover:bg-white/20 transition"
-            >
-              <Plus className="w-4 h-4" />
-              Add Detailed Resource
-            </button>
-          </div>
-
-          {/* Submit Button */}
-          <div className="flex justify-end gap-4">
-            <button
-              type="button"
-              onClick={editingRequest ? handleCancelEdit : () => setShowForm(false)}
-              className="px-6 py-3 bg-white/10 text-white rounded-lg hover:bg-white/20 transition"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  {editingRequest ? 'Updating...' : 'Submitting...'}
-                </>
-              ) : (
-                <>
-                  <Send className="w-5 h-5" />
-                  {editingRequest ? 'Update Project Request' : 'Submit Project Request'}
-                </>
-              )}
-            </button>
-          </div>
-        </motion.form>
-        )}
-
-        {/* Delete Confirmation Modal */}
-        <AnimatePresence>
-          {deleteConfirm && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-              onClick={() => setDeleteConfirm(null)}
-            >
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                onClick={(e) => e.stopPropagation()}
-                className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 max-w-md w-full"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
-                    <Trash2 className="w-6 h-6 text-red-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-white">Delete Project Request</h3>
-                    <p className="text-white/60 text-sm">This action cannot be undone</p>
-                  </div>
-                </div>
-
-                <p className="text-white/70 mb-6">
-                  Are you sure you want to delete this project request? All associated data will be permanently removed.
-                </p>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setDeleteConfirm(null)}
-                    disabled={loading}
-                    className="flex-1 px-4 py-3 bg-white/10 text-white rounded-lg hover:bg-white/20 transition disabled:opacity-50"
+                    onClick={editingRequest ? handleCancelEdit : () => setShowForm(false)}
+                    className="nb-btn nb-btn-ghost"
                   >
                     Cancel
                   </button>
-                  <button
-                    onClick={() => handleDelete(deleteConfirm)}
-                    disabled={loading}
-                    className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
+                  <button type="submit" disabled={loading} className="nb-btn nb-btn-primary">
                     {loading ? (
                       <>
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Deleting...
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-paper/40 border-t-paper" aria-hidden="true" />
+                        {editingRequest ? 'Updating…' : 'Submitting…'}
                       </>
                     ) : (
                       <>
-                        <Trash2 className="w-5 h-5" />
-                        Delete
+                        <Send size={16} aria-hidden="true" />
+                        {editingRequest ? 'Update project request' : 'Submit project request'}
                       </>
                     )}
                   </button>
                 </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              </form>
+
+              <aside className="flex min-w-0 flex-[1_1_280px] flex-col gap-4 lg:sticky lg:top-24">
+                <div className="nb-card flex flex-col gap-3 p-6">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-muted">Your pitch so far</span>
+                  <span className="break-words font-display text-xl font-semibold">
+                    {formData.title.trim() || 'Untitled project'}
+                  </span>
+                  {formData.description.trim() && (
+                    <span className="line-clamp-3 text-sm leading-relaxed text-ink-muted">{formData.description}</span>
+                  )}
+                  <dl className="m-0 grid grid-cols-3 gap-3 border-t border-line-soft pt-3">
+                    <div className="flex flex-col">
+                      <dt className="font-mono text-[11px] uppercase text-ink-muted">Team</dt>
+                      <dd className="m-0 font-semibold">{formData.teamSize || '—'}</dd>
+                    </div>
+                    <div className="flex flex-col">
+                      <dt className="font-mono text-[11px] uppercase text-ink-muted">Months</dt>
+                      <dd className="m-0 font-semibold">{formData.estimatedDurationMonths || '—'}</dd>
+                    </div>
+                    <div className="flex flex-col">
+                      <dt className="font-mono text-[11px] uppercase text-ink-muted">Budget</dt>
+                      <dd className="m-0 font-semibold">{Number(formData.budgetEstimate) > 0 ? `$${formData.budgetEstimate}` : '—'}</dd>
+                    </div>
+                  </dl>
+                  <span className={`nb-chip self-start ${editingRequest ? getStatusColor(editingRequest.status) : 'nb-chip-amber'}`}>
+                    {editingRequest ? editingRequest.status.replace('_', ' ') : 'Draft'}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-3 rounded-lg bg-ink p-6 text-night-text">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-signal-light">Before you submit</span>
+                  <ul className="m-0 flex flex-col gap-2 pl-[18px] text-sm leading-normal text-night-soft">
+                    <li>A title of at least 5 characters and a description of at least 20</li>
+                    <li>Team size between 1 and 20, duration between 1 and 24 months</li>
+                    <li>Concrete objectives and outcomes someone could check at the end</li>
+                    <li>List the parts you need so they can be checked against lab stock</li>
+                  </ul>
+                </div>
+              </aside>
+            </div>
+          </>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {deleteConfirm && (
+          <div
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-ink/60 p-4"
+            onClick={() => setDeleteConfirm(null)}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="pr-delete-title"
+              onClick={(e) => e.stopPropagation()}
+              className="nb-card flex w-full max-w-md flex-col gap-5 p-6"
+            >
+              <div className="flex items-center gap-3">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#FBE4E4] text-[#991B1B]">
+                  <Trash2 size={18} aria-hidden="true" />
+                </span>
+                <div>
+                  <h3 id="pr-delete-title" className="m-0 font-display text-xl font-semibold">Delete project request</h3>
+                  <p className="m-0 text-sm text-ink-muted">This action cannot be undone</p>
+                </div>
+              </div>
+
+              <p className="m-0 text-[15px] leading-relaxed text-ink-body">
+                Are you sure you want to delete this project request? All associated data will be permanently removed.
+              </p>
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDeleteConfirm(null)}
+                  disabled={loading}
+                  className="nb-btn nb-btn-secondary flex-1"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(deleteConfirm)}
+                  disabled={loading}
+                  className="nb-btn flex-1 bg-[#B91C1C] text-white hover:bg-[#991B1B]"
+                >
+                  {loading ? (
+                    <>
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true" />
+                      Deleting…
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 size={16} aria-hidden="true" />
+                      Delete
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </main>
   );
 };
 
 export default ProjectRequestPage;
-

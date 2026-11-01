@@ -5,6 +5,8 @@ export default {
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/lib/**/*.{js,ts,jsx,tsx}",
+    "./src/contexts/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
   	extend: {
@@ -22,6 +24,37 @@ export default {
   			accent: {
   				DEFAULT: 'hsl(var(--accent))',
   				foreground: 'hsl(var(--accent-foreground))'
+  			},
+  			// Lab Spec design tokens
+  			paper: '#F4F4F0',
+  			surface: '#FFFFFF',
+  			ink: {
+  				DEFAULT: '#0E1013',
+  				body: '#33383F',
+  				muted: '#4B5159',
+  				subtle: '#6B7178'
+  			},
+  			line: {
+  				DEFAULT: '#DCDDD6',
+  				soft: '#ECEDE8',
+  				strong: '#B9BBB2'
+  			},
+  			signal: {
+  				DEFAULT: '#FF5A1F',
+  				text: '#C2410C',
+  				hover: '#9A3412',
+  				light: '#FF7A45',
+  				tint: '#FFE9DF'
+  			},
+  			night: {
+  				DEFAULT: '#0E1013',
+  				raised: '#16191E',
+  				hover: '#1F2329',
+  				line: '#2A2E35',
+  				'line-strong': '#3A3F47',
+  				text: '#E9EAE6',
+  				soft: '#C4C8CE',
+  				muted: '#9AA0A8'
   			},
   			neutral: '#1e293b',
   			success: '#10b981',
@@ -55,13 +88,15 @@ export default {
   			}
   		},
   		fontFamily: {
-  			sans: ['var(--font-orbitron)', 'Orbitron', 'sans-serif'],
-  			orbitron: ['var(--font-orbitron)', 'Orbitron', 'sans-serif'],
-  			neuropol: ['Neuropol X', 'var(--font-orbitron)', 'sans-serif'],
-  			ethnocentric: ['Ethnocentric', 'var(--font-orbitron)', 'sans-serif'],
-  			display: ['Ethnocentric', 'var(--font-orbitron)', 'sans-serif'],
-  			body: ['var(--font-orbitron)', 'Orbitron', 'sans-serif'],
-  			heading: ['Neuropol X', 'var(--font-orbitron)', 'sans-serif'],
+  			sans: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
+  			display: ['var(--font-space-grotesk)', 'Space Grotesk', 'system-ui', 'sans-serif'],
+  			mono: ['var(--font-jetbrains-mono)', 'JetBrains Mono', 'ui-monospace', 'monospace'],
+  			body: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
+  			heading: ['var(--font-space-grotesk)', 'Space Grotesk', 'system-ui', 'sans-serif'],
+  			// Legacy families from the old theme, mapped onto the new type scale
+  			orbitron: ['var(--font-space-grotesk)', 'Space Grotesk', 'system-ui', 'sans-serif'],
+  			neuropol: ['var(--font-space-grotesk)', 'Space Grotesk', 'system-ui', 'sans-serif'],
+  			ethnocentric: ['var(--font-space-grotesk)', 'Space Grotesk', 'system-ui', 'sans-serif'],
   		},
   		backgroundImage: {
   			'gradient-primary': 'linear-gradient(45deg, #1a365d, #2563eb)',

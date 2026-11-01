@@ -1,84 +1,99 @@
-// components/Navbar.js
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { FiMenu, FiX, FiChevronDown, FiUser, FiPackage, FiList, FiLogOut, FiSettings, FiFileText, FiShield, FiBookOpen } from "react-icons/fi";
-import { usePathname, useRouter } from "next/navigation";
+import {
+  ArrowRight,
+  BookOpen,
+  ChevronDown,
+  FileText,
+  List,
+  LogIn,
+  LogOut,
+  Menu,
+  Package,
+  Settings,
+  Shield,
+  X,
+} from "lucide-react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { useAuth } from "../../contexts/AuthContext";
 import { API_BASE_URL } from "@/lib/api";
 import { ADMIN_PANEL_URL } from "@/lib/site";
-import SiteLogo from "./SiteLogo";
-import ThemeToggle from "./ThemeToggle";
+import { optimizeImageUrl } from "@/lib/cloudinaryMedia";
+
+const NAV_LINKS = [
+  { href: "/Projects", label: "Projects" },
+  { href: "/research-areas", label: "Research" },
+  { href: "/Events", label: "Events" },
+  { href: "/ourTeam", label: "Team" },
+  { href: "/News", label: "News" },
+  { href: "/Gallery", label: "Gallery" },
+  { href: "/aboutus", label: "About" },
+  { href: "/contact", label: "Contact" },
+];
+
+const formatRole = (value) =>
+  value?.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [isProjectLeader, setIsProjectLeader] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const profileRef = useRef(null);
   const navRef = useRef(null);
   const pathname = usePathname();
-  const router = useRouter();
-  
+
   const { user, isAuthenticated, logout, hasRole, hasPermission, hasSubrole } = useAuth();
-
-  const toggleMenu = () => setIsOpen((s) => !s);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (typeof window === "undefined") return;
-      setIsScrolled(window.scrollY > 10);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   useEffect(() => {
     const onClickAway = (e) => {
-      if (!profileRef.current) return;
-      if (!profileRef.current.contains(e.target)) setShowProfile(false);
+      if (profileRef.current && !profileRef.current.contains(e.target)) setShowProfile(false);
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        setShowProfile(false);
+        setIsOpen(false);
+      }
     };
     document.addEventListener("mousedown", onClickAway);
-    return () => document.removeEventListener("mousedown", onClickAway);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClickAway);
+      document.removeEventListener("keydown", onKey);
+    };
   }, []);
 
   // Sync real navbar height for overlays (gallery lightbox, etc.)
   useEffect(() => {
     const nav = navRef.current;
     if (!nav) return;
-
     const syncNavHeight = () => {
-      document.documentElement.style.setProperty(
-        "--nb-nav-height",
-        `${nav.offsetHeight}px`
-      );
+      document.documentElement.style.setProperty("--nb-nav-height", `${nav.offsetHeight}px`);
     };
-
     syncNavHeight();
     const observer = new ResizeObserver(syncNavHeight);
     observer.observe(nav);
     return () => observer.disconnect();
   }, []);
 
-  // Close mobile menu on scroll
+  // The glass gets a little denser once the page scrolls under it
   useEffect(() => {
-    const handleScrollClose = () => {
-      if (isOpen) {
-        setIsOpen(false);
-      }
-    };
-    window.addEventListener("scroll", handleScrollClose);
-    return () => window.removeEventListener("scroll", handleScrollClose);
-  }, [isOpen]);
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Close menus on navigation
+  useEffect(() => {
+    setIsOpen(false);
+    setShowProfile(false);
+  }, [pathname]);
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
+    document.body.style.overflow = isOpen ? "hidden" : "unset";
     return () => {
       document.body.style.overflow = "unset";
     };
@@ -87,73 +102,56 @@ const Navbar = () => {
   // Check if user is a project leader
   useEffect(() => {
     const checkIfProjectLeader = async () => {
-      if (!isAuthenticated || !user) {
+      if (!isAuthenticated || !user || !hasRole("team_member")) {
         setIsProjectLeader(false);
         return;
       }
-
-      // Only check for team-members
-      if (!hasRole('team_member')) {
-        setIsProjectLeader(false);
-        return;
-      }
-
       try {
         const userId = user.id || user._id;
-        
         if (!userId) {
           setIsProjectLeader(false);
           return;
         }
-
-        // Fetch projects to check if user is a leader
-        const response = await fetch(`${API_BASE_URL}/projects?limit=100`, { 
-          cache: 'no-store' 
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.data?.projects) {
-            const projects = data.data.projects || [];
-            // Check if user is a leader of any project
-            const isLeader = projects.some(project => {
-              if (!project.teamLeaderId) return false;
-              // Handle both populated object and ID string
-              const leaderId = typeof project.teamLeaderId === 'object' 
-                ? (project.teamLeaderId.id || project.teamLeaderId._id)
-                : project.teamLeaderId;
-              return leaderId === userId || leaderId?.toString() === userId?.toString();
-            });
-            setIsProjectLeader(isLeader);
-          } else {
-            setIsProjectLeader(false);
-          }
-        } else {
+        const response = await fetch(`${API_BASE_URL}/projects?limit=100`, { cache: "no-store" });
+        if (!response.ok) {
           setIsProjectLeader(false);
+          return;
         }
+        const data = await response.json();
+        const projects = (data.success && data.data?.projects) || [];
+        const isLeader = projects.some((project) => {
+          if (!project.teamLeaderId) return false;
+          const leaderId =
+            typeof project.teamLeaderId === "object"
+              ? project.teamLeaderId.id || project.teamLeaderId._id
+              : project.teamLeaderId;
+          return leaderId === userId || leaderId?.toString() === userId?.toString();
+        });
+        setIsProjectLeader(isLeader);
       } catch (error) {
-        console.error('Error checking project leader status:', error);
+        console.error("Error checking project leader status:", error);
         setIsProjectLeader(false);
       }
     };
-
     checkIfProjectLeader();
   }, [isAuthenticated, user, hasRole]);
 
   const isLoggedIn = isAuthenticated && user;
   // Full admin: role-based or project leaders
-  const isAdmin = isLoggedIn && (
-    hasRole('admin') || 
-    hasRole('mentor') || 
-    hasRole('researcher') || 
-    hasPermission('admin:access') ||
-    (hasRole('team_member') && isProjectLeader)
-  );
+  const isAdmin =
+    isLoggedIn &&
+    (hasRole("admin") ||
+      hasRole("mentor") ||
+      hasRole("researcher") ||
+      hasPermission("admin:access") ||
+      (hasRole("team_member") && isProjectLeader));
   // Scoped admin panel access (e.g. Event Manager can open the panel for events)
-  const canOpenAdminPanel = isLoggedIn && (
+  const canOpenAdminPanel = isLoggedIn && (isAdmin || hasSubrole("event_manager"));
+  const canUseInventory =
     isAdmin ||
-    hasSubrole('event_manager')
-  );
+    hasRole("team_member") ||
+    hasSubrole("inventory_manager") ||
+    hasSubrole("inventory_management");
 
   const handleLogout = async () => {
     try {
@@ -161,389 +159,312 @@ const Navbar = () => {
       setShowProfile(false);
       setIsOpen(false);
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     }
   };
 
-  const isActive = (path) => {
-    if (path === "/DashBoard" || path === "/") {
-      return pathname === "/DashBoard" || pathname === "/";
-    }
-    return pathname === path;
-  };
+  const isActive = (path) => pathname === path || pathname?.startsWith(`${path}/`);
 
-  const getActiveStyles = (path) =>
-    isActive(path)
-      ? "text-red-500 font-semibold border-b-2 border-red-500"
-      : "text-white hover:text-red-500 transition";
-
-  const getMobileActiveStyles = (path) =>
-    isActive(path)
-      ? "block py-2 px-4 text-red-500 font-semibold bg-red-900/50 border-l-4 border-red-500 transition"
-      : "block py-2 px-4 text-white hover:bg-red-900 transition";
-
-  const avatarLabel = user ? (user.firstName ? user.firstName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()) : "U";
-  const displayName = user ? (user.firstName ? `${user.firstName} ${user.lastName}` : user.email) : "User";
-  const userRole = user ? user.role : "Member";
+  const avatarLabel = user
+    ? (user.firstName || user.email || "U").charAt(0).toUpperCase()
+    : "U";
+  const displayName = user
+    ? user.firstName
+      ? `${user.firstName} ${user.lastName || ""}`.trim()
+      : user.email
+    : "User";
   const userSubroles = user?.subroles || [];
-  const userRoleDisplay = userRole?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Member';
-  const userAvatarUrl = user && user.profileImageUrl && /^https?:\/\//i.test(user.profileImageUrl) ? user.profileImageUrl : null;
+  const userRoleDisplay = formatRole(user?.role) || "Member";
+  const subroleSummary =
+    userSubroles.length > 0
+      ? `${formatRole(userSubroles[0])}${userSubroles.length > 1 ? ` +${userSubroles.length - 1}` : ""}`
+      : null;
+  const userAvatarUrl =
+    user && user.profileImageUrl && /^https?:\/\//i.test(user.profileImageUrl)
+      ? user.profileImageUrl
+      : null;
+
+  const memberLinks = [
+    ...(canUseInventory ? [{ href: "/Inventory", label: "Lab inventory", icon: Package }] : []),
+    { href: "/Resources", label: "Resources", icon: BookOpen },
+    { href: "/my-activity", label: "My activity", icon: List },
+    { href: "/projectRequest", label: "Pitch a project", icon: FileText },
+    { href: "/ProfileCompletion", label: "Profile settings", icon: Settings },
+  ];
+
+  const Avatar = ({ size = "h-8 w-8" }) =>
+    userAvatarUrl ? (
+      <span className={`${size} shrink-0 overflow-hidden rounded-full border border-white/20`}>
+        <img
+          src={optimizeImageUrl(userAvatarUrl, { width: 40, height: 40, crop: "fill" })}
+          alt=""
+          className="h-full w-full object-cover"
+          referrerPolicy="no-referrer"
+        />
+      </span>
+    ) : (
+      <span
+        className={`${size} grid shrink-0 place-items-center rounded-full bg-signal text-sm font-semibold text-ink`}
+      >
+        {avatarLabel}
+      </span>
+    );
 
   return (
-    <nav
+    <header
       ref={navRef}
-      className={`sticky top-0 z-[100] w-full transition-all duration-300 ${
-        isScrolled
-          ? "bg-black/95 backdrop-blur-xl shadow-[0_1px_0_rgba(255,255,255,0.07)] border-b border-white/[0.06]"
-          : "bg-black"
-      }`}
+      className="pointer-events-none sticky top-0 z-[100] w-full px-3 pt-3 sm:px-4"
     >
-      <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-3.5 flex items-center justify-between relative">
-        {/* Logo */}
-        <div className="flex items-center">
-            <Link
-              href="/DashBoard"
-              className="flex items-center gap-3 hover:opacity-90 transition"
-            >
-              <SiteLogo priority />
-            </Link>
-        </div>
+      {/* Floating crystal bar: the page shows through, blurred, as it scrolls underneath */}
+      <div
+        className={`nb-glass pointer-events-auto relative mx-auto flex min-h-[60px] max-w-[1280px] items-center justify-between gap-6 rounded-2xl py-2 pl-4 pr-2.5 ${
+          scrolled ? "nb-glass-scrolled" : ""
+        }`}
+      >
+        <Link href="/" aria-label="NewtonBotics home" className="shrink-0">
+          {/* eslint-disable-next-line @next/next/no-img-element -- small static logo, sized explicitly */}
+          <img
+            src="/brand/newtonbotics-logo-red.webp"
+            alt="NewtonBotics"
+            width={420}
+            height={111}
+            className="block h-8 w-auto sm:h-9"
+          />
+        </Link>
 
-        {/* Desktop Menu */}
-        <div className="hidden md:flex space-x-6 items-center">
-          <Link href="/aboutus" className={`${getActiveStyles("/aboutus")} pb-1`}>
-            About Us
-          </Link>
-          <Link href="/Projects" className={`${getActiveStyles("/Projects")} pb-1`}>
-            Projects
-          </Link>
-          {/* <Link href="/Workshops" className={`${getActiveStyles("/Workshops")} pb-1`}>
-            Workshops
-          </Link> */}
-          <Link href="/Events" className={`${getActiveStyles("/Events")} pb-1`}>
-            Events
-          </Link>
-          <Link href="/News" className={`${getActiveStyles("/News")} pb-1`}>
-            News
-          </Link>
-          <Link href="/ourTeam" className={`${getActiveStyles("/ourTeam")} pb-1`}>
-            Team
-          </Link>
-          <Link href="/Gallery" className={`${getActiveStyles("/Gallery")} pb-1`}>
-            Gallery
-          </Link>
-          <Link href="/contact" className={`${getActiveStyles("/contact")} pb-1`}>
-            Contact Us
-          </Link>
-
-          <div className="flex items-center gap-3">
-            {!isLoggedIn ? (
+        <nav aria-label="Primary" className="hidden items-center gap-0.5 lg:flex">
+          {NAV_LINKS.map((link) => {
+            const active = isActive(link.href);
+            return (
               <Link
-                href="/auth"
-                className="inline-block px-4 py-2 bg-red-600 text-white nb-chamfer hover:bg-red-700 transition"
+                key={link.href}
+                href={link.href}
+                aria-current={active ? "page" : undefined}
+                className={`inline-flex h-10 items-center rounded-lg px-3 text-sm font-medium transition-colors ${
+                  active
+                    ? "bg-white/10 text-night-text shadow-[inset_0_-2px_0_#FF5A1F]"
+                    : "text-night-muted hover:bg-white/5 hover:text-night-text"
+                }`}
               >
-                Sign in
+                {link.label}
               </Link>
-            ) : (
-            <div
-              className="relative group"
-              ref={profileRef}
-              onMouseEnter={() => setShowProfile(true)}
-              onMouseLeave={() => setShowProfile(false)}
-            >
+            );
+          })}
+        </nav>
+
+        <div className="hidden items-center gap-2 lg:flex">
+          {!isLoggedIn ? (
+            <div className="relative" ref={profileRef}>
               <button
-                className="flex items-center gap-2 px-3 py-2 bg-white/10 text-white nb-chamfer border border-white/20 hover:bg-white/20 transition"
+                type="button"
+                onClick={() => setShowProfile((s) => !s)}
+                className="nb-btn nb-btn-sm nb-btn-accent rounded-xl shadow-[0_0_24px_rgba(255,90,31,0.35)]"
                 aria-haspopup="menu"
                 aria-expanded={showProfile}
               >
-                {userAvatarUrl ? (
-                  <span className="w-7 h-7 rounded-full overflow-hidden border border-white/20 bg-white/10">
-                    <img src={userAvatarUrl} alt="Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                  </span>
-                ) : (
-                  <span className="w-7 h-7 rounded-full bg-red-600 grid place-items-center text-sm font-bold">
-                    {avatarLabel}
-                  </span>
-                )}
-                <span className="hidden lg:inline text-sm">Profile</span>
-                <FiChevronDown className={`hidden lg:inline transition-transform ${showProfile ? "rotate-180" : "rotate-0"}`} />
+                Join the lab
+                <ChevronDown size="1em"
+                  aria-hidden="true"
+                  className={`transition-transform ${showProfile ? "rotate-180" : ""}`}
+                />
+              </button>
+              {showProfile && (
+                <div
+                  role="menu"
+                  className="nb-glass-menu absolute right-0 mt-3 w-72 overflow-hidden rounded-xl p-1.5"
+                >
+                  <Link
+                    role="menuitem"
+                    href="/auth?tab=signup"
+                    className="flex items-start gap-3 rounded-lg px-3 py-3 text-night-text no-underline hover:bg-white/5"
+                  >
+                    <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-md bg-signal text-ink">
+                      <ArrowRight size="1em" aria-hidden="true" />
+                    </span>
+                    <span className="flex flex-col gap-0.5">
+                      <span className="text-sm font-semibold">Create an account</span>
+                      <span className="text-[13px] text-night-muted">New here? Join with your university email.</span>
+                    </span>
+                  </Link>
+                  <Link
+                    role="menuitem"
+                    href="/auth?tab=signin"
+                    className="flex items-start gap-3 rounded-lg px-3 py-3 text-night-text no-underline hover:bg-white/5"
+                  >
+                    <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-md border border-white/15 text-night-text">
+                      <LogIn size="1em" aria-hidden="true" />
+                    </span>
+                    <span className="flex flex-col gap-0.5">
+                      <span className="text-sm font-semibold">Sign in</span>
+                      <span className="text-[13px] text-night-muted">Already a member? Welcome back.</span>
+                    </span>
+                  </Link>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="relative" ref={profileRef}>
+              <button
+                type="button"
+                onClick={() => setShowProfile((s) => !s)}
+                className="flex h-11 items-center gap-2 rounded-xl border border-white/15 bg-white/5 pl-1.5 pr-3 text-sm font-medium text-night-text transition-colors hover:border-white/40"
+                aria-haspopup="menu"
+                aria-expanded={showProfile}
+              >
+                <Avatar />
+                <span className="max-w-[9rem] truncate">{user.firstName || "Account"}</span>
+                <ChevronDown size="1em"
+                  aria-hidden="true"
+                  className={`transition-transform ${showProfile ? "rotate-180" : ""}`}
+                />
               </button>
 
-              {/* Dropdown */}
-              <div
-                className={`invisible opacity-0 translate-y-1 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 absolute right-0 mt-3 w-64 rounded-md border border-white/10 bg-black shadow-2xl ring-1 ring-white/10 ${showProfile ? "visible opacity-100 translate-y-0" : ""}`}
-                role="menu"
-              >
-                {/* Arrow */}
-                <div className="absolute -top-2 right-6 w-3 h-3 rotate-45 bg-neutral-900 border-t border-l border-white/10"></div>
-
-                <div className="px-4 py-3 border-b border-white/10">
-                  <div className="flex items-center gap-3">
-                    {userAvatarUrl ? (
-                      <span className="w-9 h-9 rounded-full overflow-hidden border border-white/20 bg-white/10">
-                        <img src={userAvatarUrl} alt="Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                      </span>
-                    ) : (
-                      <span className="w-9 h-9 rounded-full bg-red-600 grid place-items-center text-sm font-bold"><FiUser /></span>
-                    )}
-                    <div className="text-sm">
-                      <div className="text-white/90 font-medium truncate max-w-[12rem]">{displayName}</div>
-                      <div className="text-white/50 text-xs">
-                        <span className="capitalize">{userRoleDisplay}</span>
-                        {userSubroles.length > 0 && (
-                          <>
-                            <span className="text-white/30 mx-1">•</span>
-                            <span className="text-white/40">
-                              {userSubroles.slice(0, 1).map(subrole => 
-                                subrole.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-                              ).join(', ')}
-                              {userSubroles.length > 1 && ` +${userSubroles.length - 1}`}
-                            </span>
-                          </>
-                        )}
+              {showProfile && (
+                <div
+                  role="menu"
+                  className="nb-glass-menu absolute right-0 mt-3 w-72 overflow-hidden rounded-xl"
+                >
+                  <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3.5">
+                    <Avatar size="h-10 w-10" />
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-semibold text-night-text">{displayName}</div>
+                      <div className="truncate font-mono text-[11px] uppercase tracking-[0.04em] text-night-muted">
+                        {userRoleDisplay}
+                        {subroleSummary && ` · ${subroleSummary}`}
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {canOpenAdminPanel && ADMIN_PANEL_URL && (
-                  <div className="py-1">
-                    <div className="px-4 py-2 text-[11px] uppercase tracking-wider text-white/40">Admin Tools</div>
+                  {canOpenAdminPanel && ADMIN_PANEL_URL && (
                     <a
+                      role="menuitem"
                       href={ADMIN_PANEL_URL}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-2 text-white/90 hover:bg-white/10"
-                      onClick={() => setShowProfile(false)}
+                      className="flex items-center gap-3 border-b border-white/10 px-4 py-2.5 text-sm font-medium text-night-text hover:bg-white/5"
                     >
-                      <FiShield /> Admin Panel
+                      <Shield size="1em" aria-hidden="true" className="text-signal-light" /> Admin panel
                     </a>
-                  </div>
-                )}
+                  )}
 
-                {(isAdmin || hasRole('team_member') || hasSubrole('inventory_manager') || hasSubrole('inventory_management')) && (
                   <div className="py-1">
-                    <div className="px-4 py-2 text-[11px] uppercase tracking-wider text-white/40">Tools</div>
-                    <Link
-                      href="/Inventory"
-                      className="flex items-center gap-2 px-4 py-2 text-white/90 hover:bg-white/10"
-                      onClick={() => setShowProfile(false)}
-                    >
-                      <FiPackage /> Inventory
-                    </Link>
+                    {memberLinks.map(({ href, label, icon: Icon }) => (
+                      <Link
+                        key={href}
+                        role="menuitem"
+                        href={href}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-night-text hover:bg-white/5"
+                      >
+                        <Icon size="1em" aria-hidden="true" className="text-night-muted" /> {label}
+                      </Link>
+                    ))}
                   </div>
-                )}
-
-                <div className="border-t border-white/10">
-                  <Link
-                    href="/Resources"
-                    className="flex items-center gap-2 px-4 py-2 text-white/90 hover:bg-white/10"
-                    onClick={() => setShowProfile(false)}
-                  >
-                    <FiBookOpen /> Resources
-                  </Link>
-                  <Link
-                    href="/my-activity"
-                    className="flex items-center gap-2 px-4 py-2 text-white/90 hover:bg-white/10"
-                    onClick={() => setShowProfile(false)}
-                  >
-                    <FiList /> My Activity
-                  </Link>
-                  <Link
-                    href="/projectRequest"
-                    className="flex items-center gap-2 px-4 py-2 text-white/90 hover:bg-white/10"
-                    onClick={() => setShowProfile(false)}
-                  >
-                    <FiFileText /> Project Request
-                  </Link>
-                  {/* <Link
-                    href="/ChatRoom"
-                    className="flex items-center gap-2 px-4 py-2 text-white/90 hover:bg-white/10"
-                    onClick={() => setShowProfile(false)}
-                  >
-                    <FiList /> Chat Room
-                  </Link> */}
-                  <Link
-                    href="/ProfileCompletion"
-                    className="flex items-center gap-2 px-4 py-2 text-white/90 hover:bg-white/10"
-                    onClick={() => setShowProfile(false)}
-                  >
-                    <FiSettings /> Profile Settings
-                  </Link>
                   <button
+                    type="button"
+                    role="menuitem"
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-left text-white/80 hover:bg-white/10"
+                    className="flex w-full items-center gap-3 border-t border-white/10 px-4 py-3 text-left text-sm text-night-muted hover:bg-white/5 hover:text-night-text"
                   >
-                    <FiLogOut /> Logout
+                    <LogOut size="1em" aria-hidden="true" /> Sign out
                   </button>
                 </div>
-              </div>
+              )}
             </div>
           )}
-            <ThemeToggle />
-          </div>
         </div>
 
-        <div className="flex items-center gap-2 md:hidden">
-          <ThemeToggle />
-          <button
-            className="text-2xl text-white focus:outline-none"
-            onClick={toggleMenu}
-            aria-label={isOpen ? "Close menu" : "Open menu"}
-          >
-            {isOpen ? <FiX /> : <FiMenu />}
-          </button>
-        </div>
+        <button
+          type="button"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-xl text-night-text lg:hidden"
+          onClick={() => setIsOpen((s) => !s)}
+          aria-label={isOpen ? "Close menu" : "Open menu"}
+          aria-expanded={isOpen}
+          aria-controls="nb-mobile-menu"
+        >
+          {isOpen ? <X size="1em" /> : <Menu size="1em" />}
+        </button>
       </div>
 
-      {/* Mobile Menu */}
-      <div
-        className={`md:hidden absolute w-full transition-all duration-300 ease-in-out bg-black/95 backdrop-blur-lg shadow-2xl mobile-menu-scroll ${
-          isOpen ? "max-h-[calc(100vh-5rem)] overflow-y-auto" : "max-h-0 overflow-hidden"
-        }`}
-        style={{ 
-          zIndex: 90,
-          scrollbarWidth: 'thin',
-          scrollbarColor: '#ef4444 transparent'
-        }}
-      >
-        <div className="py-2 min-h-0">
-          <Link href="/aboutus" className={getMobileActiveStyles("/aboutus")} onClick={() => setIsOpen(false)}>About Us</Link>
-          <Link href="/Projects" className={getMobileActiveStyles("/Projects")} onClick={() => setIsOpen(false)}>Projects</Link>
-          {/* <Link href="/Workshops" className={getMobileActiveStyles("/Workshops")} onClick={() => setIsOpen(false)}>Workshops</Link> */}
-          <Link href="/Events" className={getMobileActiveStyles("/Events")} onClick={() => setIsOpen(false)}>Events</Link>
-          <Link href="/News" className={getMobileActiveStyles("/News")} onClick={() => setIsOpen(false)}>News</Link>
-          <Link href="/ourTeam" className={getMobileActiveStyles("/ourTeam")} onClick={() => setIsOpen(false)}>Team</Link>
-          <Link href="/Gallery" className={getMobileActiveStyles("/Gallery")} onClick={() => setIsOpen(false)}>Gallery</Link>
-          <Link href="/contact" className={getMobileActiveStyles("/contact")} onClick={() => setIsOpen(false)}>Contact Us</Link>
+      {/* Mobile menu */}
+      {isOpen && (
+        <div
+          id="nb-mobile-menu"
+          className="nb-glass-menu pointer-events-auto absolute inset-x-3 top-full mt-2 max-h-[calc(100vh-var(--nb-nav-height)-16px)] overflow-y-auto rounded-2xl sm:inset-x-4 lg:hidden"
+        >
+          <nav aria-label="Mobile" className="flex flex-col px-5 py-2">
+            {NAV_LINKS.map((link) => {
+              const active = isActive(link.href);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  aria-current={active ? "page" : undefined}
+                  className={`flex items-center justify-between border-b border-white/10 py-3.5 font-display text-lg font-semibold ${
+                    active ? "text-signal-light" : "text-night-text"
+                  }`}
+                >
+                  {link.label}
+                  <ArrowRight size="1em" aria-hidden="true" className="text-base text-night-muted" />
+                </Link>
+              );
+            })}
+          </nav>
 
-          {/* Mobile Profile Section */}
-          {!isLoggedIn ? (
-            <div className="mx-4 my-3 flex items-center gap-3">
-              <Link
-                href="/auth"
-                className="flex-1 py-2 bg-red-600 text-white text-center nb-chamfer hover:bg-red-700 transition"
-                onClick={() => setIsOpen(false)}
-              >
-                Sign in
-              </Link>
-              <ThemeToggle />
-            </div>
-          ) : (
-            <div className="mx-2 my-2">
-            <div className="rounded-lg border border-white/10 bg-black/40">
-              <div className="px-4 py-3 text-white/80 text-sm border-b border-white/10 bg-white/5">
-                <div className="flex items-center gap-3">
-                  {userAvatarUrl ? (
-                    <span className="w-10 h-10 rounded-full overflow-hidden border border-white/20 bg-white/10 flex-shrink-0">
-                      <img src={userAvatarUrl} alt="Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                    </span>
-                  ) : (
-                    <span className="w-10 h-10 rounded-full bg-red-600 grid place-items-center text-sm font-bold flex-shrink-0">
-                      {avatarLabel}
-                    </span>
-                  )}
-                  <div>
-                    <div className="font-medium text-white">{displayName}</div>
-                    <div className="text-white/60 text-xs">
-                      <span className="capitalize">{userRoleDisplay}</span>
-                      {userSubroles.length > 0 && (
-                        <>
-                          <span className="text-white/40 mx-1">•</span>
-                          <span className="text-white/50">
-                            {userSubroles.slice(0, 1).map(subrole => 
-                              subrole.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-                            ).join(', ')}
-                            {userSubroles.length > 1 && ` +${userSubroles.length - 1}`}
-                          </span>
-                        </>
-                      )}
+          <div className="px-5 pb-5 pt-3 text-night-text">
+            {!isLoggedIn ? (
+              <div className="flex flex-col gap-2.5">
+                <span className="font-mono text-xs uppercase tracking-[0.08em] text-night-muted">Join the lab</span>
+                <Link href="/auth?tab=signup" className="nb-btn nb-btn-accent w-full rounded-xl">
+                  Create an account
+                </Link>
+                <Link href="/auth?tab=signin" className="nb-btn w-full rounded-xl border border-white/15 bg-white/5 text-night-text">
+                  Sign in
+                </Link>
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
+                <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3.5">
+                  <Avatar size="h-10 w-10" />
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-semibold">{displayName}</div>
+                    <div className="truncate font-mono text-[11px] uppercase tracking-[0.04em] text-night-muted">
+                      {userRoleDisplay}
+                      {subroleSummary && ` · ${subroleSummary}`}
                     </div>
                   </div>
                 </div>
-              </div>
-              
-              {canOpenAdminPanel && ADMIN_PANEL_URL && (
-                <>
-                  <div className="px-4 py-2 text-[10px] uppercase tracking-wider text-white/40 bg-white/5">Admin Tools</div>
+                {canOpenAdminPanel && ADMIN_PANEL_URL && (
                   <a
                     href={ADMIN_PANEL_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 py-2 px-4 text-white hover:bg-red-900 transition"
-                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-3 border-b border-white/10 px-4 py-3 text-sm font-medium"
                   >
-                    <FiShield className="w-4 h-4" />
-                    <span>Admin Panel</span>
+                    <Shield size="1em" aria-hidden="true" className="text-signal-light" /> Admin panel
                   </a>
-                </>
-              )}
-
-              {(isAdmin || hasRole('team_member') || hasSubrole('inventory_manager') || hasSubrole('inventory_management')) && (
-                <>
-                  <div className="px-4 py-2 text-[10px] uppercase tracking-wider text-white/40 bg-white/5">Tools</div>
-                  <Link 
-                    href="/Inventory" 
-                    className="flex items-center gap-3 py-2 px-4 text-white hover:bg-red-900 transition" 
-                    onClick={() => setIsOpen(false)}
+                )}
+                {memberLinks.map(({ href, label, icon: Icon }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className="flex items-center gap-3 border-b border-white/10 px-4 py-3 text-sm"
                   >
-                    <FiPackage className="w-4 h-4" />
-                    <span>Inventory</span>
+                    <Icon size="1em" aria-hidden="true" className="text-night-muted" /> {label}
                   </Link>
-                </>
-              )}
-              
-              <div className="border-t border-white/10">
-                <Link
-                  href="/Resources"
-                  className="flex items-center gap-3 py-2 px-4 text-white hover:bg-red-900 transition"
-                  onClick={() => setIsOpen(false)}
+                ))}
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-night-muted"
                 >
-                  <FiBookOpen className="w-4 h-4" />
-                  <span>Resources</span>
-                </Link>
-                <Link
-                  href="/my-activity"
-                  className="flex items-center gap-3 py-2 px-4 text-white hover:bg-red-900 transition" 
-                  onClick={() => setIsOpen(false)}
-                >
-                  <FiList className="w-4 h-4" />
-                  <span>My Activity</span>
-                </Link>
-                <Link 
-                  href="/projectRequest" 
-                  className="flex items-center gap-3 py-2 px-4 text-white hover:bg-red-900 transition" 
-                  onClick={() => setIsOpen(false)}
-                >
-                  <FiFileText className="w-4 h-4" />
-                  <span>Project Request</span>
-                </Link>
-                <Link 
-                  href="/ProfileCompletion" 
-                  className="flex items-center gap-3 py-2 px-4 text-white hover:bg-red-900 transition" 
-                  onClick={() => setIsOpen(false)}
-                >
-                  <FiSettings className="w-4 h-4" />
-                  <span>Profile Settings</span>
-                </Link>
+                  <LogOut size="1em" aria-hidden="true" /> Sign out
+                </button>
               </div>
-              
-              <button
-                onClick={() => { handleLogout(); setIsOpen(false); }}
-                className="flex items-center justify-center gap-2 w-[calc(100%-2rem)] mx-4 my-3 py-2 bg-white/10 text-white text-center rounded-lg hover:bg-white/20 transition border border-white/20"
-              >
-                <FiLogOut className="w-4 h-4" />
-                <span>Logout</span>
-              </button>
-            </div>
-            <div className="mx-4 my-3 flex justify-end">
-              <ThemeToggle />
-            </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
-    </nav>
+      )}
+    </header>
   );
 };
 
