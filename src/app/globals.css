@@ -869,7 +869,8 @@ button:active:not(:disabled),
 /* ===== Dark page theme (.nb-dark) =====
    Used by the homepage and the Projects pages. Rather than fork every shared component, the
    light Lab Spec tokens are remapped to their night equivalents inside .nb-dark only. */
-body:has(.nb-dark) { background-color: #0E1013; }
+/* Every page is dark now, so the page background is too (no light flash on blank or redirecting pages) */
+body { background-color: #0E1013; }
 .nb-dark { background-color: #0E1013; color: #E9EAE6; }
 .nb-dark .bg-paper { background-color: #0E1013; }
 .nb-dark .bg-surface { background-color: #16191E; }
@@ -927,8 +928,10 @@ body:has(.nb-dark) { background-color: #0E1013; }
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
     0 14px 40px rgba(0, 0, 0, 0.35);
 }
+/* Menus open inside the glass navbar, and a backdrop blur can't work inside another one, so the
+   panel itself must be (nearly) opaque or the page shows through sharply. */
 .nb-glass-menu {
-  background: rgba(22, 25, 30, 0.86);
+  background: linear-gradient(180deg, rgba(28, 31, 37, 0.985), rgba(20, 23, 28, 0.985));
   -webkit-backdrop-filter: blur(20px) saturate(160%);
   backdrop-filter: blur(20px) saturate(160%);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1030,3 +1033,28 @@ body:has(.nb-dark) { background-color: #0E1013; }
     animation: none;
   }
 }
+
+/* Dark page theme: member pages (inventory, resources, activity, project requests, profile) */
+.nb-dark .nb-lead { color: #9AA0A8; }
+.nb-dark .nb-btn-ghost { color: #E9EAE6; }
+.nb-dark .nb-btn-ghost:hover,
+.nb-dark .hover\:bg-\[\#E6E7E1\]:hover,
+.nb-dark .hover\:bg-surface:hover { background-color: #1F2329; }
+.nb-dark .hover\:bg-\[\#23272E\]:hover { background-color: #FFFFFF; }
+/* Progress fills drawn in ink would vanish on a dark track */
+.nb-dark .h-1.bg-ink,
+.nb-dark .h-full.bg-ink { background-color: #E9EAE6; }
+.nb-dark .border-surface { border-color: #16191E; }
+.nb-dark .bg-signal-tint { background-color: rgba(255, 90, 31, 0.14); }
+.nb-dark .bg-\[\#FFF7F3\] { background-color: rgba(255, 90, 31, 0.08); }
+.nb-dark .disabled\:bg-paper:disabled { background-color: #1B1E23; }
+.nb-dark .disabled\:text-ink-muted:disabled { color: #7D838B; }
+/* Info (blue) and warning (amber) notices */
+.nb-dark .bg-\[\#E5ECFB\] { background-color: rgba(59, 130, 246, 0.14); }
+.nb-dark .text-\[\#1E40AF\] { color: #93B4FF; }
+.nb-dark .border-\[\#C9D6F5\] { border-color: rgba(59, 130, 246, 0.35); }
+.nb-dark .bg-\[\#FDF1D8\] { background-color: rgba(245, 158, 11, 0.14); }
+.nb-dark .text-\[\#854D0E\] { color: #FCD27A; }
+.nb-dark .border-\[\#EBD9A8\] { border-color: rgba(245, 158, 11, 0.35); }
+.nb-dark .hover\:text-\[\#B91C1C\]:hover { color: #FCA5A5; }
+.nb-dark .hover\:border-\[\#B91C1C\]:hover { border-color: #F87171; }

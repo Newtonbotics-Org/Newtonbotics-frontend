@@ -30,7 +30,7 @@ const ProtectedRoute = ({ children, requiredRole = null, requiredPermission = nu
   // Show loading state while checking authentication
   if (isLoading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center bg-paper text-ink" role="status">
+      <div className="nb-dark flex min-h-[60vh] items-center justify-center bg-paper text-ink" role="status">
         <div className="flex flex-col items-center gap-4">
           <span
             className="h-10 w-10 animate-spin rounded-full border-2 border-line-strong border-t-signal"

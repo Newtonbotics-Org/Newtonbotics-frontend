@@ -23,8 +23,8 @@ export function ThemeProvider({ children }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    const next = stored === "light" ? "light" : "dark";
+    // The site is dark-only now; an old saved "light" preference would paint pages light grey
+    const next = "dark";
     setThemeState(next);
     applyThemeClass(next);
     setReady(true);

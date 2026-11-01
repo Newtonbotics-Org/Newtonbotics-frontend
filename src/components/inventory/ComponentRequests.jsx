@@ -147,11 +147,11 @@ export default function ComponentRequests() {
   };
 
   if (authLoading) {
-    return <main className="bg-paper text-ink"><div className="nb-container py-16"><CardSkeletonGrid count={2} variant="inventory" /></div></main>;
+    return <main className="nb-dark bg-paper text-ink"><div className="nb-container py-16"><CardSkeletonGrid count={2} variant="inventory" /></div></main>;
   }
 
   return (
-    <main className="bg-paper text-ink">
+    <main className="nb-dark bg-paper text-ink">
       <header className="nb-blueprint border-b border-line">
         <div className="nb-container flex flex-col gap-5 pb-12 pt-10 sm:pt-14">
           <nav aria-label="Inventory navigation">

@@ -188,7 +188,7 @@ export default function RootLayout({ children }) {
   };
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning style={{ backgroundColor: "#0E1013", colorScheme: "dark" }}>
       <head>
         <script
           type="application/ld+json"

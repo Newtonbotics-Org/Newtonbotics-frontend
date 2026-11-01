@@ -171,7 +171,7 @@ export function FilterBarSkeleton({ fields = 4 }) {
 
 export function DetailPageSkeleton({ className = "" }) {
   return (
-    <div className={`min-h-screen bg-paper text-ink ${className}`} role="status" aria-label="Loading content">
+    <div className={`nb-dark min-h-screen bg-paper text-ink ${className}`} role="status" aria-label="Loading content">
       <div className="container mx-auto px-4 py-8">
         <Bone className="h-10 w-36 rounded-lg mb-6" />
         <Bone className="h-64 md:h-80 w-full rounded-2xl mb-8" />
@@ -203,7 +203,7 @@ export function DetailPageSkeleton({ className = "" }) {
 
 export function ArticleDetailSkeleton({ className = "" }) {
   return (
-    <div className={`min-h-screen bg-paper text-ink ${className}`} role="status" aria-label="Loading article">
+    <div className={`nb-dark min-h-screen bg-paper text-ink ${className}`} role="status" aria-label="Loading article">
       <div className="container mx-auto px-4 py-6">
         <Bone className="h-8 w-24 rounded-lg mb-4" />
         <Bone className="h-64 w-full rounded-2xl mb-6" />

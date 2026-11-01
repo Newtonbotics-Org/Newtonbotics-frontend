@@ -118,7 +118,7 @@ export default function MyActivityPage() {
 
   return (
     <ProtectedRoute>
-      <main className="bg-paper text-ink">
+      <main className="nb-dark bg-paper text-ink">
         <div className="nb-container flex flex-col gap-8 pb-24 pt-10 sm:pt-12">
           <header className="flex flex-wrap items-end justify-between gap-4">
             <div className="flex min-w-0 flex-col gap-1.5">

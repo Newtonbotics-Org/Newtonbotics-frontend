@@ -167,7 +167,7 @@ export default function EquipmentDetailPage(){
   if (loading) return <DetailPageSkeleton />;
   if (error || !item) {
     return (
-      <main className="bg-paper text-ink">
+      <main className="nb-dark bg-paper text-ink">
         <div className="nb-container flex flex-col items-start gap-4 pb-28 pt-16">
           <Link href="/Inventory" className="inline-flex min-h-[44px] items-center gap-2 font-mono text-xs uppercase tracking-[0.06em] text-ink-muted hover:text-ink">
             <ArrowLeft size={16} aria-hidden="true" /> Back to inventory
@@ -296,7 +296,7 @@ export default function EquipmentDetailPage(){
   ];
 
   return (
-    <main className="bg-paper text-ink">
+    <main className="nb-dark bg-paper text-ink">
       <header className="nb-blueprint border-b border-line">
         <div className="nb-container flex flex-col gap-5 pb-12 pt-10 sm:pt-14">
           <nav aria-label="Inventory breadcrumb">

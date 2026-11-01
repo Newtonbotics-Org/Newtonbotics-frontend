@@ -79,7 +79,9 @@ export default function BreakingNews() {
     } catch {}
   };
 
-  if (!stories.length || pathname?.startsWith("/auth")) return null;
+  // Home page only (served at "/" and "/DashBoard")
+  const isHome = pathname === "/" || pathname === "/DashBoard";
+  if (!stories.length || !isHome) return null;
   const story = stories[index];
   const label = story.welcome ? "Welcome to NewtonBotics" : story.title;
 

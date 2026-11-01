@@ -11,7 +11,7 @@ export default function InventoryWorkspace() {
   const search = useSearchParams();
   const section = search.get("section") === "projects" ? "projects" : "general";
   return (
-    <main className="bg-paper text-ink">
+    <main className="nb-dark bg-paper text-ink">
       <header className="nb-blueprint border-b border-line">
         <div className="nb-container flex flex-wrap items-end justify-between gap-6 pb-12 pt-16 sm:pt-20">
           <div className="flex min-w-0 flex-col gap-5">

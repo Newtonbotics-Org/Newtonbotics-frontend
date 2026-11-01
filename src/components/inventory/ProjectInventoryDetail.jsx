@@ -80,7 +80,7 @@ export default function ProjectInventoryDetail() {
   };
 
   return (
-    <main className="bg-paper text-ink">
+    <main className="nb-dark bg-paper text-ink">
       <header className="nb-blueprint border-b border-line">
         <div className="nb-container flex flex-col gap-5 pb-12 pt-10 sm:pt-14">
           <nav aria-label="Inventory breadcrumb" className="flex flex-wrap items-center justify-between gap-3">

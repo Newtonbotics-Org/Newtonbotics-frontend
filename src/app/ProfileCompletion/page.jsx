@@ -290,7 +290,7 @@ export default function ProfileCompletionPage() {
 
   return (
     <ProtectedRoute>
-      <main className="bg-paper text-ink">
+      <main className="nb-dark bg-paper text-ink">
         <div className="nb-container flex flex-col gap-6 pb-24 pt-10 sm:pt-12">
           <section className="nb-card overflow-hidden">
             <div className="nb-blueprint-dark h-[120px]" aria-hidden="true" />

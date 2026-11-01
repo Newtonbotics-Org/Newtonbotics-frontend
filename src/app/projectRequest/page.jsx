@@ -550,7 +550,7 @@ const ProjectRequestPage = () => {
   // Show loading while checking authentication
   if (authLoading) {
     return (
-      <main className="flex min-h-[60vh] items-center justify-center bg-paper text-ink" role="status">
+      <main className="nb-dark flex min-h-[60vh] items-center justify-center bg-paper text-ink" role="status">
         <div className="flex flex-col items-center gap-4">
           <span className="h-10 w-10 animate-spin rounded-full border-2 border-line-strong border-t-signal" aria-hidden="true" />
           <p className="m-0 font-mono text-xs uppercase tracking-[0.06em] text-ink-muted">Loading…</p>
@@ -562,7 +562,7 @@ const ProjectRequestPage = () => {
   // Show authentication required only after loading is complete
   if (!authLoading && !isAuthenticated) {
     return (
-      <main className="bg-paper text-ink">
+      <main className="nb-dark bg-paper text-ink">
         <div className="nb-container flex min-h-[60vh] flex-col items-start justify-center gap-4 py-24">
           <span className="nb-eyebrow">Members only</span>
           <h1 className="m-0 font-display text-[32px] font-semibold tracking-[-0.02em]">Authentication required</h1>
@@ -684,7 +684,7 @@ const ProjectRequestPage = () => {
   );
 
   return (
-    <main className="bg-paper text-ink">
+    <main className="nb-dark bg-paper text-ink">
       <div className="nb-container flex flex-col gap-8 pb-24 pt-10 sm:pt-12">
         {/* Header */}
         <header className="flex flex-wrap items-end justify-between gap-5">

@@ -231,3 +231,27 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+/* ── Dark page theme (pages wrapped in .nb-dark) ── */
+:global(.nb-dark) .tabs { border-bottom-color: #2a2e35; }
+:global(.nb-dark) .tab,
+:global(.nb-dark) .tabCount { color: #9aa0a8; }
+:global(.nb-dark) .tab:hover { color: #e9eae6; box-shadow: inset 0 -2px 0 #3a3f47; }
+:global(.nb-dark) .tab:focus-visible { outline-color: #e9eae6; }
+:global(.nb-dark) .tabActive,
+:global(.nb-dark) .tab[aria-selected="true"],
+:global(.nb-dark) .tab[aria-current="page"] { color: #e9eae6; }
+:global(.nb-dark) .tableWrap { background: #16191e; border-color: #2a2e35; }
+:global(.nb-dark) .table { color: #e9eae6; }
+:global(.nb-dark) .table thead tr { background: #1b1e23; color: #9aa0a8; }
+:global(.nb-dark) .table tbody tr { border-top-color: #23272e; }
+:global(.nb-dark) .table tbody tr:hover { background: #1f2329; }
+:global(.nb-dark) .codeTile { background: #1f2329; border-color: #2a2e35; color: #9aa0a8; }
+:global(.nb-dark) .codeTile img,
+:global(.nb-dark) .cardMedia { background: #1b1e23; }
+:global(.nb-dark) .cardMedia { border-bottom-color: #2a2e35; }
+:global(.nb-dark) .bar { background: #2a2e35; }
+:global(.nb-dark) .barFill { background: #e9eae6; }
+:global(.nb-dark) .barLow { background: #ff7a45; }
+:global(.nb-dark) .backdrop { background: rgba(0, 0, 0, 0.65); }
+:global(.nb-dark) .dialog { background: #16191e; color: #e9eae6; border-color: #2a2e35; }
