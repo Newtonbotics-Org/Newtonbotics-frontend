@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Search, Star, X } from "lucide-react";
 import RemoteImage from "@/components/RemoteImage";
 import BlueprintPlaceholder from "@/components/lab/BlueprintPlaceholder";
 import EmptyLog from "@/components/lab/EmptyLog";
-import { API_BASE_URL } from "@/lib/api";
+import { API_BASE_URL, apiRequest } from "@/lib/api";
 import { combineDateTime, dateParts, eventTypeChip, formatClock, formatDate, titleCase } from "@/lib/labUi";
 import NoMatchCard from "@/components/lab/NoMatchCard";
 
@@ -99,7 +99,7 @@ const EventsPage = () => {
       if (debouncedQuery) params.append("q", debouncedQuery);
       params.append("limit", "100"); // Get more events for better filtering
 
-      const res = await fetch(`${API_BASE_URL}/events?${params.toString()}`, { cache: "no-store" });
+      const res = await apiRequest(`${API_BASE_URL}/events?${params.toString()}`, { cache: "no-store" });
       if (!res.ok) throw new Error("Failed to fetch events");
       const data = await res.json();
       if (data.success) {

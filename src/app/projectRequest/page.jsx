@@ -8,6 +8,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import CloudinaryUploader from "../../components/CloudinaryUploader";
 import { API_BASE_URL } from "@/lib/api";
+import authService from "@/lib/auth";
 
 const ProjectRequestPage = () => {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -96,15 +97,11 @@ const ProjectRequestPage = () => {
   const fetchMyRequests = async () => {
     try {
       setRequestsLoading(true);
-      const token = localStorage.getItem('nb_access_token');
-      
-      if (!token) return;
+      if (!isAuthenticated) return;
 
-      const response = await fetch(`${API_BASE_URL}/project-requests/my-requests`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await authService.makeAuthenticatedRequest(
+        `${API_BASE_URL}/project-requests/my-requests`
+      );
 
       const data = await response.json();
 
@@ -208,23 +205,17 @@ const ProjectRequestPage = () => {
       setLoading(true);
       setError(null);
       
-      const token = localStorage.getItem('nb_access_token');
-      
-      if (!token) {
+      if (!isAuthenticated) {
         throw new Error('Authentication required. Please log in.');
       }
 
-
-      const response = await fetch(`${API_BASE_URL}/project-requests/${requestId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          reason: 'User requested deletion'
-        })
-      });
+      const response = await authService.makeAuthenticatedRequest(
+        `${API_BASE_URL}/project-requests/${requestId}`,
+        {
+          method: 'DELETE',
+          body: JSON.stringify({ reason: 'User requested deletion' })
+        }
+      );
 
 
       // Check if response is JSON
@@ -397,10 +388,7 @@ const ProjectRequestPage = () => {
     setSuccess(false);
 
     try {
-      // Get token from localStorage
-      const token = localStorage.getItem('nb_access_token');
-      
-      if (!token) {
+      if (!isAuthenticated) {
         throw new Error('Authentication required. Please log in.');
       }
 
@@ -451,12 +439,8 @@ const ProjectRequestPage = () => {
       
       const method = editingRequest ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
+      const response = await authService.makeAuthenticatedRequest(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify(cleanedData)
       });
 

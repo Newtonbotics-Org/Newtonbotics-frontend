@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './api';
+import { API_BASE_URL, apiRequest } from './api';
 import authService from './auth';
 
 /** Throw a clear message early if the API base URL was never configured. */
@@ -44,7 +44,7 @@ export const inventoryService = {
     try {
       requireApiUrl();
       const query = toQuery({ categoryId, status, q, limit, skip });
-      const res = await fetch(`${API_BASE_URL}/inventory/equipment${query}`, { cache: 'no-store' });
+      const res = await apiRequest(`${API_BASE_URL}/inventory/equipment${query}`, { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       const data = await safeParseJson(res);
       if (data?.success === false) {
@@ -68,7 +68,7 @@ export const inventoryService = {
   // GET /api/inventory/equipment/:id
   async getEquipment(id) {
     try {
-      const res = await fetch(`${API_BASE_URL}/inventory/equipment/${id}`, { cache: 'no-store' });
+      const res = await apiRequest(`${API_BASE_URL}/inventory/equipment/${id}`, { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       const data = await safeParseJson(res);
       if (data?.success === false) {
@@ -332,7 +332,7 @@ export const inventoryService = {
   async listCategories() {
     try {
       requireApiUrl();
-      const res = await fetch(`${API_BASE_URL}/inventory/categories`, { cache: 'no-store' });
+      const res = await apiRequest(`${API_BASE_URL}/inventory/categories`, { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       const data = await safeParseJson(res);
       if (data?.success === false) {

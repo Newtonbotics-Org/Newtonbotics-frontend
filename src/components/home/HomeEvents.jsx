@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import RemoteImage from "@/components/RemoteImage";
-import { API_BASE_URL } from "@/lib/api";
+import { API_BASE_URL, apiRequest } from "@/lib/api";
 import { combineDateTime, dateParts, formatClock, sortUpcoming, titleCase } from "@/lib/labUi";
 import SectionLabel from "@/components/lab/SectionLabel";
 import throttleThrash from "@/app/assets/image01.png";
@@ -30,7 +30,7 @@ export default function HomeEvents() {
 
   useEffect(() => {
     let alive = true;
-    fetch(`${API_BASE_URL}/events?limit=50`, { cache: "no-store" })
+    apiRequest(`${API_BASE_URL}/events?limit=50`, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         const list = data?.success ? data.data?.items || [] : [];
