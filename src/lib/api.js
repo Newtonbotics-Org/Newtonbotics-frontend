@@ -13,9 +13,9 @@ function normalizeApiBaseUrl(raw) {
   let value = String(raw || "").trim().replace(/^[\"']|[\"']$/g, "").trim();
   if (!value) return "";
 
-  if (!/^https?:\\/\\//i.test(value)) value = "https://" + value;
-  value = value.replace(/\\/+$/, "");
-  if (!/\\/api$/i.test(value)) value += "/api";
+  if (!/^https?:\/\//i.test(value)) value = "https://" + value;
+  value = value.replace(/\/+$/, "");
+  if (!/\/api$/i.test(value)) value += "/api";
 
   try {
     const parsed = new URL(value);
@@ -50,7 +50,7 @@ export function isApiBaseUrlConfigured() {
 
 function resolveRequestUrl(input) {
   const value = String(input || "").trim();
-  if (/^https?:\\/\\//i.test(value)) return value;
+  if (/^https?:\/\//i.test(value)) return value;
   if (!API_BASE_URL) {
     throw new Error(
       "Backend API is not configured. Set NEXT_PUBLIC_API_URL and restart the application."
