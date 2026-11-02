@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "./api";
+import { API_BASE_URL, apiRequest } from "./api";
 
 // Read-only contracts already consumed by /Projects and /Inventory/[id].
 // No project or project-inventory mutation contract is available in this repo.
@@ -10,7 +10,7 @@ async function readProjects(path, signal) {
   }
   let response;
   try {
-    response = await fetch(`${API_BASE_URL}${path}`, { cache: "no-store", signal });
+    response = await apiRequest(`${API_BASE_URL}${path}`, { cache: "no-store", signal });
   } catch (err) {
     if (err.name === 'AbortError') throw err;
     throw new Error(

@@ -5,7 +5,7 @@ import { ArrowRight, Search, X } from "lucide-react";
 import RemoteImage from "@/components/RemoteImage";
 import BlueprintPlaceholder from "@/components/lab/BlueprintPlaceholder";
 import EmptyLog from "@/components/lab/EmptyLog";
-import { API_BASE_URL } from "@/lib/api";
+import { API_BASE_URL, apiRequest } from "@/lib/api";
 import NoMatchCard from "@/components/lab/NoMatchCard";
 
 const DEFAULT_CATEGORIES = ["AI/ML", "Mechanics", "Robotics"];
@@ -24,7 +24,7 @@ const ResearchAreasPage = () => {
     try {
       setLoading(true);
       setError("");
-      const res = await fetch(`${API_BASE_URL}/research-areas?isActive=true&limit=100`, { cache: "no-store" });
+      const res = await apiRequest(`${API_BASE_URL}/research-areas?isActive=true&limit=100`, { cache: "no-store" });
       if (!res.ok) throw new Error("Failed to fetch research areas");
       const data = await res.json();
       if (data.success) {
@@ -45,7 +45,7 @@ const ResearchAreasPage = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/research-areas/categories`, { cache: "no-store" });
+        const res = await apiRequest(`${API_BASE_URL}/research-areas/categories`, { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
           if (data.success) {

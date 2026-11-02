@@ -7,7 +7,7 @@ import RemoteImage from "@/components/RemoteImage";
 import CropFrame from "@/components/lab/CropFrame";
 import BlueprintPlaceholder from "@/components/lab/BlueprintPlaceholder";
 import { DetailPageSkeleton, TeamMemberCardSkeleton } from "@/components/PageSkeletons";
-import { API_BASE_URL } from "@/lib/api";
+import { API_BASE_URL, apiRequest } from "@/lib/api";
 import { formatDate, titleCase } from "@/lib/labUi";
 import NotFoundState from "@/components/lab/NotFoundState";
 
@@ -94,7 +94,7 @@ const ResearchAreaDetail = () => {
     const fetchResearchArea = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_BASE_URL}/research-areas/${params.id}`, { cache: "no-store" });
+        const res = await apiRequest(`${API_BASE_URL}/research-areas/${params.id}`, { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to fetch research area");
         const data = await res.json();
         if (data.success) {
@@ -127,7 +127,7 @@ const ResearchAreaDetail = () => {
         setLoadingMembers(true);
         const memberPromises = researchArea.studentIds.map(async (studentId) => {
           try {
-            const res = await fetch(`${API_BASE_URL}/public/team-members/${studentId}`, { cache: "no-store" });
+            const res = await apiRequest(`${API_BASE_URL}/public/team-members/${studentId}`, { cache: "no-store" });
             if (res.ok) {
               const data = await res.json();
               const userData =

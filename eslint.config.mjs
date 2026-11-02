@@ -14,7 +14,11 @@ const eslintConfig = [
   {
     ignores: [".next/**", "node_modules/**", "out/**", ".vercel/**"],
   },
-  ...compat.extends("next/core-web-vitals"),
+// Explicitly cover .jsx files that are ignored by next/core-web-vitals by default
+  ...compat.extends("next/core-web-vitals").map((config) => ({
+    ...config,
+    files: ["**/*.js", "**/*.jsx", "**/*.mjs"],
+  })),
 ];
 
 export default eslintConfig;

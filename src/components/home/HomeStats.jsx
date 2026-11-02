@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { API_BASE_URL } from "@/lib/api";
+import { API_BASE_URL, apiRequest } from "@/lib/api";
 import clubData from "@/app/AllDatas/data.json";
 
 export default function HomeStats() {
@@ -8,7 +8,7 @@ export default function HomeStats() {
 
   useEffect(() => {
     let alive = true;
-    fetch(`${API_BASE_URL}/public/metrics`, { cache: "no-store" })
+    apiRequest(`${API_BASE_URL}/public/metrics`, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => alive && setLabels(data?.data?.labels || null))
       .catch(() => {});

@@ -7,7 +7,7 @@ import CropFrame from "@/components/lab/CropFrame";
 import RemoteImage from "@/components/RemoteImage";
 import LabPhotoMosaic from "@/components/lab/LabPhotoMosaic";
 import clubData from "../AllDatas/data.json";
-import { API_BASE_URL } from "@/lib/api";
+import { API_BASE_URL, apiRequest } from "@/lib/api";
 import { formatTenureRange, tenureSortValue } from "@/lib/tenureDates";
 
 const MAP_EMBED_SRC =
@@ -52,7 +52,7 @@ const AboutUs = () => {
     let isMounted = true;
     const fetchPastLeaders = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/past-leaders?isActive=true&limit=200`, { cache: 'no-store' });
+        const res = await apiRequest(`${API_BASE_URL}/past-leaders?isActive=true&limit=200`, { cache: 'no-store' });
         if (!res.ok) return;
         const data = await res.json();
         if (isMounted && data.success) setPastLeaders(data.data.items || []);

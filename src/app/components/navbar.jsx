@@ -17,7 +17,7 @@ import {
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../contexts/AuthContext";
-import { API_BASE_URL } from "@/lib/api";
+import { API_BASE_URL, apiRequest } from "@/lib/api";
 import { ADMIN_PANEL_URL } from "@/lib/site";
 import { optimizeImageUrl } from "@/lib/cloudinaryMedia";
 
@@ -112,7 +112,7 @@ const Navbar = () => {
           setIsProjectLeader(false);
           return;
         }
-        const response = await fetch(`${API_BASE_URL}/projects?limit=100`, { cache: "no-store" });
+        const response = await apiRequest(`${API_BASE_URL}/projects?limit=100`, { cache: "no-store" });
         if (!response.ok) {
           setIsProjectLeader(false);
           return;
@@ -195,6 +195,7 @@ const Navbar = () => {
   const Avatar = ({ size = "h-8 w-8" }) =>
     userAvatarUrl ? (
       <span className={`${size} shrink-0 overflow-hidden rounded-full border border-white/20`}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- dynamic Cloudinary avatar URL; next/image requires explicit remote domains */}
         <img
           src={optimizeImageUrl(userAvatarUrl, { width: 40, height: 40, crop: "fill" })}
           alt=""
