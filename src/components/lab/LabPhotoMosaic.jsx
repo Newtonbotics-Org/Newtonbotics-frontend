@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import RemoteImage from "@/components/RemoteImage";
-import { API_BASE_URL } from "@/lib/api";
+import { API_BASE_URL, apiRequest } from "@/lib/api";
 
 const photoUrl = (item) => item?.fileUrl || item?.secure_url || item?.url || "";
 // Only real uploads: remote URLs from the media API (local /public files are stock or demo images)
@@ -23,7 +23,7 @@ export default function LabPhotoMosaic({ count = 3, size = "lg", fallback = null
   useEffect(() => {
     let alive = true;
     const load = async (params) => {
-      const res = await fetch(`${API_BASE_URL}/media?fileType=image&limit=24${params}`, { cache: "no-store" });
+      const res = await apiRequest(`${API_BASE_URL}/media?fileType=image&limit=24${params}`, { cache: "no-store" });
       if (!res.ok) return [];
       const data = await res.json();
       return (data?.data?.items || []).filter(isRealPhoto);

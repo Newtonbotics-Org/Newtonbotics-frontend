@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { API_BASE_URL } from "@/lib/api";
+import { API_BASE_URL, apiRequest } from "@/lib/api";
 import SectionLabel from "@/components/lab/SectionLabel";
 
 const ICONS = [
@@ -39,7 +39,7 @@ export default function HomeResearch() {
 
   useEffect(() => {
     let alive = true;
-    fetch(`${API_BASE_URL}/research-areas?isActive=true&isFeatured=true&limit=4`, { cache: "no-store" })
+    apiRequest(`${API_BASE_URL}/research-areas?isActive=true&isFeatured=true&limit=4`, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (alive) setAreas(data?.success && data.data?.items?.length ? data.data.items : FALLBACK_AREAS);

@@ -1,5 +1,12 @@
 import { API_BASE_URL, apiRequest } from './api';
 
+async function safeParseJson(response) {
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) return response.json();
+  const text = await response.text();
+  throw new Error(`Unexpected response (${response.status} ${response.statusText}): ${text.slice(0, 200)}`);
+}
+
 /**
  * Submit a contact form message
  * @param {Object} contactData - The contact form data
@@ -63,7 +70,7 @@ export const submitContactForm = async (contactData) => {
       body: JSON.stringify(formData),
     });
 
-    const data = await response.json();
+    const data = await safeParseJson(response);
 
     if (!response.ok) {
       // Handle different error status codes

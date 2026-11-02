@@ -1,5 +1,12 @@
 import { API_BASE_URL, apiRequest } from './api';
 
+async function safeParseJson(response) {
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) return response.json();
+  const text = await response.text();
+  throw new Error(`Unexpected response (${response.status} ${response.statusText}): ${text.slice(0, 200)}`);
+}
+
 /**
  * Subscribe an email address to the newsletter
  * @param {Object} subscriptionData - The subscription data
@@ -42,7 +49,7 @@ export const subscribeToNewsletter = async (subscriptionData) => {
       body: JSON.stringify(subscriptionData),
     });
 
-    const data = await response.json();
+    const data = await safeParseJson(response);
 
     if (!response.ok) {
       // Handle different error status codes
@@ -104,7 +111,7 @@ export const checkNewsletterStatus = async (email) => {
       },
     });
 
-    const data = await response.json();
+    const data = await safeParseJson(response);
 
     if (!response.ok) {
       // Handle different error status codes
@@ -161,7 +168,7 @@ export const unsubscribeFromNewsletter = async (email) => {
       body: JSON.stringify({ email }),
     });
 
-    const data = await response.json();
+    const data = await safeParseJson(response);
 
     if (!response.ok) {
       // Handle different error status codes

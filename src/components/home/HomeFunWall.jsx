@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import RemoteImage from "@/components/RemoteImage";
-import { API_BASE_URL } from "@/lib/api";
+import { API_BASE_URL, apiRequest } from "@/lib/api";
 
 // Each print sits at its own slight angle, like photos pinned to a board
 const ROTATIONS = [-6, 4, -2, 5, -4, 3, -5, 2, -3, 6, -1, 4, -4, 2, -2];
@@ -35,7 +35,7 @@ export default function HomeFunWall() {
 
   useEffect(() => {
     let alive = true;
-    fetch(`${API_BASE_URL}/media?fileType=image&isFeatured=true&limit=50`, { cache: "no-store" })
+    apiRequest(`${API_BASE_URL}/media?fileType=image&isFeatured=true&limit=50`, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => alive && setPhotos((data?.data?.items || []).filter(isRealPhoto).slice(0, MAX_PHOTOS)))
       .catch(() => alive && setPhotos([]));

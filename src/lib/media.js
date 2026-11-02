@@ -1,5 +1,5 @@
 // Media API client for Gallery
-import { API_BASE_URL } from './api';
+import { API_BASE_URL, apiRequest } from './api';
 import authService from './auth';
 
 /** Roles that can view labMembersOnly gallery media (not public / student) */
@@ -38,38 +38,36 @@ function toQuery(params = {}) {
   return qs ? `?${qs}` : '';
 }
 
-function getAuthHeaders() {
-  if (typeof window === 'undefined') return {};
-  try {
-    const token = authService.getAccessToken() || localStorage.getItem('nb_access_token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  } catch {
-    return {};
+/**
+ * Perform a media API request, attaching the in-memory access token when the
+ * current user is authenticated. Falls back to an unauthenticated request when
+ * no token is held (public gallery). Never reads from localStorage.
+ */
+async function mediaRequest(path, options = {}) {
+  if (authService.isAuthenticated()) {
+    return authService.makeAuthenticatedRequest(`${API_BASE_URL}${path}`, options);
   }
+  return apiRequest(`${API_BASE_URL}${path}`, options);
 }
 
 export const mediaService = {
   // GET /api/media - List all media files
-  async listMedia({ 
-    fileType, 
-    categoryId, 
-    q, 
-    limit = 50, 
-    skip = 0, 
-    isFeatured 
+  async listMedia({
+    fileType,
+    categoryId,
+    q,
+    limit = 50,
+    skip = 0,
+    isFeatured,
   } = {}) {
     try {
       const query = toQuery({ fileType, categoryId, q, limit, skip, isFeatured });
-      const url = `${API_BASE_URL}/media${query}`;
-      const res = await fetch(url, {
-        cache: 'no-store',
-        headers: getAuthHeaders(),
-      });
-      
+      const res = await mediaRequest(`/media${query}`, { cache: 'no-store' });
+
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
-      
+
       const data = await safeParseJson(res);
       if (data?.success === false) {
         const msg = data?.error?.message || data?.message || 'Failed to load media';
@@ -86,13 +84,12 @@ export const mediaService = {
   // GET /api/media/categories - List media categories
   async listCategories() {
     try {
-      const url = `${API_BASE_URL}/media/categories`;
-      const res = await fetch(url, { cache: 'no-store' });
-      
+      const res = await apiRequest(`${API_BASE_URL}/media/categories`, { cache: 'no-store' });
+
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
-      
+
       const data = await safeParseJson(res);
       if (data?.success === false) {
         const msg = data?.error?.message || data?.message || 'Failed to load categories';
@@ -109,13 +106,12 @@ export const mediaService = {
   // GET /api/media/collections - List media collections
   async listCollections() {
     try {
-      const url = `${API_BASE_URL}/media/collections`;
-      const res = await fetch(url, { cache: 'no-store' });
-      
+      const res = await apiRequest(`${API_BASE_URL}/media/collections`, { cache: 'no-store' });
+
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
-      
+
       const data = await safeParseJson(res);
       if (data?.success === false) {
         const msg = data?.error?.message || data?.message || 'Failed to load collections';
@@ -132,21 +128,18 @@ export const mediaService = {
   // GET /api/media/:id - Get specific media item (auto-increments view count)
   async getMedia(id) {
     try {
-      const res = await fetch(`${API_BASE_URL}/media/${id}`, {
-        cache: 'no-store',
-        headers: getAuthHeaders(),
-      });
-      
+      const res = await mediaRequest(`/media/${id}`, { cache: 'no-store' });
+
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
-      
+
       const data = await safeParseJson(res);
       if (data?.success === false) {
         const msg = data?.error?.message || data?.message || 'Failed to load media item';
         throw new Error(msg);
       }
-      
+
       return data?.data?.item;
     } catch (error) {
       console.error('Error fetching media item:', error);
@@ -157,22 +150,21 @@ export const mediaService = {
   // POST /api/media/:id/view - Increment view count only
   async incrementViewCount(id) {
     try {
-      const res = await fetch(`${API_BASE_URL}/media/${id}/view`, { 
+      const res = await mediaRequest(`/media/${id}/view`, {
         method: 'POST',
         cache: 'no-store',
-        headers: getAuthHeaders(),
       });
-      
+
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
-      
+
       const data = await safeParseJson(res);
       if (data?.success === false) {
         const msg = data?.error?.message || data?.message || 'Failed to increment view count';
         throw new Error(msg);
       }
-      
+
       return data?.data?.viewCount;
     } catch (error) {
       console.error('Error incrementing view count:', error);
@@ -207,7 +199,7 @@ export const mediaService = {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  }
+  },
 };
 
 export default mediaService;
