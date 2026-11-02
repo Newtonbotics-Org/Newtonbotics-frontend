@@ -5,7 +5,7 @@ import { Search, Star, X } from "lucide-react";
 import RemoteImage from "@/components/RemoteImage";
 import BlueprintPlaceholder from "@/components/lab/BlueprintPlaceholder";
 import EmptyLog from "@/components/lab/EmptyLog";
-import { API_BASE_URL } from "@/lib/api";
+import { API_BASE_URL, apiRequest } from "@/lib/api";
 import { formatDate, projectStatus } from "@/lib/labUi";
 import NoMatchCard from "@/components/lab/NoMatchCard";
 
@@ -50,7 +50,7 @@ const ProjectsPage = () => {
       if (debouncedQuery) params.append("q", debouncedQuery);
       params.append("limit", "100");
 
-      const res = await fetch(`${API_BASE_URL}/projects?${params.toString()}`, { cache: "no-store" });
+      const res = await apiRequest(`${API_BASE_URL}/projects?${params.toString()}`, { cache: "no-store" });
       if (!res.ok) throw new Error("Failed to fetch projects");
       const data = await res.json();
       if (!data.success || !Array.isArray(data.data?.projects)) {

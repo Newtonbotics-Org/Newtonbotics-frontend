@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './api';
+import { API_BASE_URL, apiRequest } from './api';
 
 /**
  * Submit a contact form message
@@ -55,7 +55,7 @@ export const submitContactForm = async (contactData) => {
       category: contactData.category || 'General'
     };
 
-    const response = await fetch(`${API_BASE_URL}/contact/submit`, {
+    const response = await apiRequest(`${API_BASE_URL}/contact/submit`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

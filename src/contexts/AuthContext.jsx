@@ -21,45 +21,36 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const router = useRouter();
 
-  // Initialize authentication state
+  // Restore the session through the same-origin BFF. Refresh tokens are
+  // HttpOnly cookies; only the short-lived access token is held in memory.
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        setIsLoading(true);
-        const currentUser = authService.getCurrentUser();
-        const authenticated = authService.isAuthenticated();
+    let active = true;
 
-        if (authenticated && currentUser) {
-          setUser(currentUser);
-          setIsAuthenticated(true);
-          
-          // Check if token is expired and refresh if needed
-          if (authService.isTokenExpired()) {
-            await authService.refreshTokens();
-            const refreshedUser = authService.getCurrentUser();
-            setUser(refreshedUser);
-          } else {
-            // Refresh user profile to get latest data including subroles
-            try {
-              const profileResponse = await authService.getCurrentUserProfile();
-              if (profileResponse.success && profileResponse.data?.user) {
-                setUser(profileResponse.data.user);
-              }
-            } catch (profileError) {
-              console.error('Failed to refresh user profile on init:', profileError);
-              // Continue with existing user data if refresh fails
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
+    const initAuth = async () => {
+      setIsLoading(true);
+      try {
+        const restored = await authService.restoreSession();
+        if (!active) return;
+
+        const currentUser = restored ? authService.getCurrentUser() : null;
+        setUser(currentUser);
+        setIsAuthenticated(Boolean(restored && currentUser));
+      } catch (authError) {
+        console.error("Auth initialization error:", authError);
         authService.clearAuthData();
+        if (active) {
+          setUser(null);
+          setIsAuthenticated(false);
+        }
       } finally {
-        setIsLoading(false);
+        if (active) setIsLoading(false);
       }
     };
 
     initAuth();
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Login function

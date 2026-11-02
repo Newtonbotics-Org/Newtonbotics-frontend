@@ -8,7 +8,7 @@ import { DetailPageSkeleton } from "@/components/PageSkeletons";
 import CropFrame from "@/components/lab/CropFrame";
 import BlueprintPlaceholder from "@/components/lab/BlueprintPlaceholder";
 import { mediaService } from "@/lib/media";
-import { API_BASE_URL } from "@/lib/api";
+import { API_BASE_URL, apiRequest } from "@/lib/api";
 import { getPersonDisplayName } from "@/lib/publicTeam";
 import { formatDate, projectStatus, titleCase } from "@/lib/labUi";
 import NotFoundState from "@/components/lab/NotFoundState";
@@ -118,7 +118,7 @@ const ProjectDetail = () => {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch(`${API_BASE_URL}/projects/${params.id}`, { cache: "no-store" });
+        const res = await apiRequest(`${API_BASE_URL}/projects/${params.id}`, { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to fetch project");
         const data = await res.json();
         if (!data.success) throw new Error(data.message || "Failed to fetch project");

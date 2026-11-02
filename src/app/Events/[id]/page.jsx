@@ -7,7 +7,7 @@ import RemoteImage from "@/components/RemoteImage";
 import { DetailPageSkeleton } from "@/components/PageSkeletons";
 import CropFrame from "@/components/lab/CropFrame";
 import BlueprintPlaceholder from "@/components/lab/BlueprintPlaceholder";
-import { API_BASE_URL } from "@/lib/api";
+import { API_BASE_URL, apiRequest } from "@/lib/api";
 import { combineDateTime, dateParts, eventTypeChip, formatClock, titleCase } from "@/lib/labUi";
 import NotFoundState from "@/components/lab/NotFoundState";
 
@@ -117,7 +117,7 @@ const EventDetail = () => {
     const fetchEvent = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_BASE_URL}/events/${params.id}`, { cache: "no-store" });
+        const res = await apiRequest(`${API_BASE_URL}/events/${params.id}`, { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to fetch event");
         const data = await res.json();
         if (data.success) {

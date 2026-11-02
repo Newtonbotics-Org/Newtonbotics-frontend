@@ -6,7 +6,7 @@ import inventoryService from "../../../lib/inventory";
 import authService from "../../../lib/auth";
 import { useAuth } from "../../../contexts/AuthContext";
 import { DetailPageSkeleton } from "@/components/PageSkeletons";
-import { API_BASE_URL } from "@/lib/api";
+import { API_BASE_URL, apiRequest } from "@/lib/api";
 import { isDemoMode } from "@/lib/demoMode";
 import { getDemoEquipmentById, getDemoProjects } from "@/lib/demoStore";
 import { ArrowLeft, LogIn, LogOut, RefreshCw } from "lucide-react";
@@ -98,7 +98,7 @@ export default function EquipmentDetailPage(){
         setProjects(getDemoProjects());
         return;
       }
-      const res = await fetch(`${API_BASE_URL}/projects?limit=100`, { cache: 'no-store' });
+      const res = await apiRequest(`${API_BASE_URL}/projects?limit=100`, { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         if (data.success && data.data.projects) {
@@ -116,7 +116,7 @@ export default function EquipmentDetailPage(){
       setLoadingUsers(true);
       // Fetch team members from public endpoint
       const query = search ? `?q=${encodeURIComponent(search)}&limit=100` : "?limit=100";
-      const res = await fetch(`${API_BASE_URL}/public/team-members${query}`, {
+      const res = await apiRequest(`${API_BASE_URL}/public/team-members${query}`, {
         cache: 'no-store'
       });
       

@@ -1,10 +1,13 @@
-// Authentication service for NewtonBotics Frontend
-import { API_BASE_URL } from './api';
+// Authentication service for NewtonBotics Frontend.
+//
+// Access tokens are deliberately kept in memory only. Refresh tokens are stored
+// by the same-origin /api/auth/session route in an HttpOnly cookie.
+import { API_BASE_URL, apiRequest, sameOriginRequest } from "./api";
 
 class ApiError extends Error {
   constructor(message, status, data) {
     super(message);
-    this.name = 'ApiError';
+    this.name = "ApiError";
     this.status = status;
     this.data = data;
   }
@@ -12,531 +15,342 @@ class ApiError extends Error {
 
 class AuthService {
   constructor() {
-    this.baseURL = `${API_BASE_URL}/auth`;
+    this.baseURL = API_BASE_URL ? `${API_BASE_URL}/auth` : "";
     this.accessToken = null;
-    this.refreshToken = null;
     this.user = null;
-    
-    // Initialize tokens from localStorage
-    if (typeof window !== 'undefined') {
-      this.accessToken = localStorage.getItem('nb_access_token');
-      this.refreshToken = localStorage.getItem('nb_refresh_token');
-      this.user = JSON.parse(localStorage.getItem('nb_user') || 'null');
-    }
+    this.refreshPromise = null;
+    this.restorePromise = null;
   }
 
-  // ---------------------- OTP-BASED RESET FLOW ----------------------
-  // Step 1: Request OTP
-  async requestResetOtp(email) {
-    try {
-      const response = await fetch(`${this.baseURL}/forgot-password-otp`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await this.parseJsonResponse(response);
-
-      if (!response.ok || data?.success === false) {
-        const message = data?.message || 'Failed to send OTP';
-        throw new ApiError(message, response.status, data);
-      }
-
-      // When Redis is disabled, backend can return { data: { otpToken } }
-      return data;
-    } catch (error) {
-      if (error?.message && error.message.includes('Failed to fetch')) {
-        throw new Error('Unable to reach authentication server. Check API URL and CORS.');
-      }
-      throw error;
-    }
-  }
-
-  // Step 2: Verify OTP → returns short-lived reset token
-  async verifyResetOtp(payload) {
-    // payload: { email, otp, otpToken? }
-    try {
-      const response = await fetch(`${this.baseURL}/verify-reset-otp`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await this.parseJsonResponse(response);
-
-      if (!response.ok || data?.success === false) {
-        const message = data?.message || 'OTP verification failed';
-        throw new ApiError(message, response.status, data);
-      }
-
-      return data; // expect data.data.token
-    } catch (error) {
-      if (error?.message && error.message.includes('Failed to fetch')) {
-        throw new Error('Unable to reach authentication server. Check API URL and CORS.');
-      }
-      throw error;
-    }
-  }
-
-  // Step 3: Reset password using short-lived reset token
-  async resetPasswordWithOtp(token, newPassword) {
-    try {
-      const response = await fetch(`${this.baseURL}/reset-password-otp`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token, newPassword }),
-      });
-
-      const data = await this.parseJsonResponse(response);
-
-      if (!response.ok || data?.success === false) {
-        const message = data?.message || 'Password reset failed';
-        throw new ApiError(message, response.status, data);
-      }
-
-      return data;
-    } catch (error) {
-      if (error?.message && error.message.includes('Failed to fetch')) {
-        throw new Error('Unable to reach authentication server. Check API URL and CORS.');
-      }
-      throw error;
-    }
-  }
-
-  // Parse JSON safely; if server returns HTML or non-JSON, show a helpful error
   async parseJsonResponse(response) {
-    const contentType = response.headers.get('content-type') || '';
-    if (contentType.includes('application/json')) {
-      return response.json();
-    }
-    const text = await response.text();
-    const snippet = (text || '').toString().slice(0, 300);
-    const statusText = `${response.status} ${response.statusText}`.trim();
-    throw new Error(`Unexpected response (${statusText}). Body: ${snippet}`);
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) return response.json();
+
+    const body = (await response.text()).slice(0, 300);
+    throw new Error(
+      `Unexpected response (${response.status} ${response.statusText}). Body: ${body}`
+    );
   }
 
-  // Set tokens and user data
+  async requestAuth(endpoint, body) {
+    let response;
+    try {
+      response = await apiRequest(`${this.baseURL}/${endpoint}`, {
+        method: "POST",
+        body: JSON.stringify(body || {}),
+      });
+    } catch (error) {
+      if (error?.name === "TypeError" || error?.name === "TimeoutError") {
+        throw new Error("Unable to reach authentication server. Check API URL and network connectivity.");
+      }
+      throw error;
+    }
+
+    const data = await this.parseJsonResponse(response);
+    if (!response.ok || data?.success === false) {
+      throw new ApiError(
+        data?.message || data?.error?.message || data?.error || "Authentication request failed",
+        response.status,
+        data
+      );
+    }
+    return data;
+  }
+
+  async requestSession(action, payload = {}) {
+    let response;
+    try {
+      response = await sameOriginRequest("/api/auth/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, ...payload }),
+        cache: "no-store",
+      });
+    } catch (error) {
+      if (error?.name === "TypeError" || error?.name === "TimeoutError") {
+        throw new Error("Unable to reach the session service. Check your connection and try again.");
+      }
+      throw error;
+    }
+
+    const data = await this.parseJsonResponse(response);
+    if (!response.ok || data?.success === false) {
+      throw new ApiError(
+        data?.message || data?.error?.message || "Session request failed",
+        response.status,
+        data
+      );
+    }
+    return data;
+  }
+
   setAuthData(tokens, user) {
-    this.accessToken = tokens.accessToken;
-    this.refreshToken = tokens.refreshToken;
-    this.user = user;
-    
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('nb_access_token', tokens.accessToken);
-      localStorage.setItem('nb_refresh_token', tokens.refreshToken);
-      localStorage.setItem('nb_user', JSON.stringify(user));
+    if (!tokens?.accessToken) {
+      throw new Error("Authentication service did not return an access token.");
     }
+    this.accessToken = tokens.accessToken;
+    if (user !== undefined) this.user = user;
   }
 
-  // Clear authentication data
   clearAuthData() {
     this.accessToken = null;
-    this.refreshToken = null;
     this.user = null;
-    
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('nb_access_token');
-      localStorage.removeItem('nb_refresh_token');
-      localStorage.removeItem('nb_user');
-    }
   }
 
-  // Get current user
   getCurrentUser() {
     return this.user;
   }
 
-  // Check if user is authenticated
   isAuthenticated() {
-    return !!this.accessToken;
+    return Boolean(this.accessToken);
   }
 
-  // Get access token
   getAccessToken() {
     return this.accessToken;
   }
 
-  // Make authenticated request
-  // requestOptions: { skipRefreshOn401?: boolean }
-  async makeAuthenticatedRequest(url, options = {}, requestOptions = {}) {
-    const { skipRefreshOn401 = false } = requestOptions;
-    if (!this.accessToken) {
-      throw new Error('No access token available');
-    }
+  async requestResetOtp(email) {
+    return this.requestAuth("forgot-password-otp", { email });
+  }
 
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        ...options.headers,
-        'Authorization': `Bearer ${this.accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
+  async verifyResetOtp(payload) {
+    return this.requestAuth("verify-reset-otp", payload);
+  }
 
-    if (response.status === 401) {
-      // Some endpoints (e.g., change-password wrong current password) intentionally return 401.
-      // In such cases we must not auto-refresh and retry; surface the 401 to caller.
-      if (skipRefreshOn401) {
-        return response;
-      }
-      // Token expired, try to refresh
+  async resetPasswordWithOtp(token, newPassword) {
+    return this.requestAuth("reset-password-otp", { token, newPassword });
+  }
+
+  async register(userData) {
+    const data = await this.requestSession("register", { userData });
+    this.setAuthData(data.data?.tokens, data.data?.user);
+    return data;
+  }
+
+  async login(credentials) {
+    const data = await this.requestSession("login", { credentials });
+    this.setAuthData(data.data?.tokens, data.data?.user);
+    return data;
+  }
+
+  /**
+   * Refresh is serialized. Concurrent 401 responses share one refresh request,
+   * avoiding refresh-token rotation races. The browser never receives the
+   * refresh token itself.
+   */
+  async refreshTokens() {
+    if (this.refreshPromise) return this.refreshPromise;
+
+    this.refreshPromise = (async () => {
       try {
-        await this.refreshTokens();
-        // Retry the request with new token
-        return this.makeAuthenticatedRequest(url, options, requestOptions);
+        const data = await this.requestSession("refresh");
+        const tokens = data.data?.tokens || data.tokens;
+        this.setAuthData(tokens, data.data?.user || this.user);
+        return data;
       } catch (error) {
         this.clearAuthData();
-        throw new Error('Authentication failed');
+        throw error;
+      } finally {
+        this.refreshPromise = null;
       }
+    })();
+
+    return this.refreshPromise;
+  }
+
+  /**
+   * Upgrade users from the previous localStorage-token implementation.
+   * The legacy refresh token is exchanged once for an HttpOnly cookie and
+   * removed from localStorage immediately after a successful exchange.
+   */
+  async restoreSession() {
+    if (this.restorePromise) return this.restorePromise;
+
+    this.restorePromise = this.restoreSessionOnce();
+    try {
+      return await this.restorePromise;
+    } finally {
+      this.restorePromise = null;
+    }
+  }
+
+  async restoreSessionOnce() {
+    if (typeof window === "undefined") return false;
+
+    const legacyRefreshToken = window.localStorage.getItem("nb_refresh_token");
+    const legacyAccessToken = window.localStorage.getItem("nb_access_token");
+
+    try {
+      if (legacyRefreshToken) {
+        const migrated = await this.requestSession("migrate", { refreshToken: legacyRefreshToken });
+        this.setAuthData(migrated.data?.tokens, migrated.data?.user);
+        window.localStorage.removeItem("nb_refresh_token");
+        window.localStorage.removeItem("nb_access_token");
+        window.localStorage.removeItem("nb_user");
+      } else if (legacyAccessToken) {
+        // Access tokens alone cannot restore a session securely.
+        window.localStorage.removeItem("nb_access_token");
+        window.localStorage.removeItem("nb_user");
+      }
+
+      if (!this.accessToken) await this.refreshTokens();
+      const profile = await this.getCurrentUserProfile();
+      return Boolean(profile?.success && profile.data?.user);
+    } catch (error) {
+      this.clearAuthData();
+      if (legacyRefreshToken) {
+        window.localStorage.removeItem("nb_refresh_token");
+        window.localStorage.removeItem("nb_access_token");
+        window.localStorage.removeItem("nb_user");
+      }
+      if (error?.status !== 401 && error?.status !== 403) {
+        console.error("Session restoration failed:", error);
+      }
+      return false;
+    }
+  }
+
+  async makeAuthenticatedRequest(url, options = {}, requestOptions = {}) {
+    const { skipRefreshOn401 = false } = requestOptions;
+
+    if (!this.accessToken || this.isTokenExpired()) {
+      await this.refreshTokens();
     }
 
+    const send = () => {
+      const headers = new Headers(options.headers || {});
+      headers.set("Authorization", `Bearer ${this.accessToken}`);
+      if (
+        options.body !== undefined &&
+        options.body !== null &&
+        typeof options.body === "string" &&
+        !headers.has("Content-Type")
+      ) {
+        headers.set("Content-Type", "application/json");
+      }
+      return apiRequest(url, { ...options, headers });
+    };
+
+    let response = await send();
+    if (response.status !== 401 || skipRefreshOn401) return response;
+
+    await this.refreshTokens();
+    response = await send();
+    if (response.status === 401) this.clearAuthData();
     return response;
   }
 
-  // User Registration
-  async register(userData) {
-    try {
-      const response = await fetch(`${this.baseURL}/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
-
-      const data = await this.parseJsonResponse(response);
-
-      if (!response.ok) {
-        const serverMessage = data?.message || data?.error?.message || data?.error || 'Registration failed';
-        throw new ApiError(serverMessage, response.status, data);
-      }
-
-      if (data.success) {
-        this.setAuthData(data.data.tokens, data.data.user);
-      }
-
-      return data;
-    } catch (error) {
-      // Provide clearer message for common network/CORS issues
-      if (error?.message && error.message.includes('Failed to fetch')) {
-        throw new Error('Unable to reach authentication server. Check API URL and CORS.');
-      }
-      throw error;
-    }
-  }
-
-  // User Login
-  async login(credentials) {
-    try {
-      const response = await fetch(`${this.baseURL}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
-
-      const data = await this.parseJsonResponse(response);
-
-      if (!response.ok) {
-        const serverMessage = data?.message || data?.error?.message || data?.error || 'Login failed';
-        throw new ApiError(serverMessage, response.status, data);
-      }
-
-      if (data.success) {
-        this.setAuthData(data.data.tokens, data.data.user);
-      }
-
-      return data;
-    } catch (error) {
-      if (error?.message && error.message.includes('Failed to fetch')) {
-        throw new Error('Unable to reach authentication server. Check API URL and CORS.');
-      }
-      throw error;
-    }
-  }
-
-  // Token Refresh
-  async refreshTokens() {
-    try {
-      if (!this.refreshToken) {
-        throw new Error('No refresh token available');
-      }
-
-      const response = await fetch(`${this.baseURL}/refresh`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          refreshToken: this.refreshToken,
-        }),
-      });
-
-      const data = await this.parseJsonResponse(response);
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Token refresh failed');
-      }
-
-      if (data.success) {
-        this.setAuthData(data.data.tokens, this.user);
-      }
-
-      return data;
-    } catch (error) {
-      this.clearAuthData();
-      throw error;
-    }
-  }
-
-  // User Logout
   async logout() {
     try {
-      if (this.refreshToken) {
-        await fetch(`${this.baseURL}/logout`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            refreshToken: this.refreshToken,
-          }),
-        });
-      }
-    } catch (error) {
-      console.error('Logout error:', error);
+      await this.requestSession("logout");
     } finally {
       this.clearAuthData();
     }
   }
 
-  // Forgot Password
   async forgotPassword(email) {
-    try {
-      const response = await fetch(`${this.baseURL}/forgot-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await this.parseJsonResponse(response);
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Password reset request failed');
-      }
-
-      return data;
-    } catch (error) {
-      throw error;
-    }
+    return this.requestAuth("forgot-password", { email });
   }
 
-  // Reset Password
   async resetPassword(token, newPassword) {
-    try {
-      const response = await fetch(`${this.baseURL}/reset-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          token,
-          newPassword,
-        }),
-      });
-
-      const data = await this.parseJsonResponse(response);
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Password reset failed');
-      }
-
-      return data;
-    } catch (error) {
-      throw error;
-    }
+    return this.requestAuth("reset-password", { token, newPassword });
   }
 
-  // Email Verification
   async verifyEmail(token) {
-    try {
-      const response = await fetch(`${this.baseURL}/verify-email/${token}`, {
-        method: 'GET',
-      });
-
-      const data = await this.parseJsonResponse(response);
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Email verification failed');
-      }
-
-      return data;
-    } catch (error) {
-      throw error;
+    const response = await apiRequest(
+      `${this.baseURL}/verify-email/${encodeURIComponent(token)}`,
+      { method: "GET" }
+    );
+    const data = await this.parseJsonResponse(response);
+    if (!response.ok || data?.success === false) {
+      throw new ApiError(
+        data?.message || "Email verification failed",
+        response.status,
+        data
+      );
     }
+    return data;
   }
 
-  // Get Current User Profile
   async getCurrentUserProfile() {
-    try {
-      console.log('[AuthService] Calling /me endpoint...');
-      const response = await this.makeAuthenticatedRequest(`${this.baseURL}/me`);
-      const data = await this.parseJsonResponse(response);
-
-      console.log('[AuthService] /me response status:', response.status);
-      console.log('[AuthService] /me response data:', data);
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch user profile');
-      }
-
-      if (data.success) {
-        console.log('[AuthService] User data from API:', data.data.user);
-        console.log('[AuthService] User subroles from API:', data.data.user?.subroles);
-        this.user = data.data.user;
-        localStorage.setItem('nb_user', JSON.stringify(data.data.user));
-        
-        // Verify what was stored
-        const stored = JSON.parse(localStorage.getItem('nb_user') || 'null');
-        console.log('[AuthService] Stored user in localStorage:', stored);
-        console.log('[AuthService] Stored subroles:', stored?.subroles);
-      }
-
-      return data;
-    } catch (error) {
-      console.error('[AuthService] Error in getCurrentUserProfile:', error);
-      throw error;
+    const response = await this.makeAuthenticatedRequest(`${this.baseURL}/me`);
+    const data = await this.parseJsonResponse(response);
+    if (!response.ok || data?.success === false) {
+      throw new ApiError(data?.message || "Failed to fetch user profile", response.status, data);
     }
+    if (data.success) this.user = data.data?.user || null;
+    return data;
   }
 
-  // Update User Profile
   async updateProfile(profileData) {
-    try {
-      // New endpoint: PUT /api/users/profile
-      const response = await this.makeAuthenticatedRequest(`${API_BASE_URL}/users/profile`, {
-        method: 'PUT',
-        body: JSON.stringify(profileData),
-      });
-
-      const data = await this.parseJsonResponse(response);
-
-      if (!response.ok) {
-        const serverMessage = data?.message || data?.error?.message || data?.error || 'Profile update failed';
-        throw new ApiError(serverMessage, response.status, data);
-      }
-
-      if (data.success) {
-        this.user = data.data.user;
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('nb_user', JSON.stringify(data.data.user));
-        }
-      }
-
-      return data;
-    } catch (error) {
-      if (error?.message && error.message.includes('Failed to fetch')) {
-        throw new Error('Unable to reach authentication server. Check API URL and CORS.');
-      }
-      throw error;
+    const response = await this.makeAuthenticatedRequest(`${API_BASE_URL}/users/profile`, {
+      method: "PUT",
+      body: JSON.stringify(profileData),
+    });
+    const data = await this.parseJsonResponse(response);
+    if (!response.ok || data?.success === false) {
+      throw new ApiError(
+        data?.message || data?.error?.message || "Profile update failed",
+        response.status,
+        data
+      );
     }
+    if (data.success) this.user = data.data?.user || this.user;
+    return data;
   }
 
-  // Get current user's dashboard activity summary
   async getMyDashboard() {
-    try {
-      // Primary: current user endpoint
-      const primaryUrl = `${API_BASE_URL}/users/dashboard`;
-      console.debug('[AuthService] Fetching dashboard (primary):', primaryUrl);
-      const response = await this.makeAuthenticatedRequest(primaryUrl, { method: 'GET' });
-      console.debug('[AuthService] Primary dashboard response status:', response.status);
-      const data = await this.parseJsonResponse(response);
-      if (!response.ok) {
-        // Log a small snippet to aid debugging
-        const message = data?.message || data?.error?.message || data?.error;
-        console.error('[AuthService] Dashboard fetch failed:', {
-          status: response.status,
-          message,
-        });
-      } else {
-        console.debug('[AuthService] Dashboard fetch success');
-      }
-      if (!response.ok) {
-        const serverMessage = data?.message || data?.error?.message || data?.error || 'Failed to fetch dashboard';
-        throw new ApiError(serverMessage, response.status, data);
-      }
-      return data;
-    } catch (error) {
-      if (error?.message && error.message.includes('Failed to fetch')) {
-        throw new Error('Unable to reach server. Check API URL and CORS.');
-      }
-      console.error('[AuthService] getMyDashboard error:', error);
-      throw error;
+    const response = await this.makeAuthenticatedRequest(`${API_BASE_URL}/users/dashboard`, {
+      method: "GET",
+    });
+    const data = await this.parseJsonResponse(response);
+    if (!response.ok || data?.success === false) {
+      throw new ApiError(
+        data?.message || data?.error?.message || "Failed to fetch dashboard",
+        response.status,
+        data
+      );
     }
+    return data;
   }
 
-  // Change Password
   async changePassword(currentPassword, newPassword) {
-    try {
-      const response = await this.makeAuthenticatedRequest(`${this.baseURL}/change-password`, {
-        method: 'POST',
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-        }),
-      }, { skipRefreshOn401: true });
-
-      const data = await this.parseJsonResponse(response);
-
-      if (!response.ok) {
-        const serverMessage = data?.message || data?.error?.message || data?.error || 'Password change failed';
-        throw new ApiError(serverMessage, response.status, data);
-      }
-
-      return data;
-    } catch (error) {
-      if (error?.message && error.message.includes('Failed to fetch')) {
-        throw new Error('Unable to reach authentication server. Check API URL and CORS.');
-      }
-      throw error;
+    const response = await this.makeAuthenticatedRequest(
+      `${this.baseURL}/change-password`,
+      {
+        method: "POST",
+        body: JSON.stringify({ currentPassword, newPassword }),
+      },
+      { skipRefreshOn401: true }
+    );
+    const data = await this.parseJsonResponse(response);
+    if (!response.ok || data?.success === false) {
+      throw new ApiError(
+        data?.message || data?.error?.message || "Password change failed",
+        response.status,
+        data
+      );
     }
+    return data;
   }
 
-  // Check if token is expired
   isTokenExpired() {
     if (!this.accessToken) return true;
-    
     try {
-      const payload = JSON.parse(atob(this.accessToken.split('.')[1]));
-      const currentTime = Date.now() / 1000;
-      return payload.exp < currentTime;
-    } catch (error) {
+      const encoded = this.accessToken.split(".")[1];
+      if (!encoded) return true;
+      const normalized = encoded.replace(/-/g, "+").replace(/_/g, "/");
+      const payload = JSON.parse(atob(normalized));
+      return !payload.exp || payload.exp <= Date.now() / 1000;
+    } catch {
       return true;
     }
   }
 
-  // Auto-refresh token if needed
   async ensureValidToken() {
-    if (this.isTokenExpired() && this.refreshToken) {
-      try {
-        await this.refreshTokens();
-      } catch (error) {
-        this.clearAuthData();
-        throw error;
-      }
-    }
+    if (this.isTokenExpired()) await this.refreshTokens();
   }
 }
 
-// Create singleton instance
 const authService = new AuthService();
-
 export default authService;

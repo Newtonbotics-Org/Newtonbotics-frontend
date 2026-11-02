@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { API_BASE_URL } from "@/lib/api";
+import { API_BASE_URL, apiRequest } from "@/lib/api";
 import { projectStatus } from "@/lib/labUi";
 import SectionLabel from "@/components/lab/SectionLabel";
 import RemoteImage from "@/components/RemoteImage";
@@ -33,7 +33,7 @@ export default function HomeProjects() {
 
   useEffect(() => {
     let alive = true;
-    fetch(`${API_BASE_URL}/projects?limit=12`, { cache: "no-store" })
+    apiRequest(`${API_BASE_URL}/projects?limit=12`, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         const list = data?.success && Array.isArray(data.data?.projects) ? data.data.projects : [];

@@ -1,5 +1,5 @@
 // Public News and Newsletter API client
-import { API_BASE_URL } from './api';
+import { API_BASE_URL, apiRequest } from './api';
 
 async function safeParseJson(response) {
   const contentType = response.headers.get('content-type') || '';
@@ -27,7 +27,7 @@ export const newsService = {
   async listNews({ isPublished = true, isFeatured, showInNav, categoryId, q, limit = 20, skip = 0 } = {}) {
     try {
       const query = toQuery({ isPublished, isFeatured, showInNav, categoryId, q, limit, skip });
-      const res = await fetch(`${API_BASE_URL}/news${query}`, { cache: 'no-store' });
+      const res = await apiRequest(`${API_BASE_URL}/news${query}`, { cache: 'no-store' });
       
       if (!res.ok) {
         // Gracefully degrade on rate limiting
@@ -65,7 +65,7 @@ export const newsService = {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/news/${id}`, { cache: 'no-store' });
+      const res = await apiRequest(`${API_BASE_URL}/news/${id}`, { cache: 'no-store' });
 
       if (res.status === 404) {
         return null;
@@ -91,7 +91,7 @@ export const newsService = {
   // GET /api/news/categories
   async listCategories() {
     try {
-      const res = await fetch(`${API_BASE_URL}/news/categories`, { cache: 'no-store' });
+      const res = await apiRequest(`${API_BASE_URL}/news/categories`, { cache: 'no-store' });
       
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
@@ -113,7 +113,7 @@ export const newsService = {
   // POST /api/newsletter/subscribe
   async subscribeNewsletter({ email, firstName, lastName }) {
     try {
-      const res = await fetch(`${API_BASE_URL}/newsletter/subscribe`, {
+      const res = await apiRequest(`${API_BASE_URL}/newsletter/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, firstName, lastName }),
@@ -139,7 +139,7 @@ export const newsService = {
   // DELETE /api/newsletter/unsubscribe
   async unsubscribeNewsletter({ email }) {
     try {
-      const res = await fetch(`${API_BASE_URL}/newsletter/unsubscribe`, {
+      const res = await apiRequest(`${API_BASE_URL}/newsletter/unsubscribe`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),

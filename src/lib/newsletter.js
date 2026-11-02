@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './api';
+import { API_BASE_URL, apiRequest } from './api';
 
 /**
  * Subscribe an email address to the newsletter
@@ -34,7 +34,7 @@ export const subscribeToNewsletter = async (subscriptionData) => {
       throw new Error('Last name too long. Maximum 100 characters allowed.');
     }
 
-    const response = await fetch(`${API_BASE_URL}/newsletter/subscribe`, {
+    const response = await apiRequest(`${API_BASE_URL}/newsletter/subscribe`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -97,7 +97,7 @@ export const checkNewsletterStatus = async (email) => {
       throw new Error('Invalid email format');
     }
 
-    const response = await fetch(`${API_BASE_URL}/newsletter/status/${encodeURIComponent(email)}`, {
+    const response = await apiRequest(`${API_BASE_URL}/newsletter/status/${encodeURIComponent(email)}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -153,7 +153,7 @@ export const unsubscribeFromNewsletter = async (email) => {
       throw new Error('Invalid email format');
     }
 
-    const response = await fetch(`${API_BASE_URL}/newsletter/unsubscribe`, {
+    const response = await apiRequest(`${API_BASE_URL}/newsletter/unsubscribe`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
