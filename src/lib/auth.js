@@ -19,6 +19,7 @@ class AuthService {
     this.accessToken = null;
     this.user = null;
     this.refreshPromise = null;
+    this.restorePromise = null;
   }
 
   async parseJsonResponse(response) {
@@ -163,6 +164,17 @@ class AuthService {
    * removed from localStorage immediately after a successful exchange.
    */
   async restoreSession() {
+    if (this.restorePromise) return this.restorePromise;
+
+    this.restorePromise = this.restoreSessionOnce();
+    try {
+      return await this.restorePromise;
+    } finally {
+      this.restorePromise = null;
+    }
+  }
+
+  async restoreSessionOnce() {
     if (typeof window === "undefined") return false;
 
     const legacyRefreshToken = window.localStorage.getItem("nb_refresh_token");
