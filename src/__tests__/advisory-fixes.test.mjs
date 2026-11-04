@@ -313,3 +313,46 @@ describe('ESLint config – .jsx files coverage', () => {
     assert.ok(content.includes('.map('), 'must use .map() to apply files override per config object');
   });
 });
+
+// ─── 8. package.json scripts ─────────────────────────────────────────────────
+
+describe('package.json – scripts configuration', () => {
+  test('package.json includes a test script', async () => {
+    const fs = await import('node:fs/promises');
+    const path = await import('node:path');
+    const url = await import('node:url');
+    const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+    const pkgPath = path.resolve(__dirname, '../../package.json');
+    const content = JSON.parse(await fs.readFile(pkgPath, 'utf-8'));
+    assert.ok(content.scripts?.test, 'package.json must define a "test" script');
+    assert.ok(content.scripts.test.includes('node --test'), 'test script should use node --test');
+  });
+});
+
+// ─── 9. cloudinaryMedia.js null safety ───────────────────────────────────────
+
+describe('cloudinaryMedia – safe URL resolution', () => {
+  test('getResourcePreviewUrl handles null/undefined without throwing', async () => {
+    const { getResourcePreviewUrl } = await import('../lib/cloudinaryMedia.js');
+    assert.equal(getResourcePreviewUrl(null), null);
+    assert.equal(getResourcePreviewUrl(undefined), null);
+  });
+
+  test('getResourceOpenUrl handles null/undefined without throwing', async () => {
+    const { getResourceOpenUrl } = await import('../lib/cloudinaryMedia.js');
+    assert.equal(getResourceOpenUrl(null), '');
+    assert.equal(getResourceOpenUrl(undefined), '');
+  });
+
+  test('getResourceOpenUrl resolves link vs file URLs', async () => {
+    const { getResourceOpenUrl } = await import('../lib/cloudinaryMedia.js');
+    assert.equal(
+      getResourceOpenUrl({ resourceType: 'link', externalUrl: 'https://example.com' }),
+      'https://example.com'
+    );
+    assert.equal(
+      getResourceOpenUrl({ resourceType: 'document', fileUrl: 'https://res.cloudinary.com/doc.pdf' }),
+      'https://res.cloudinary.com/doc.pdf'
+    );
+  });
+});

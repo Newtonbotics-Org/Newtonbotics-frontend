@@ -36,6 +36,7 @@ export function optimizeImageUrl(url, { width = 1600, height, crop = "limit" } =
 }
 
 export function getResourcePreviewUrl(resource) {
+  if (!resource) return null;
   if (resource.thumbnailUrl) return transformCloudinaryUrl(resource.thumbnailUrl, { width: 600, height: 400, crop: "fill" });
   if (resource.resourceType === "image" && resource.fileUrl) {
     return transformCloudinaryUrl(resource.fileUrl, { width: 600, height: 400, crop: "fill" });
@@ -47,6 +48,7 @@ export function getResourcePreviewUrl(resource) {
 }
 
 export function getResourceOpenUrl(resource) {
+  if (!resource) return "";
   if (resource.resourceType === "link") return resource.externalUrl;
   return resource.fileUrl || resource.externalUrl;
 }
