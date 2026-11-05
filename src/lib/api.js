@@ -141,15 +141,10 @@ export async function fetchApi(path, options = {}) {
   }
 }
 
-/**
- * Safely parse a JSON response, throwing a detailed error on non-JSON content
- * (such as upstream HTML error pages) to prevent JSON.parse syntax crashes.
- */
+/** Parse JSON responses and report non-JSON responses without exposing their bodies. */
 export async function safeParseJson(response) {
   const contentType = response?.headers?.get?.("content-type") || "";
   if (contentType.includes("application/json")) return response.json();
-  const text = typeof response?.text === "function" ? await response.text() : "";
-  throw new Error(
-    `Unexpected response (${response.status} ${response.statusText}): ${text.slice(0, 200)}`
-  );
+  const status = Number.isInteger(response?.status) ? response.status : "unknown";
+  throw new Error(`Unexpected non-JSON response (HTTP ${status}).`);
 }
