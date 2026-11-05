@@ -1,4 +1,4 @@
-import { API_BASE_URL, apiRequest } from "./api";
+import { API_BASE_URL, apiRequest, safeParseJson } from "./api";
 
 // Read-only contracts already consumed by /Projects and /Inventory/[id].
 // No project or project-inventory mutation contract is available in this repo.
@@ -18,7 +18,7 @@ async function readProjects(path, signal) {
     );
   }
   if (!response.ok) throw new Error(response.status === 404 ? "Project not found." : "Unable to load projects. Please try again.");
-  const body = await response.json();
+  const body = await safeParseJson(response);
   if (body?.success === false || !body?.data) throw new Error("Unable to load project data. Please try again.");
   return body.data;
 }

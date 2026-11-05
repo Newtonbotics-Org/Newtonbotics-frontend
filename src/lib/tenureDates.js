@@ -1,9 +1,9 @@
 export function formatTenureDate(value) {
-  if (value == null || value === '') return '';
+  if (value == null || value === '' || typeof value === 'boolean') return '';
   if (typeof value === 'number') return String(value);
 
-  const d = typeof value === 'string' ? new Date(value) : value;
-  if (Number.isNaN(d.getTime())) return '';
+  const d = typeof value === 'string' ? new Date(value) : value instanceof Date ? value : new Date(value);
+  if (!d || typeof d.getTime !== 'function' || Number.isNaN(d.getTime())) return '';
 
   return d.toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -22,8 +22,9 @@ export function formatTenureRange(start, end) {
 }
 
 export function tenureSortValue(value) {
-  if (value == null || value === '') return 0;
+  if (value == null || value === '' || typeof value === 'boolean') return 0;
   if (typeof value === 'number') return value * 10000;
-  const d = typeof value === 'string' ? new Date(value) : value;
-  return Number.isNaN(d.getTime()) ? 0 : d.getTime();
+  const d = typeof value === 'string' ? new Date(value) : value instanceof Date ? value : new Date(value);
+  if (!d || typeof d.getTime !== 'function' || Number.isNaN(d.getTime())) return 0;
+  return d.getTime();
 }
