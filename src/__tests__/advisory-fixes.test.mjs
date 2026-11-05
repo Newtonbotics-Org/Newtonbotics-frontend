@@ -10,6 +10,7 @@
 
 import { test, describe, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
+import { safeParseJson } from '../lib/api.js';
 
 // ─── Minimal mock helpers ─────────────────────────────────────────────────────
 
@@ -31,17 +32,6 @@ const originalFetch = globalThis.fetch;
 function mockFetch(response) { globalThis.fetch = async () => response; }
 function restoreFetch() { globalThis.fetch = originalFetch; }
 
-// ─── safeParseJson — mirrors the helper added to media/newsletter/contact ─────
-
-async function safeParseJson(response) {
-  const contentType = response.headers.get('content-type') || '';
-  if (contentType.includes('application/json')) return response.json();
-  const text = await response.text();
-  throw new Error(
-    `Unexpected response (${response.status} ${response.statusText}): ${text.slice(0, 200)}`
-  );
-}
-
 // ─── 1. safeParseJson ─────────────────────────────────────────────────────────
 
 describe('safeParseJson helper', () => {
@@ -52,14 +42,23 @@ describe('safeParseJson helper', () => {
     assert.equal(data.data.id, 1);
   });
 
-  test('throws on HTML error body (non-JSON content-type)', async () => {
-    const res = makeResponse({ status: 500, body: '<html>Internal Server Error</html>', contentType: 'text/html' });
-    await assert.rejects(() => safeParseJson(res), /Unexpected response \(500/);
+  test('throws on HTML error body without exposing response content', async () => {
+    const sensitiveMarker = 'PRIVATE-UPSTREAM-RESPONSE-MARKER';
+    const res = makeResponse({
+      status: 500,
+      body: `<html>${sensitiveMarker}</html>`,
+      contentType: 'text/html',
+    });
+    await assert.rejects(() => safeParseJson(res), (err) => {
+      assert.match(err.message, /Unexpected non-JSON response \(HTTP 500\)/);
+      assert.ok(!err.message.includes(sensitiveMarker), 'Response body content must not be exposed');
+      return true;
+    });
   });
 
   test('throws on empty body with text/plain content-type', async () => {
     const res = makeResponse({ status: 503, body: '', contentType: 'text/plain' });
-    await assert.rejects(() => safeParseJson(res), /Unexpected response \(503/);
+    await assert.rejects(() => safeParseJson(res), /Unexpected non-JSON response \(HTTP 503\)/);
   });
 
   test('parses JSON body even when status is 4xx', async () => {
@@ -76,12 +75,11 @@ describe('safeParseJson helper', () => {
     });
   });
 
-  test('truncates long non-JSON body to ≤200 chars in error message', async () => {
+  test('does not include long non-JSON response bodies in error messages', async () => {
     const longBody = 'x'.repeat(400);
     const res = makeResponse({ status: 502, body: longBody, contentType: 'text/plain' });
     await assert.rejects(safeParseJson(res), (err) => {
-      // prefix "Unexpected response (502 502): " ≈ 31 chars + max 200 body chars
-      assert.ok(err.message.length <= 240, `Message too long: ${err.message.length}`);
+      assert.equal(err.message, 'Unexpected non-JSON response (HTTP 502).');
       return true;
     });
   });
@@ -104,7 +102,7 @@ describe('newsletter – response parsing', () => {
     const res = await globalThis.fetch('http://mock');
     await assert.rejects(() => safeParseJson(res), (err) => {
       assert.ok(!(err instanceof SyntaxError));
-      assert.ok(err.message.includes('Unexpected response'));
+      assert.ok(err.message.includes('Unexpected non-JSON response'));
       return true;
     });
   });
