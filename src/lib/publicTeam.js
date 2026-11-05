@@ -1,10 +1,11 @@
-import { fetchApi } from "./api";
+import { fetchApi } from "./api.js";
 
 export function formatSubroles(subroles) {
-  if (!subroles?.length) return null;
-  return subroles
-    .map((subrole) => subrole.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()))
-    .join(", ");
+  if (!Array.isArray(subroles) || !subroles.length) return null;
+  const formatted = subroles
+    .filter(Boolean)
+    .map((subrole) => String(subrole).replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()));
+  return formatted.length ? formatted.join(", ") : null;
 }
 
 export function getPersonDisplayName(person) {
@@ -52,7 +53,8 @@ export function getLeadershipSortPriority(person) {
 }
 
 export function sortLeadershipTeam(people = []) {
-  return [...people].sort((a, b) => {
+  const list = Array.isArray(people) ? [...people] : [];
+  return list.sort((a, b) => {
     const priorityDiff = getLeadershipSortPriority(a) - getLeadershipSortPriority(b);
     if (priorityDiff !== 0) return priorityDiff;
     return getPersonDisplayName(a).localeCompare(getPersonDisplayName(b), undefined, {

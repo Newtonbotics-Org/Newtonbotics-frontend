@@ -313,3 +313,123 @@ describe('ESLint config – .jsx files coverage', () => {
     assert.ok(content.includes('.map('), 'must use .map() to apply files override per config object');
   });
 });
+
+// ─── 8. package.json scripts ─────────────────────────────────────────────────
+
+describe('package.json – scripts configuration', () => {
+  test('package.json includes a test script', async () => {
+    const fs = await import('node:fs/promises');
+    const path = await import('node:path');
+    const url = await import('node:url');
+    const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+    const pkgPath = path.resolve(__dirname, '../../package.json');
+    const content = JSON.parse(await fs.readFile(pkgPath, 'utf-8'));
+    assert.ok(content.scripts?.test, 'package.json must define a "test" script');
+    assert.ok(content.scripts.test.includes('node --test'), 'test script should use node --test');
+  });
+});
+
+// ─── 9. cloudinaryMedia.js null safety ───────────────────────────────────────
+
+describe('cloudinaryMedia – safe URL resolution', () => {
+  test('getResourcePreviewUrl handles null/undefined without throwing', async () => {
+    const { getResourcePreviewUrl } = await import('../lib/cloudinaryMedia.js');
+    assert.equal(getResourcePreviewUrl(null), null);
+    assert.equal(getResourcePreviewUrl(undefined), null);
+  });
+
+  test('getResourceOpenUrl handles null/undefined without throwing', async () => {
+    const { getResourceOpenUrl } = await import('../lib/cloudinaryMedia.js');
+    assert.equal(getResourceOpenUrl(null), '');
+    assert.equal(getResourceOpenUrl(undefined), '');
+  });
+
+  test('getResourceOpenUrl resolves link vs file URLs', async () => {
+    const { getResourceOpenUrl } = await import('../lib/cloudinaryMedia.js');
+    assert.equal(
+      getResourceOpenUrl({ resourceType: 'link', externalUrl: 'https://example.com' }),
+      'https://example.com'
+    );
+    assert.equal(
+      getResourceOpenUrl({ resourceType: 'document', fileUrl: 'https://res.cloudinary.com/doc.pdf' }),
+      'https://res.cloudinary.com/doc.pdf'
+    );
+  });
+});
+
+// ─── 10. tenureDates.js null/type safety ─────────────────────────────────────
+
+describe('tenureDates – safe formatting and sorting', () => {
+  test('formatTenureDate handles unexpected types without throwing', async () => {
+    const { formatTenureDate } = await import('../lib/tenureDates.js');
+    assert.equal(formatTenureDate(null), '');
+    assert.equal(formatTenureDate(undefined), '');
+    assert.equal(formatTenureDate(''), '');
+    assert.equal(formatTenureDate(true), '');
+    assert.equal(formatTenureDate(false), '');
+    assert.equal(formatTenureDate({}), '');
+    assert.equal(formatTenureDate(2024), '2024');
+    assert.equal(formatTenureDate('2024-05-15'), '15 May 2024');
+  });
+
+  test('formatTenureRange formats valid ranges and suppresses identical bounds', async () => {
+    const { formatTenureRange } = await import('../lib/tenureDates.js');
+    assert.equal(formatTenureRange(null, null), '');
+    assert.equal(formatTenureRange(2023, 2024), '2023 – 2024');
+    assert.equal(formatTenureRange(2024, 2024), '2024');
+  });
+
+  test('tenureSortValue returns 0 on invalid values and valid timestamp for dates', async () => {
+    const { tenureSortValue } = await import('../lib/tenureDates.js');
+    assert.equal(tenureSortValue(null), 0);
+    assert.equal(tenureSortValue({}), 0);
+    assert.equal(tenureSortValue(true), 0);
+    assert.equal(tenureSortValue(2024), 20240000);
+    assert.equal(tenureSortValue('2024-01-01'), new Date('2024-01-01').getTime());
+  });
+});
+
+// ─── 11. publicTeam.js defensive validation ─────────────────────────────────
+
+describe('publicTeam – defensive formatting and leadership sort', () => {
+  test('formatSubroles handles non-array and empty elements safely', async () => {
+    const { formatSubroles } = await import('../lib/publicTeam.js');
+    assert.equal(formatSubroles(null), null);
+    assert.equal(formatSubroles(undefined), null);
+    assert.equal(formatSubroles([]), null);
+    assert.equal(formatSubroles([null]), null);
+    assert.equal(formatSubroles(['lead', null, 'vice_president']), 'Lead, Vice President');
+  });
+
+  test('sortLeadershipTeam handles null/empty input without throwing', async () => {
+    const { sortLeadershipTeam } = await import('../lib/publicTeam.js');
+    assert.deepEqual(sortLeadershipTeam(null), []);
+    assert.deepEqual(sortLeadershipTeam(undefined), []);
+    assert.deepEqual(sortLeadershipTeam([]), []);
+  });
+
+  test('sortLeadershipTeam prioritizes President and Vice President', async () => {
+    const { sortLeadershipTeam } = await import('../lib/publicTeam.js');
+    const team = [
+      { firstName: 'Member', subroles: ['member'] },
+      { firstName: 'VP', subroles: ['vice_president'] },
+      { firstName: 'Pres', subroles: ['president'] },
+    ];
+    const sorted = sortLeadershipTeam(team);
+    assert.equal(sorted[0].firstName, 'Pres');
+    assert.equal(sorted[1].firstName, 'VP');
+    assert.equal(sorted[2].firstName, 'Member');
+  });
+});
+
+// ─── 12. api.js exported safeParseJson ──────────────────────────────────────
+
+describe('api.js – exported safeParseJson', () => {
+  test('api.js exports safeParseJson function', async () => {
+    const { safeParseJson: apiSafeParseJson } = await import('../lib/api.js');
+    assert.equal(typeof apiSafeParseJson, 'function');
+    const mockRes = makeResponse({ body: { ok: true } });
+    const parsed = await apiSafeParseJson(mockRes);
+    assert.equal(parsed.ok, true);
+  });
+});

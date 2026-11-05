@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import inventoryService from "../../../lib/inventory";
@@ -70,7 +70,7 @@ export default function EquipmentDetailPage(){
     }finally{ setLoading(false); }
   };
 
-  const loadCheckouts = async () => {
+  const loadCheckouts = useCallback(async () => {
     try {
       setLoadingCheckouts(true);
       const data = await inventoryService.getEquipmentCheckouts(params.id, { limit: 50 });
@@ -80,9 +80,9 @@ export default function EquipmentDetailPage(){
     } finally {
       setLoadingCheckouts(false);
     }
-  };
+  }, [params.id]);
 
-  const loadActiveCheckouts = async () => {
+  const loadActiveCheckouts = useCallback(async () => {
     try {
       const data = await inventoryService.getActiveCheckouts(params.id);
       const checkouts = data.activeCheckouts || [];
@@ -90,9 +90,9 @@ export default function EquipmentDetailPage(){
     } catch (e) {
       console.error('Failed to load active checkouts:', e);
     }
-  };
+  }, [params.id]);
 
-  const loadProjects = async () => {
+  const loadProjects = useCallback(async () => {
     try {
       if (DEMO) {
         setProjects(getDemoProjects());
@@ -108,7 +108,7 @@ export default function EquipmentDetailPage(){
     } catch (e) {
       console.error('Failed to load projects:', e);
     }
-  };
+  }, []);
 
   const loadUsers = async (search = "") => {
     if (!isAdmin) return;
@@ -162,7 +162,7 @@ export default function EquipmentDetailPage(){
       }finally{ if(isMounted) setLoading(false); }
     })();
     return ()=>{ isMounted=false; };
-  },[params.id]);
+  },[params.id, loadCheckouts, loadActiveCheckouts, loadProjects]);
 
   if (loading) return <DetailPageSkeleton />;
   if (error || !item) {

@@ -686,11 +686,14 @@ function MiniCalendar({ events }) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const offset = (new Date(year, month, 1).getDay() + 6) % 7; // Monday-first
   const monthLabel = cursor.toLocaleString("en-US", { month: "long", year: "numeric" });
-  const monthEvents = new Set();
-  for (let d = 1; d <= daysInMonth; d += 1) {
-    const e = byDay.get(dayKey(new Date(year, month, d)));
-    if (e) monthEvents.add(e._id);
-  }
+  const monthEvents = useMemo(() => {
+    const set = new Set();
+    for (let d = 1; d <= daysInMonth; d += 1) {
+      const e = byDay.get(dayKey(new Date(year, month, d)));
+      if (e) set.add(e._id);
+    }
+    return set;
+  }, [byDay, daysInMonth, month, year]);
 
   return (
     <div className="nb-card flex flex-col gap-4 p-6">

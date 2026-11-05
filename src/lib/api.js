@@ -140,3 +140,16 @@ export async function fetchApi(path, options = {}) {
     return null;
   }
 }
+
+/**
+ * Safely parse a JSON response, throwing a detailed error on non-JSON content
+ * (such as upstream HTML error pages) to prevent JSON.parse syntax crashes.
+ */
+export async function safeParseJson(response) {
+  const contentType = response?.headers?.get?.("content-type") || "";
+  if (contentType.includes("application/json")) return response.json();
+  const text = typeof response?.text === "function" ? await response.text() : "";
+  throw new Error(
+    `Unexpected response (${response.status} ${response.statusText}): ${text.slice(0, 200)}`
+  );
+}

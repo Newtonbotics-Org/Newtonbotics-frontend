@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Search,
@@ -132,6 +132,7 @@ export default function GalleryClient() {
   useEffect(() => {
     if (authLoading) return;
     fetchFilteredMedia();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     authLoading,
     searchQuery,
@@ -327,7 +328,7 @@ export default function GalleryClient() {
     handleMediaView(item);
   };
 
-  const navigateLightbox = (direction) => {
+  const navigateLightbox = useCallback((direction) => {
     if (!active || mediaItems.length <= 1) return;
     const currentIndex = mediaItems.findIndex((item) => item._id === active._id);
     if (currentIndex === -1) return;
@@ -338,7 +339,7 @@ export default function GalleryClient() {
     const nextItem = mediaItems[nextIndex];
     setActive(nextItem);
     handleMediaView(nextItem);
-  };
+  }, [active, mediaItems]);
 
   // Keyboard navigation for lightbox (←/→, Escape, Tab kept inside the dialog)
   useEffect(() => {
@@ -373,7 +374,7 @@ export default function GalleryClient() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [active, mediaItems]);
+  }, [active, mediaItems, navigateLightbox]);
 
   // Lock page scroll and manage focus while the lightbox is open
   const lightboxOpen = Boolean(active);
