@@ -23,22 +23,9 @@ import {
 } from "./InventoryUi";
 import styles from "./inventory.module.css";
 import { optimizeImageUrl } from "@/lib/cloudinaryMedia";
+import { stockStatus } from "./inventoryStatus.mjs";
 
-export function stockStatus(item) {
-  if (item.status === "maintenance")
-    return { label: "Maintenance", tone: "neutral" };
-  if (item.status === "retired") return { label: "Retired", tone: "neutral" };
-  if (
-    item.currentQuantity == null ||
-    !Number.isFinite(Number(item.currentQuantity))
-  )
-    return { label: "Quantity unavailable", tone: "neutral" };
-  if (Number(item.currentQuantity) <= 0)
-    return { label: "Out of stock", tone: "danger" };
-  if (Number(item.currentQuantity) <= Number(item.minQuantity || 0))
-    return { label: "Low stock", tone: "warning" };
-  return { label: "Available", tone: "success" };
-}
+export { stockStatus };
 
 function categoryNameOf(item, categoryMap) {
   const id =

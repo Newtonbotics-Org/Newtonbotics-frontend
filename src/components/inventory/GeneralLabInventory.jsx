@@ -10,8 +10,13 @@ import {
   setDemoCategories,
   setDemoEquipment,
 } from "@/lib/demoStore";
-import InventoryCatalogue, { stockStatus } from "./InventoryCatalogue";
+import InventoryCatalogue from "./InventoryCatalogue";
 import InventoryDialog from "./InventoryDialog";
+import {
+  isDerivedStatusFilter,
+  listAllEquipment,
+  matchesStatusFilter,
+} from "./inventoryStatus.mjs";
 import { Alert, DemoBanner, Toast } from "./InventoryUi";
 import styles from "./inventory.module.css";
 
@@ -20,59 +25,6 @@ const DEMO = isDemoMode();
 function categoryIdOf(value) {
   if (!value) return "";
   return typeof value === "object" ? value._id || value.id || "" : String(value);
-}
-
-const STATUS_FILTER_LABELS = {
-  available: "Available",
-  low_stock: "Low stock",
-  out_of_stock: "Out of stock",
-  maintenance: "Maintenance",
-  retired: "Retired",
-};
-
-function matchesStatusFilter(item, statusFilter) {
-  const expectedLabel = STATUS_FILTER_LABELS[statusFilter];
-  return !expectedLabel || stockStatus(item).label === expectedLabel;
-}
-
-/**
- * Statuses such as Low stock and Out of stock are derived from quantities,
- * not persisted API status values. Fetch all search/category matches so
- * filtering and pagination remain correct across the complete result set.
- */
-async function listAllEquipment(filters) {
-  const pageSize = 100;
-  const allItems = [];
-  let nextSkip = 0;
-  let hasMore = true;
-
-  while (hasMore) {
-    const page = await inventoryService.listEquipment({
-      ...filters,
-      limit: pageSize,
-      skip: nextSkip,
-    });
-    const pageItems = Array.isArray(page.items) ? page.items : [];
-    const previousCount = allItems.length;
-    allItems.push(...pageItems);
-    nextSkip += pageItems.length;
-
-    const reportedHasMore = page.pagination?.hasMore;
-    const totalValue = page.pagination?.total;
-    const total = totalValue == null ? Number.NaN : Number(totalValue);
-
-    if (pageItems.length === 0 || allItems.length === previousCount) {
-      hasMore = false;
-    } else if (typeof reportedHasMore === "boolean") {
-      hasMore = reportedHasMore;
-    } else if (Number.isFinite(total)) {
-      hasMore = nextSkip < total;
-    } else {
-      hasMore = pageItems.length === pageSize;
-    }
-  }
-
-  return allItems;
 }
 
 const GeneralLabInventory = () => {
@@ -204,11 +156,11 @@ const GeneralLabInventory = () => {
           q: searchTerm || undefined,
         };
 
-        if (statusFilter) {
+        if (isDerivedStatusFilter(statusFilter)) {
           // Apply the same derived status rules used by the inventory cards.
           // Do not send values such as "low_stock" to an API field that stores
           // lifecycle statuses; they are quantity-based classifications.
-          const allMatches = await listAllEquipment(filters);
+          const allMatches = await listAllEquipment(inventoryService, filters);
           if (!isMounted) return;
 
           const filteredItems = allMatches.filter((item) =>
@@ -227,6 +179,7 @@ const GeneralLabInventory = () => {
         } else {
           const data = await inventoryService.listEquipment({
             ...filters,
+            status: statusFilter || undefined,
             limit,
             skip,
           });
