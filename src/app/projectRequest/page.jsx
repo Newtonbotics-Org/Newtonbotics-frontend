@@ -24,10 +24,27 @@ const ProjectRequestPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingRequest, setEditingRequest] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [users, setUsers] = useState([]);
 
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    category: "",
+    projectStatus: "upcoming",
+    priority: "medium",
+    difficulty: "intermediate",
+    startDate: "",
+    endDate: "",
+    budget: "",
+    estimatedHours: "",
+    teamLeaderId: "",
+    mentorId: "",
+    imageUrl: "",
+    videoUrl: "",
+    githubUrl: "",
+    documentationUrl: "",
+    achievements: [""],
+    tags: [""],
     objectives: [""],
     expectedOutcomes: [""],
     teamSize: 1,
@@ -50,9 +67,37 @@ const ProjectRequestPage = () => {
   useEffect(() => {
     if (isAuthenticated && !authLoading) {
       fetchMyRequests();
+      fetchUsers();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, authLoading]);
+
+  const fetchUsers = async () => {
+    try {
+      const members = [];
+      let skip = 0;
+      let hasMore = true;
+      while (hasMore && members.length < 500) {
+        const response = await authService.makeAuthenticatedRequest(
+          `${API_BASE_URL}/users/club-members?limit=100&skip=${skip}`
+        );
+        const data = await response.json();
+        if (!response.ok || !data.success) break;
+        const pageMembers = data.data?.clubMembers || data.clubMembers || [];
+        members.push(...pageMembers);
+        hasMore = data.data?.pagination?.hasMore === true;
+        skip += 100;
+      }
+      if (members.length) {
+        setUsers(members.map(member => ({
+          ...member,
+          id: member.id || member._id || member.userId
+        })).filter(member => member.id));
+      }
+    } catch (err) {
+      console.error('Error fetching project request team members:', err);
+    }
+  };
 
   // Fix scroll issue when returning from PDF viewer
   useEffect(() => {
@@ -168,13 +213,33 @@ const ProjectRequestPage = () => {
     setFormData({
       title: request.title || "",
       description: request.description || "",
+      category: request.category || "",
+      projectStatus: request.projectStatus || "upcoming",
+      priority: request.priority || "medium",
+      difficulty: request.difficulty || "intermediate",
+      startDate: request.startDate ? request.startDate.slice(0, 10) : "",
+      endDate: request.endDate ? request.endDate.slice(0, 10) : "",
+      budget: request.budget ?? "",
+      estimatedHours: request.estimatedHours ?? "",
+      teamLeaderId: request.teamLeaderId?._id || request.teamLeaderId?.id || request.teamLeaderId || "",
+      mentorId: request.mentorId?._id || request.mentorId || "",
+      imageUrl: request.imageUrl || "",
+      videoUrl: request.videoUrl || "",
+      githubUrl: request.githubUrl || "",
+      documentationUrl: request.documentationUrl || "",
+      achievements: request.achievements?.length ? request.achievements : [""],
+      tags: request.tags?.length ? request.tags : [""],
       objectives: request.objectives && request.objectives.length > 0 ? request.objectives : [""],
       expectedOutcomes: request.expectedOutcomes && request.expectedOutcomes.length > 0 ? request.expectedOutcomes : [""],
       teamSize: request.teamSize || 1,
       estimatedDurationMonths: request.estimatedDurationMonths || 1,
       budgetEstimate: request.budgetEstimate || 0,
       requiredResources: request.requiredResources && request.requiredResources.length > 0 ? request.requiredResources : [""],
-      teamMembers: request.teamMembers || [],
+      teamMembers: (request.teamMembers || []).map(member => ({
+        ...member,
+        userId: member.userId?._id || member.userId?.id || member.userId || "",
+        skills: Array.isArray(member.skills) ? member.skills : []
+      })),
       resources: request.resources || [],
       document: documentData
     });
@@ -187,6 +252,22 @@ const ProjectRequestPage = () => {
     setFormData({
       title: "",
       description: "",
+      category: "",
+      projectStatus: "upcoming",
+      priority: "medium",
+      difficulty: "intermediate",
+      startDate: "",
+      endDate: "",
+      budget: "",
+      estimatedHours: "",
+      teamLeaderId: "",
+      mentorId: "",
+      imageUrl: "",
+      videoUrl: "",
+      githubUrl: "",
+      documentationUrl: "",
+      achievements: [""],
+      tags: [""],
       objectives: [""],
       expectedOutcomes: [""],
       teamSize: 1,
@@ -299,6 +380,8 @@ const ProjectRequestPage = () => {
         userId: "",
         proposedRole: "",
         skills: [""],
+        responsibilities: [],
+        contribution: "",
         availabilityHoursPerWeek: 0
       }]
     }));
@@ -395,6 +478,16 @@ const ProjectRequestPage = () => {
       // Clean up data - remove empty strings from arrays
       const cleanedData = {
         ...formData,
+        achievements: formData.achievements.filter(value => value.trim()),
+        tags: formData.tags.map(value => value.trim()).filter(Boolean),
+        budget: formData.budget === "" ? undefined : Number(formData.budget),
+        estimatedHours: formData.estimatedHours === "" ? undefined : Number(formData.estimatedHours),
+        teamMembers: formData.teamMembers.map(member => ({
+          ...member,
+          skills: member.skills.filter(skill => skill.trim() !== ""),
+          responsibilities: member.responsibilities || [],
+          availabilityHoursPerWeek: member.availabilityHoursPerWeek || undefined,
+        })).filter(member => member.userId && member.proposedRole),
         objectives: formData.objectives.filter(obj => obj.trim() !== ""),
         expectedOutcomes: formData.expectedOutcomes.filter(out => out.trim() !== ""),
         requiredResources: formData.requiredResources.filter(res => res.trim() !== ""),
@@ -500,6 +593,22 @@ const ProjectRequestPage = () => {
         setFormData({
           title: "",
           description: "",
+          category: "",
+          projectStatus: "upcoming",
+          priority: "medium",
+          difficulty: "intermediate",
+          startDate: "",
+          endDate: "",
+          budget: "",
+          estimatedHours: "",
+          teamLeaderId: "",
+          mentorId: "",
+          imageUrl: "",
+          videoUrl: "",
+          githubUrl: "",
+          documentationUrl: "",
+          achievements: [""],
+          tags: [""],
           objectives: [""],
           expectedOutcomes: [""],
           teamSize: 1,
@@ -970,61 +1079,121 @@ const ProjectRequestPage = () => {
                     </span>
                   </div>
 
-                  {/* Project Metrics */}
                   <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4">
-                    {/* Team Size */}
                     <div className="flex flex-col gap-2">
-                      <label htmlFor="pr-team-size" className="nb-label">
-                        Team size <span className="text-[#B91C1C]" aria-hidden="true">*</span>
-                      </label>
-                      <input
-                        id="pr-team-size"
-                        type="number"
-                        name="teamSize"
-                        value={formData.teamSize}
-                        onChange={handleInputChange}
-                        required
-                        min={1}
-                        max={20}
-                        className="nb-input"
-                      />
+                      <label htmlFor="pr-category" className="nb-label">Category</label>
+                      <input id="pr-category" name="category" value={formData.category} onChange={handleInputChange} maxLength={100} className="nb-input" />
                     </div>
-
-                    {/* Duration */}
                     <div className="flex flex-col gap-2">
-                      <label htmlFor="pr-duration" className="nb-label">
-                        Duration (months) <span className="text-[#B91C1C]" aria-hidden="true">*</span>
-                      </label>
-                      <input
-                        id="pr-duration"
-                        type="number"
-                        name="estimatedDurationMonths"
-                        value={formData.estimatedDurationMonths}
-                        onChange={handleInputChange}
-                        required
-                        min={1}
-                        max={24}
-                        className="nb-input"
-                      />
+                      <label htmlFor="pr-project-status" className="nb-label">Project status</label>
+                      <select id="pr-project-status" name="projectStatus" value={formData.projectStatus} onChange={handleInputChange} className="nb-input">
+                        <option value="upcoming">Upcoming</option><option value="ongoing">Ongoing</option><option value="completed">Completed</option><option value="on_hold">On hold</option>
+                      </select>
                     </div>
-
-                    {/* Budget */}
                     <div className="flex flex-col gap-2">
-                      <label htmlFor="pr-budget" className="nb-label">
-                        Budget estimate
-                      </label>
-                      <input
-                        id="pr-budget"
-                        type="number"
-                        name="budgetEstimate"
-                        value={formData.budgetEstimate}
-                        onChange={handleInputChange}
-                        min={0}
-                        placeholder="0"
-                        className="nb-input"
-                      />
+                      <label htmlFor="pr-priority" className="nb-label">Priority</label>
+                      <select id="pr-priority" name="priority" value={formData.priority} onChange={handleInputChange} className="nb-input">
+                        <option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="critical">Critical</option>
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="pr-difficulty" className="nb-label">Difficulty</label>
+                      <select id="pr-difficulty" name="difficulty" value={formData.difficulty} onChange={handleInputChange} className="nb-input">
+                        <option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option><option value="expert">Expert</option>
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="pr-start-date" className="nb-label">Start date</label>
+                      <input id="pr-start-date" type="date" name="startDate" value={formData.startDate} onChange={handleInputChange} className="nb-input" />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="pr-end-date" className="nb-label">End date</label>
+                      <input id="pr-end-date" type="date" name="endDate" value={formData.endDate} onChange={handleInputChange} className="nb-input" />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="pr-budget" className="nb-label">Budget</label>
+                      <input id="pr-budget" type="number" name="budget" value={formData.budget} onChange={handleInputChange} min={0} step="any" className="nb-input" />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="pr-estimated-hours" className="nb-label">Estimated hours</label>
+                      <input id="pr-estimated-hours" type="number" name="estimatedHours" value={formData.estimatedHours} onChange={handleInputChange} min={1} className="nb-input" />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="pr-team-leader" className="nb-label">Team leader <span className="text-[#B91C1C]" aria-hidden="true">*</span></label>
+                      <select id="pr-team-leader" name="teamLeaderId" value={formData.teamLeaderId} onChange={handleInputChange} required className="nb-input">
+                        <option value="">Select a team leader</option>
+                        {users.filter(member => ["team_member", "mentor", "researcher", "admin"].includes((member.role || "").toLowerCase())).map(member => <option key={member.id} value={member.id}>{`${member.firstName || ""} ${member.lastName || ""}`.trim() || member.email || member.id}</option>)}
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="pr-mentor" className="nb-label">Mentor</label>
+                      <select id="pr-mentor" name="mentorId" value={formData.mentorId} onChange={handleInputChange} className="nb-input">
+                        <option value="">No mentor selected</option>
+                        {users.filter(member => ["mentor", "researcher", "admin"].includes((member.role || "").toLowerCase())).map(member => <option key={member.id} value={member.id}>{`${member.firstName || ""} ${member.lastName || ""}`.trim() || member.email || member.id}</option>)}
+                      </select>
                     </div>
                   </div>
+
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4 border-t border-line-soft pt-5">
+                    {[["imageUrl", "Project image URL"], ["videoUrl", "Video URL"], ["githubUrl", "GitHub URL"], ["documentationUrl", "Documentation URL"]].map(([field, label]) => (
+                      <div key={field} className="flex flex-col gap-2">
+                        <label htmlFor={`pr-${field}`} className="nb-label">{label}</label>
+                        <input id={`pr-${field}`} type="url" name={field} value={formData[field]} onChange={handleInputChange} maxLength={500} className="nb-input" />
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6 border-t border-line-soft pt-5">
+                    {[ ["achievements", "Achievements"], ["tags", "Tags"] ].map(([field, label]) => (
+                      <fieldset key={field} className="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
+                        <legend className="nb-label">{label}</legend>
+                        {formData[field].map((value, index) => (
+                          <div key={`${field}-${index}`} className="flex gap-2">
+                            <input value={value} onChange={event => handleArrayFieldChange(field, index, event.target.value)} maxLength={field === "tags" ? 50 : 500} className="nb-input min-w-0 flex-1" aria-label={`${label} ${index + 1}`} />
+                            {formData[field].length > 1 && removeRowButton(`Remove ${label.toLowerCase()} ${index + 1}`, () => removeArrayField(field, index))}
+                          </div>
+                        ))}
+                        {addRowButton(`Add ${label.toLowerCase().replace(/s$/, "")}`, () => addArrayField(field))}
+                      </fieldset>
+                    ))}
+                  </div>
+
+                  <fieldset className="m-0 flex min-w-0 flex-col gap-4 border-0 border-t border-line-soft p-0 pt-5">
+                    <legend className="nb-label">Initial team members</legend>
+                    {formData.teamMembers.map((member, index) => (
+                      <div key={`member-${index}`} className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] items-end gap-3 rounded-md border border-line bg-paper p-4">
+                        <div className="flex flex-col gap-2">
+                          <label htmlFor={`pr-member-user-${index}`} className="nb-label">Member</label>
+                          <select id={`pr-member-user-${index}`} value={member.userId} onChange={event => handleTeamMemberChange(index, "userId", event.target.value)} className="nb-input">
+                            <option value="">Select a member</option>
+                            {users.map(person => <option key={person.id} value={person.id}>{`${person.firstName || ""} ${person.lastName || ""}`.trim() || person.email || person.id}</option>)}
+                          </select>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <label htmlFor={`pr-member-role-${index}`} className="nb-label">Role</label>
+                          <input id={`pr-member-role-${index}`} value={member.proposedRole} onChange={event => handleTeamMemberChange(index, "proposedRole", event.target.value)} maxLength={100} className="nb-input" />
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <label htmlFor={`pr-member-hours-${index}`} className="nb-label">Hours per week</label>
+                          <input id={`pr-member-hours-${index}`} type="number" min={1} max={40} value={member.availabilityHoursPerWeek || ""} onChange={event => handleTeamMemberChange(index, "availabilityHoursPerWeek", Number(event.target.value) || 0)} className="nb-input" />
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <label htmlFor={`pr-member-skills-${index}`} className="nb-label">Skills</label>
+                          <input id={`pr-member-skills-${index}`} value={(member.skills || []).join(", ")} onChange={event => handleTeamMemberChange(index, "skills", event.target.value.split(",").map(skill => skill.trim()).filter(Boolean))} className="nb-input" />
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <label htmlFor={`pr-member-responsibilities-${index}`} className="nb-label">Responsibilities</label>
+                          <input id={`pr-member-responsibilities-${index}`} value={(member.responsibilities || []).join(", ")} onChange={event => handleTeamMemberChange(index, "responsibilities", event.target.value.split(",").map(item => item.trim()).filter(Boolean))} className="nb-input" />
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <label htmlFor={`pr-member-contribution-${index}`} className="nb-label">Contribution</label>
+                          <input id={`pr-member-contribution-${index}`} value={member.contribution || ""} onChange={event => handleTeamMemberChange(index, "contribution", event.target.value)} maxLength={1000} className="nb-input" />
+                        </div>
+                        <button type="button" onClick={() => removeTeamMember(index)} aria-label={`Remove team member ${index + 1}`} className="nb-btn nb-btn-ghost justify-self-start">Remove member</button>
+                      </div>
+                    ))}
+                    {addRowButton("Add team member", addTeamMember)}
+                  </fieldset>
                 </section>
 
                 {/* Document Upload Section */}
