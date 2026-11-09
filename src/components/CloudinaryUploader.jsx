@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { CldUploadWidget, CldImage } from "next-cloudinary";
+import authService from "@/lib/auth";
 
 const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 const CLOUD_API_KEY = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY;
@@ -93,6 +94,34 @@ export default function CloudinaryUploader({
 		setError(message);
 	}, []);
 
+	const requestUploadSignature = useCallback(async (callback, paramsToSign) => {
+		try {
+			if (!authService.getAccessToken() || authService.isTokenExpired()) {
+				await authService.refreshTokens();
+			}
+			const accessToken = authService.getAccessToken();
+			if (!accessToken) throw new Error("Sign in before uploading.");
+
+			const response = await fetch("/api/cloudinary/sign", {
+				method: "POST",
+				cache: "no-store",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${accessToken}`,
+				},
+				body: JSON.stringify({ paramsToSign }),
+			});
+			const result = await response.json();
+			if (!response.ok || !result?.signature) {
+				throw new Error(result?.error || "Unable to authorize this upload.");
+			}
+			callback(result.signature);
+		} catch (uploadError) {
+			setError(uploadError?.message || "Unable to authorize this upload.");
+			callback("");
+		}
+	}, []);
+
 	return (
 		<div className="flex flex-col gap-2">
 			<CldUploadWidget
@@ -103,10 +132,11 @@ export default function CloudinaryUploader({
 					resourceType,
 					cropping,
 					multiple,
+					overwrite: false,
+					uploadSignature: requestUploadSignature,
 					...(maxFileSizeBytes ? { maxFileSize: maxFileSizeBytes } : {}),
 				}}
 				uploadPreset={undefined}
-				signatureEndpoint="/api/cloudinary/sign"
 				apiKey={CLOUD_API_KEY}
 				onUpload={handleSuccess}
 				onSuccess={handleSuccess}
