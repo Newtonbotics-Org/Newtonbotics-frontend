@@ -1,12 +1,20 @@
-import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { API_BASE_URL } from "@/lib/api";
+import { NextResponse } from "next/server.js";
+import { cookies } from "next/headers.js";
+import { API_BASE_URL } from "../../../../lib/api.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const REFRESH_COOKIE = "nb_refresh_token";
 const REFRESH_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+const BACKEND_TIMEOUT_MS = 10_000;
+
+class BackendTimeoutError extends Error {
+  constructor() {
+    super("Authentication service timed out.");
+    this.name = "BackendTimeoutError";
+  }
+}
 
 function cookieOptions() {
   return {
@@ -80,13 +88,22 @@ async function callBackend(endpoint, body) {
     };
   }
 
-  const response = await fetch(API_BASE_URL + "/auth/" + endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body || {}),
-    cache: "no-store",
-  });
-  return { response, payload: await readBackendJson(response) };
+  const timeoutSignal = AbortSignal.timeout(BACKEND_TIMEOUT_MS);
+  try {
+    const response = await fetch(API_BASE_URL + "/auth/" + endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body || {}),
+      cache: "no-store",
+      signal: timeoutSignal,
+    });
+    return { response, payload: await readBackendJson(response) };
+  } catch (error) {
+    if (timeoutSignal.aborted || error?.name === "TimeoutError") {
+      throw new BackendTimeoutError();
+    }
+    throw error;
+  }
 }
 
 export async function POST(request) {
@@ -194,10 +211,16 @@ export async function POST(request) {
     sessionResponse.cookies.set(REFRESH_COOKIE, nextRefreshToken, cookieOptions());
     return sessionResponse;
   } catch (error) {
-    console.error("Authentication session request failed:", error);
+    if (error instanceof BackendTimeoutError) {
+      return NextResponse.json(
+        { success: false, message: "Authentication service timed out." },
+        { status: 504, headers: { "Cache-Control": "no-store" } }
+      );
+    }
+    console.error("Authentication session request failed:", error?.name || "UnknownError");
     return NextResponse.json(
       { success: false, message: "Unable to reach the authentication service." },
-      { status: 502 }
+      { status: 502, headers: { "Cache-Control": "no-store" } }
     );
   }
 }
