@@ -82,11 +82,11 @@ export default function TeamPageClient({
     });
   };
 
-  const sortedLeadership = useMemo(() => sortLeadershipTeam(activeLeadershipTeam), [activeLeadershipTeam]);
   const { leadership: activeLeadershipTeam, activeMembers, alumni: alumniMembers } = useMemo(
     () => partitionTeamRoster(leadershipTeam, teamMembers),
     [leadershipTeam, teamMembers]
   );
+  const sortedLeadership = useMemo(() => sortLeadershipTeam(activeLeadershipTeam), [activeLeadershipTeam]);
   const filteredLeadership = getFilteredPeople(sortedLeadership);
   const filteredTeamMembers = getFilteredPeople(activeMembers);
   const filteredAlumniMembers = getFilteredPeople(alumniMembers);
