@@ -187,9 +187,19 @@ export default function ProfileCompletionPage() {
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
-    setIsUpdatingProfile(true);
     setProfileError("");
     setProfileMessage("");
+
+    if (user.role === "student" && academicYearChanged) {
+      const yearOfStudy = passingYearToYearOfStudy(profileData.yearOfStudy);
+      const academicStartYear = passingYearToAcademicStartYear(profileData.yearOfStudy);
+      if (!yearOfStudy || yearOfStudy > 4 || !academicStartYear) {
+        setProfileError("Select a valid academic year (Year 1 through Year 4)");
+        return;
+      }
+    }
+
+    setIsUpdatingProfile(true);
 
     try {
       const payload = {};
@@ -468,6 +478,7 @@ export default function ProfileCompletionPage() {
                     <SelectField
                       id="pf-year"
                       label="Academic year"
+                      required={academicYearChanged}
                       value={profileData.yearOfStudy}
                       disabled={!isEditing}
                       className={`nb-input pr-8 ${disabledCls}`}

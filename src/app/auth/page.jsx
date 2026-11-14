@@ -17,7 +17,6 @@ import {
   passwordRules as buildPasswordRules,
 } from "./components/AuthFields";
 import {
-  OTHER_ACADEMIC_YEAR,
   PASSING_YEARS,
   passingYearOptionLabel,
   passingYearToYearOfStudy,
@@ -182,8 +181,10 @@ function AuthPageContent() {
       setError("Department is required for students");
       return false;
     }
-    if (!formData.yearOfStudy) {
-      setError("Academic year is required for students");
+    const yearOfStudy = passingYearToYearOfStudy(formData.yearOfStudy);
+    const academicStartYear = passingYearToAcademicStartYear(formData.yearOfStudy);
+    if (!yearOfStudy || yearOfStudy > 4 || !academicStartYear) {
+      setError("Select a valid academic year (Year 1 through Year 4)");
       return false;
     }
     return true;
@@ -195,7 +196,7 @@ function AuthPageContent() {
     setError("");
     try {
       const derivedYearOfStudy =
-        formData.role === "student" && formData.yearOfStudy !== OTHER_ACADEMIC_YEAR
+        formData.role === "student"
           ? passingYearToYearOfStudy(formData.yearOfStudy)
           : null;
 
@@ -466,16 +467,19 @@ function AuthPageContent() {
                       <SelectField
                         id="signup-year"
                         label="Academic year"
+                        required
                         value={formData.yearOfStudy}
                         onChange={(e) => handleInputChange("yearOfStudy", e.target.value)}
                       >
                         <option value="">Select passing year</option>
-                        {PASSING_YEARS.map((year) => (
+                        {PASSING_YEARS.filter((year) => {
+                          const yearOfStudy = passingYearToYearOfStudy(year);
+                          return yearOfStudy >= 1 && yearOfStudy <= 4;
+                        }).map((year) => (
                           <option key={year} value={year}>
                             {passingYearOptionLabel(year)}
                           </option>
                         ))}
-                        <option value={OTHER_ACADEMIC_YEAR}>Other (other branch / programme)</option>
                       </SelectField>
                     </div>
                   </div>
