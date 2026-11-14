@@ -7,6 +7,7 @@ import { Search, X, Mail, Linkedin, Github, Globe, ArrowRight } from "lucide-rea
 import RemoteImage from "@/components/RemoteImage";
 import clubData from "../AllDatas/data.json";
 import { sortLeadershipTeam } from "@/lib/publicTeam";
+import { partitionTeamRoster } from "@/lib/teamRoster.mjs";
 
 const AVATAR_FILLS = [
   "bg-ink text-paper",
@@ -81,9 +82,14 @@ export default function TeamPageClient({
     });
   };
 
-  const sortedLeadership = useMemo(() => sortLeadershipTeam(leadershipTeam), [leadershipTeam]);
+  const sortedLeadership = useMemo(() => sortLeadershipTeam(activeLeadershipTeam), [activeLeadershipTeam]);
+  const { leadership: activeLeadershipTeam, activeMembers, alumni: alumniMembers } = useMemo(
+    () => partitionTeamRoster(leadershipTeam, teamMembers),
+    [leadershipTeam, teamMembers]
+  );
   const filteredLeadership = getFilteredPeople(sortedLeadership);
-  const filteredTeamMembers = getFilteredPeople(teamMembers);
+  const filteredTeamMembers = getFilteredPeople(activeMembers);
+  const filteredAlumniMembers = getFilteredPeople(alumniMembers);
   const filteredMentors = getFilteredPeople(mentors);
   const filteredResearchers = getFilteredPeople(researchers);
 
@@ -92,6 +98,7 @@ export default function TeamPageClient({
   const filteredTotal =
     filteredLeadership.length +
     filteredTeamMembers.length +
+    filteredAlumniMembers.length +
     filteredMentors.length +
     filteredResearchers.length;
 
@@ -106,10 +113,11 @@ export default function TeamPageClient({
   const foundedYear = clubData?.clubInfo?.founded;
 
   const counts = [
-    { value: leadershipTeam.length, label: "leadership" },
+    { value: activeLeadershipTeam.length, label: "leadership" },
     { value: researchers.length, label: "researchers" },
     { value: mentors.length, label: mentors.length === 1 ? "mentor" : "mentors" },
-    { value: teamMembers.length, label: "team members" },
+    { value: activeMembers.length, label: "team members" },
+    { value: alumniMembers.length, label: "alumni" },
   ].filter((c) => c.value > 0);
 
   // Number the visible sections in order: [01], [02], ...
@@ -256,6 +264,24 @@ export default function TeamPageClient({
             gridClass="grid-cols-[repeat(auto-fill,minmax(220px,1fr))]"
           >
             {filteredTeamMembers.map((member) => (
+              <PersonCard
+                key={member.id || member._id}
+                person={member}
+                compact
+                onImageClick={setSelectedImage}
+              />
+            ))}
+          </PeopleSection>
+        )}
+
+        {filteredAlumniMembers.length > 0 && (
+          <PeopleSection
+            index={nextIndex()}
+            title="Alumni Members"
+            count={filteredAlumniMembers.length}
+            gridClass="grid-cols-[repeat(auto-fill,minmax(220px,1fr))]"
+          >
+            {filteredAlumniMembers.map((member) => (
               <PersonCard
                 key={member.id || member._id}
                 person={member}

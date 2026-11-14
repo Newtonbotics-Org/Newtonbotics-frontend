@@ -23,6 +23,7 @@ import {
   PASSING_YEARS,
   passingYearOptionLabel,
   passingYearToYearOfStudy,
+  passingYearToAcademicStartYear,
   yearOfStudyToPassingYear,
 } from "@/lib/academicYear";
 
@@ -119,6 +120,7 @@ export default function ProfileCompletionPage() {
   const [profileError, setProfileError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [academicYearChanged, setAcademicYearChanged] = useState(false);
   const [avatarFailed, setAvatarFailed] = useState(false);
 
   useEffect(() => {
@@ -143,6 +145,7 @@ export default function ProfileCompletionPage() {
 
   const handleProfileInputChange = (field, value) => {
     setProfileData(prev => ({ ...prev, [field]: value }));
+    if (field === 'yearOfStudy') setAcademicYearChanged(true);
     setProfileError("");
     setProfileMessage("");
   };
@@ -206,7 +209,12 @@ export default function ProfileCompletionPage() {
       }
       if (profileData.yearOfStudy && profileData.yearOfStudy !== OTHER_ACADEMIC_YEAR) {
         const yearOfStudy = passingYearToYearOfStudy(profileData.yearOfStudy);
-        if (yearOfStudy) payload.yearOfStudy = yearOfStudy;
+        if (yearOfStudy) {
+          payload.yearOfStudy = yearOfStudy;
+          if (academicYearChanged) {
+            payload.academicStartYear = passingYearToAcademicStartYear(profileData.yearOfStudy);
+          }
+        }
       }
       if (Array.isArray(profileData.skills) && profileData.skills.length > 0) {
         const uniqueSkills = Array.from(new Set(profileData.skills.map((s) => String(s).trim()))).filter(Boolean);
@@ -217,6 +225,7 @@ export default function ProfileCompletionPage() {
       if (result.success) {
         setProfileMessage("Profile updated successfully!");
         setIsEditing(false);
+        setAcademicYearChanged(false);
       } else {
         setProfileError(result.error);
       }
@@ -266,6 +275,7 @@ export default function ProfileCompletionPage() {
 
   const cancelEditing = () => {
     setIsEditing(false);
+    setAcademicYearChanged(false);
     if (user) {
       setProfileData({ firstName: user.firstName || "", lastName: user.lastName || "", phone: user.phone || "", department: user.department || "", yearOfStudy: yearOfStudyToPassingYear(user.yearOfStudy) || "", studentId: user.studentId || "", profileImageUrl: user.profileImageUrl || "", bio: user.bio || "", skills: user.skills || [] });
     }
@@ -375,7 +385,7 @@ export default function ProfileCompletionPage() {
                 {!isEditing && (
                   <button
                     type="button"
-                    onClick={() => setIsEditing(true)}
+                    onClick={() => { setAcademicYearChanged(false); setIsEditing(true); }}
                     className="nb-btn nb-btn-secondary nb-btn-sm h-11"
                   >
                     <Pencil size={16} aria-hidden="true" /> Edit

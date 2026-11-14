@@ -11,9 +11,22 @@ export const PASSING_YEARS = Array.from(
 );
 
 export function getCurrentAcademicStartYear(now = new Date()) {
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
-  return month >= ACADEMIC_YEAR_START_MONTH ? year : year - 1;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  }).formatToParts(now);
+  const date = Object.fromEntries(parts.map(({ type, value }) => [type, Number(value)]));
+  return date.month > ACADEMIC_YEAR_START_MONTH ||
+    (date.month === ACADEMIC_YEAR_START_MONTH && date.day >= 10)
+    ? date.year
+    : date.year - 1;
+}
+
+export function passingYearToAcademicStartYear(passingYear) {
+  const year = Number(passingYear);
+  return Number.isInteger(year) ? year - BTECH_DURATION_YEARS : null;
 }
 
 /** Passing 2027 in Aug 2026 → 4th year (admitted Aug 2023). */

@@ -21,6 +21,7 @@ import {
   PASSING_YEARS,
   passingYearOptionLabel,
   passingYearToYearOfStudy,
+  passingYearToAcademicStartYear,
 } from "@/lib/academicYear";
 
 const roles = [
@@ -207,7 +208,10 @@ function AuthPageContent() {
         ...(formData.role === "student" && {
           studentId: formData.studentId.trim(),
           department: formData.department,
-          ...(derivedYearOfStudy ? { yearOfStudy: derivedYearOfStudy } : {}),
+          ...(derivedYearOfStudy ? {
+            yearOfStudy: derivedYearOfStudy,
+            academicStartYear: passingYearToAcademicStartYear(formData.yearOfStudy),
+          } : {}),
         }),
         // Validated above as an Indian mobile; send it as +91XXXXXXXXXX, the format the API accepts
         phone: `+91${formData.phone.replace(/\D/g, "").slice(-10)}`,
