@@ -13,6 +13,9 @@ import authService from "@/lib/auth";
 const ProjectRequestPage = () => {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
+  const requesterId = user?.id || user?._id || user?.userId || "";
+  const requesterName = user?.fullName || user?.displayName ||
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ") || user?.email || "";
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -25,6 +28,7 @@ const ProjectRequestPage = () => {
   const [editingRequest, setEditingRequest] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [users, setUsers] = useState([]);
+  const [memberSearch, setMemberSearch] = useState("");
 
   const [formData, setFormData] = useState({
     title: "",
@@ -37,7 +41,6 @@ const ProjectRequestPage = () => {
     endDate: "",
     budget: "",
     estimatedHours: "",
-    teamLeaderId: "",
     mentorId: "",
     imageUrl: "",
     videoUrl: "",
@@ -221,7 +224,6 @@ const ProjectRequestPage = () => {
       endDate: request.endDate ? request.endDate.slice(0, 10) : "",
       budget: request.budget ?? "",
       estimatedHours: request.estimatedHours ?? "",
-      teamLeaderId: request.teamLeaderId?._id || request.teamLeaderId?.id || request.teamLeaderId || "",
       mentorId: request.mentorId?._id || request.mentorId || "",
       imageUrl: request.imageUrl || "",
       videoUrl: request.videoUrl || "",
@@ -237,9 +239,12 @@ const ProjectRequestPage = () => {
       requiredResources: request.requiredResources && request.requiredResources.length > 0 ? request.requiredResources : [""],
       teamMembers: (request.teamMembers || []).map(member => ({
         ...member,
+        userName: member.userName || member.userId?.fullName || member.userId?.displayName ||
+          [member.userId?.firstName, member.userId?.lastName].filter(Boolean).join(" "),
         userId: member.userId?._id || member.userId?.id || member.userId || "",
         skills: Array.isArray(member.skills) ? member.skills : []
-      })),
+      })).filter(member => member.userId && member.userId !== requesterId)
+        .filter((member, index, list) => list.findIndex(item => item.userId === member.userId) === index),
       resources: request.resources || [],
       document: documentData
     });
@@ -260,7 +265,6 @@ const ProjectRequestPage = () => {
       endDate: "",
       budget: "",
       estimatedHours: "",
-      teamLeaderId: "",
       mentorId: "",
       imageUrl: "",
       videoUrl: "",
@@ -373,18 +377,32 @@ const ProjectRequestPage = () => {
     }));
   };
 
-  const addTeamMember = () => {
+  const addTeamMember = (person) => {
+    const userId = person.id || person._id || person.userId;
+    if (!userId || userId === requesterId) return;
     setFormData(prev => ({
       ...prev,
-      teamMembers: [...prev.teamMembers, {
-        userId: "",
-        proposedRole: "",
+      teamMembers: prev.teamMembers.some(member => member.userId === userId) ? prev.teamMembers : [...prev.teamMembers, {
+        userId,
+        userName: person.fullName || person.displayName || [person.firstName, person.lastName].filter(Boolean).join(" "),
+        proposedRole: "Member",
         skills: [""],
         responsibilities: [],
         contribution: "",
         availabilityHoursPerWeek: 0
       }]
     }));
+  };
+
+  const selectableMembers = users.filter(member => (member.id || member._id || member.userId) !== requesterId);
+  const matchingMembers = selectableMembers.filter(member => {
+    const name = member.fullName || member.displayName || [member.firstName, member.lastName].filter(Boolean).join(" ");
+    return `${name} ${member.email || ""}`.toLowerCase().includes(memberSearch.trim().toLowerCase());
+  });
+  const getTeamMemberName = (userId, fallbackName) => {
+    const member = selectableMembers.find(person => (person.id || person._id || person.userId) === userId);
+    return fallbackName || member?.fullName || member?.displayName ||
+      [member?.firstName, member?.lastName].filter(Boolean).join(" ") || member?.email || userId;
   };
 
   const removeTeamMember = (index) => {
@@ -482,21 +500,21 @@ const ProjectRequestPage = () => {
         tags: formData.tags.map(value => value.trim()).filter(Boolean),
         budget: formData.budget === "" ? undefined : Number(formData.budget),
         estimatedHours: formData.estimatedHours === "" ? undefined : Number(formData.estimatedHours),
-        teamMembers: formData.teamMembers.map(member => ({
-          ...member,
-          skills: member.skills.filter(skill => skill.trim() !== ""),
-          responsibilities: member.responsibilities || [],
-          availabilityHoursPerWeek: member.availabilityHoursPerWeek || undefined,
-        })).filter(member => member.userId && member.proposedRole),
         objectives: formData.objectives.filter(obj => obj.trim() !== ""),
         expectedOutcomes: formData.expectedOutcomes.filter(out => out.trim() !== ""),
         requiredResources: formData.requiredResources.filter(res => res.trim() !== ""),
-        teamMembers: formData.teamMembers.map(member => ({
-          ...member,
-          skills: member.skills.filter(skill => skill.trim() !== "")
-        })).filter(member => member.userId && member.proposedRole),
         resources: formData.resources.filter(res => res.description.trim() !== "")
       };
+      cleanedData.teamMembers = formData.teamMembers
+        .filter((member, index, list) => member.userId && member.userId !== requesterId &&
+          list.findIndex(item => item.userId === member.userId) === index)
+        .map(member => ({
+          ...member,
+          proposedRole: member.proposedRole || "Member",
+          skills: member.skills.filter(skill => skill.trim() !== ""),
+          responsibilities: member.responsibilities || [],
+          availabilityHoursPerWeek: member.availabilityHoursPerWeek || undefined,
+        }));
 
       // Include document URL if uploaded via Cloudinary
       if (formData.document && (formData.document.secureUrl || formData.document.url)) {
@@ -601,7 +619,6 @@ const ProjectRequestPage = () => {
           endDate: "",
           budget: "",
           estimatedHours: "",
-          teamLeaderId: "",
           mentorId: "",
           imageUrl: "",
           videoUrl: "",
@@ -1119,11 +1136,8 @@ const ProjectRequestPage = () => {
                       <input id="pr-estimated-hours" type="number" name="estimatedHours" value={formData.estimatedHours} onChange={handleInputChange} min={1} className="nb-input" />
                     </div>
                     <div className="flex flex-col gap-2">
-                      <label htmlFor="pr-team-leader" className="nb-label">Team leader <span className="text-[#B91C1C]" aria-hidden="true">*</span></label>
-                      <select id="pr-team-leader" name="teamLeaderId" value={formData.teamLeaderId} onChange={handleInputChange} required className="nb-input">
-                        <option value="">Select a team leader</option>
-                        {users.filter(member => ["team_member", "mentor", "researcher", "admin"].includes((member.role || "").toLowerCase())).map(member => <option key={member.id} value={member.id}>{`${member.firstName || ""} ${member.lastName || ""}`.trim() || member.email || member.id}</option>)}
-                      </select>
+                      <label htmlFor="pr-team-leader" className="nb-label">Team leader</label>
+                      <input id="pr-team-leader" value={requesterName} readOnly aria-readonly="true" className="nb-input" />
                     </div>
                     <div className="flex flex-col gap-2">
                       <label htmlFor="pr-mentor" className="nb-label">Mentor</label>
@@ -1159,15 +1173,44 @@ const ProjectRequestPage = () => {
                   </div>
 
                   <fieldset className="m-0 flex min-w-0 flex-col gap-4 border-0 border-t border-line-soft p-0 pt-5">
-                    <legend className="nb-label">Initial team members</legend>
+                    <legend className="nb-label">Team members</legend>
+                    <div className="flex flex-col gap-3">
+                      <label htmlFor="pr-member-search" className="nb-label">Search registered members</label>
+                      <input
+                        id="pr-member-search"
+                        type="search"
+                        value={memberSearch}
+                        onChange={event => setMemberSearch(event.target.value)}
+                        placeholder="Search by name or email"
+                        className="nb-input"
+                      />
+                      <div role="listbox" aria-label="Available team members" aria-multiselectable="true" className="max-h-48 overflow-y-auto rounded-md border border-line">
+                        {matchingMembers.length ? matchingMembers.map(person => {
+                          const personId = person.id || person._id || person.userId;
+                          const selected = formData.teamMembers.some(member => member.userId === personId);
+                          const label = [person.firstName, person.lastName].filter(Boolean).join(" ") || person.fullName || person.displayName || person.email || personId;
+                          return (
+                            <button
+                              key={personId}
+                              type="button"
+                              role="option"
+                              aria-selected={selected}
+                              disabled={selected}
+                              onClick={() => addTeamMember(person)}
+                              className="flex w-full items-center justify-between border-b border-line-soft px-3 py-2 text-left last:border-b-0 disabled:cursor-default disabled:opacity-60"
+                            >
+                              <span>{label}{person.email && label !== person.email ? ` · ${person.email}` : ""}</span>
+                              <span className="text-sm text-ink-muted">{selected ? "Added" : "Add"}</span>
+                            </button>
+                          );
+                        }) : <p className="m-0 px-3 py-2 text-sm text-ink-muted">No members found.</p>}
+                      </div>
+                    </div>
                     {formData.teamMembers.map((member, index) => (
                       <div key={`member-${index}`} className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] items-end gap-3 rounded-md border border-line bg-paper p-4">
                         <div className="flex flex-col gap-2">
-                          <label htmlFor={`pr-member-user-${index}`} className="nb-label">Member</label>
-                          <select id={`pr-member-user-${index}`} value={member.userId} onChange={event => handleTeamMemberChange(index, "userId", event.target.value)} className="nb-input">
-                            <option value="">Select a member</option>
-                            {users.map(person => <option key={person.id} value={person.id}>{`${person.firstName || ""} ${person.lastName || ""}`.trim() || person.email || person.id}</option>)}
-                          </select>
+                          <span className="nb-label">Member</span>
+                          <span className="nb-input" aria-label={`Selected member ${index + 1}`}>{getTeamMemberName(member.userId, member.userName)}</span>
                         </div>
                         <div className="flex flex-col gap-2">
                           <label htmlFor={`pr-member-role-${index}`} className="nb-label">Role</label>
@@ -1192,7 +1235,6 @@ const ProjectRequestPage = () => {
                         <button type="button" onClick={() => removeTeamMember(index)} aria-label={`Remove team member ${index + 1}`} className="nb-btn nb-btn-ghost justify-self-start">Remove member</button>
                       </div>
                     ))}
-                    {addRowButton("Add team member", addTeamMember)}
                   </fieldset>
                 </section>
 
